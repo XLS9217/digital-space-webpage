@@ -1,0 +1,98 @@
+/*
+========================================
+One header like this for one jsx file
+========================================
+ */
+
+.debug-panel-content {
+    height: calc(100% - 30px); /* Subtract the height of the drag handle */
+    overflow: hidden;
+    padding: 10px;
+}
+
+.debug-panel-content h3 {
+    margin: 0 0 12px 0;
+    padding: 0;
+    font-size: 15px;
+    color: white;
+    letter-spacing: 0.5px;
+}
+
+.debug-list {
+    list-style-type: none;
+    padding: 0;
+    margin: 0;
+    max-height: calc(100% - 25px); /* Account for the heading */
+    overflow-y: auto;
+}
+
+.debug-item {
+    padding: 3px 0;
+    font-size: 12px;
+    color: white;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.debug-item:last-child {
+    border-bottom: none;
+}
+
+.position-value {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.position-value span {
+    font-weight: 500;
+}
+
+.copy-icon {
+    color: white;
+    cursor: pointer;
+    opacity: 0.7;
+    transition: opacity 0.2s ease;
+    margin-left: 5px;
+}
+
+.copy-icon:hover {
+    opacity: 1;
+}
+
+.scene-data {
+    margin-top: 10px;
+    display: block;
+}
+
+.scene-data pre {
+    background: rgba(0, 0, 0, 0.3);
+    padding: 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    color: #e0e0e0;
+    overflow-x: auto;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    margin: 0;
+}
+
+/* Scrollbar styling for better appearance */
+.debug-list::-webkit-scrollbar {
+    width: 6px;
+}
+
+.debug-list::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 3px;
+}
+
+.debug-list::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.4);
+    border-radius: 3px;
+}
+
+.debug-list::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.6);
+}

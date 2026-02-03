@@ -1,0 +1,18 @@
+.debug-panel-overlay {
+    z-index: 9999;
+    background: rgba(30, 30, 30, 0.3);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 16px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+    color: white;
+    font-family: monospace;
+    overflow: hidden;
+    transition: background 0.3s ease;
+}
+
+.debug-panel-overlay:hover {
+    background: rgba(30, 30, 30, 0.4);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}

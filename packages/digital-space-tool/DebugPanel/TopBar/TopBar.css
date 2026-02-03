@@ -1,0 +1,25 @@
+/*
+ ===============================================
+ Drag Handle
+ ===============================================
+  */
+
+ .drag-handle {
+     display: flex;
+     align-items: center;
+     justify-content: flex-start;
+     height: 20px;
+     padding: 7px 10px 7px 10px; /* Equal padding on top/bottom, consistent on sides */
+     border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+     user-select: none;
+ }
+
+ .topbar-title {
+     flex: 1;
+     text-align: center;
+     color: white;
+     font-size: 14px;
+     font-weight: 600;
+     letter-spacing: 0.3px;
+ }
+
