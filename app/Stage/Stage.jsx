@@ -1,7 +1,29 @@
 import { useState, useEffect } from 'react'
 import DigitalSpace from 'digital-space-tool/DigitalSpace.jsx'
 import DigitalScene from "digital-space-tool/DigitalScene.jsx";
+import tagRegistry from 'digital-space-tool/TagRegistry.js'
 import { getSceneByName } from "../API/gateway.js";
+import './Stage.css'
+
+function ClassroomTag({ name }) {
+    return (
+        <div className="stage-tag stage-tag--classroom">
+            {name}
+        </div>
+    )
+}
+
+function MeetingTag({ name }) {
+    return (
+        <div className="stage-tag stage-tag--meeting">
+            {name}
+        </div>
+    )
+}
+
+tagRegistry
+    .register('CLASSROOM', ClassroomTag)
+    .register('MEETING', MeetingTag)
 
 export default function Stage()
 {

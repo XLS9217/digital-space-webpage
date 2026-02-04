@@ -4,6 +4,17 @@ class TagRegistry {
     }
 
     register(prefix, component) {
+        const hasNamePropType = component?.propTypes && Object.prototype.hasOwnProperty.call(component.propTypes, 'name');
+        const hasNameDefault = component?.defaultProps && Object.prototype.hasOwnProperty.call(component.defaultProps, 'name');
+
+        if (typeof component !== 'function') {
+            throw new Error('TagRegistry.register: component must be a function.');
+        }
+
+        if (component.length < 1 && !hasNamePropType && !hasNameDefault) {
+            throw new Error('TagRegistry.register: component must accept a `name` prop.');
+        }
+
         this.registry.set(prefix, component);
         return this;
     }

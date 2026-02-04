@@ -1,6 +1,28 @@
 import { useGLTF, Html } from '@react-three/drei'
 import { useEffect, useState } from 'react';
 import { eventChannelHub, DEBUG_CHANNELS } from './EventChannelHub';
+import tagRegistry from './TagRegistry'
+
+function DefaultTag({ name }) {
+    return <span>{name}</span>
+}
+
+tagRegistry.register('DEFAULT', DefaultTag)
+
+function parseTagName(rawName) {
+    if (!rawName) {
+        return { prefix: 'DEFAULT', tagName: '' }
+    }
+
+    const parts = rawName.split('_')
+
+    if (parts.length < 2) {
+        return { prefix: 'DEFAULT', tagName: rawName }
+    }
+
+    const [prefix, ...rest] = parts
+    return { prefix, tagName: rest.join('_') }
+}
 
 function BaseModel({ url, name, scale = 1 }) {
     const { scene } = useGLTF(url)
@@ -13,7 +35,6 @@ function BaseModel({ url, name, scale = 1 }) {
 
 function FrameModel({ url, name, scale = 1 }) {
     const { scene } = useGLTF(url)
-    console.log(scene)
     // Get child models from the root group's children
     const children = scene.children[0]?.children || []
     const [hoveredIndex, setHoveredIndex] = useState(null)
@@ -39,26 +60,27 @@ function FrameModel({ url, name, scale = 1 }) {
                 name={name}
                 scale={scale}
             />
-            {children.map((child, index) => (
-                <Html key={index} position={child.position} center>
-                    <div
-                        style={{
-                            background: 'rgba(255, 255, 255, 0.9)',
-                            padding: '5px 10px',
-                            border: '1px solid #000',
-                            color: '#000',
-                            fontSize: '14px',
-                            whiteSpace: 'nowrap',
-                            pointerEvents: 'auto',
-                            cursor: 'pointer'
-                        }}
-                        onMouseEnter={() => setHoveredIndex(index)}
-                        onMouseLeave={() => setHoveredIndex(null)}
+            {children.map((child, index) => {
+                const { prefix, tagName } = parseTagName(child.name)
+                // console.log(tagName)
+                const TagComponent = tagRegistry.get(prefix) || tagRegistry.get('DEFAULT')
+
+                return (
+                    <Html
+                        key={index}
+                        position={child.position}
+                        center
+                        distanceFactor={20}
                     >
-                        {child.name}
-                    </div>
-                </Html>
-            ))}
+                        <div
+                            onMouseEnter={() => setHoveredIndex(index)}
+                            onMouseLeave={() => setHoveredIndex(null)}
+                        >
+                            <TagComponent name={tagName} />
+                        </div>
+                    </Html>
+                )
+            })}
         </group>
     )
 }

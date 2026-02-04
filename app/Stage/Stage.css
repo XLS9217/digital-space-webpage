@@ -1,0 +1,21 @@
+.stage-tag {
+    display: inline-block;
+    white-space: nowrap;
+    width: fit-content;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-weight: 600;
+    color: #1f2a44;
+    padding: 4px 8px;
+    border-radius: 6px;
+    border: 1px solid rgba(31, 42, 68, 0.2);
+}
+
+.stage-tag--classroom {
+    background: #d6e7ff;
+}
+
+.stage-tag--meeting {
+    background: #ffe2c6;
+}
