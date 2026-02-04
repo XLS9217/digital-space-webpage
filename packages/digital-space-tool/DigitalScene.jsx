@@ -40,12 +40,13 @@ function FrameModel({ url, name, scale = 1 }) {
                 scale={scale}
             />
             {children.map((child, index) => (
-                <Html key={index} position={child.position}>
+                <Html key={index} position={child.position} center>
                     <div
                         style={{
                             background: 'rgba(255, 255, 255, 0.9)',
                             padding: '5px 10px',
-                            borderRadius: '4px',
+                            border: '1px solid #000',
+                            color: '#000',
                             fontSize: '14px',
                             whiteSpace: 'nowrap',
                             pointerEvents: 'auto',
