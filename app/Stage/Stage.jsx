@@ -22,7 +22,7 @@ function MeetingTag({ name }) {
 }
 
 tagRegistry
-    .register('CLASSROOM', ClassroomTag)
+    .register('CLASSROOM', ClassroomTag, { distanceFactor: 40 })
     .register('MEETING', MeetingTag)
 
 export default function Stage()

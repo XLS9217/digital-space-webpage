@@ -63,14 +63,16 @@ function FrameModel({ url, name, scale = 1 }) {
             {children.map((child, index) => {
                 const { prefix, tagName } = parseTagName(child.name)
                 // console.log(tagName)
-                const TagComponent = tagRegistry.get(prefix) || tagRegistry.get('DEFAULT')
+                const entry = tagRegistry.get(prefix) || tagRegistry.get('DEFAULT')
+                const TagComponent = entry?.component
+                const distanceFactor = entry?.distanceFactor
 
                 return (
                     <Html
                         key={index}
                         position={child.position}
                         center
-                        distanceFactor={20}
+                        distanceFactor={distanceFactor}
                     >
                         <div
                             onMouseEnter={() => setHoveredIndex(index)}

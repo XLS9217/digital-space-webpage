@@ -3,7 +3,8 @@ class TagRegistry {
         this.registry = new Map();
     }
 
-    register(prefix, component) {
+    register(prefix, component, options = {}) {
+        const { distanceFactor = undefined } = options;
         const hasNamePropType = component?.propTypes && Object.prototype.hasOwnProperty.call(component.propTypes, 'name');
         const hasNameDefault = component?.defaultProps && Object.prototype.hasOwnProperty.call(component.defaultProps, 'name');
 
@@ -15,7 +16,10 @@ class TagRegistry {
             throw new Error('TagRegistry.register: component must accept a `name` prop.');
         }
 
-        this.registry.set(prefix, component);
+        this.registry.set(prefix, {
+            component,
+            distanceFactor
+        });
         return this;
     }
 
