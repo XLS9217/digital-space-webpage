@@ -63,6 +63,7 @@ export default function FrameModel({ url, name, scale = 1 }) {
 
                 return (
                     <Html
+                        zIndexRange={[0, 100]}
                         key={index}
                         position={child.position}
                         center
