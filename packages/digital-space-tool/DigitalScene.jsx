@@ -33,6 +33,10 @@ function BaseModel({ url, name, scale = 1 }) {
     />
 }
 
+/*
+    Assumption
+    the prefix is separated by _ at front, processed in parseTagName
+ */
 function FrameModel({ url, name, scale = 1 }) {
     const { scene } = useGLTF(url)
     // Get child models from the root group's children

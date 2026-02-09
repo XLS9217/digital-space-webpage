@@ -6,3 +6,7 @@ To have user use
 </DigitalSpace>
 ```
 and load some setting to make it work
+
+default model
+frame model
+    tag registory 

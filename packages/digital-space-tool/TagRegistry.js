@@ -3,6 +3,12 @@ class TagRegistry {
         this.registry = new Map();
     }
 
+    /*
+     prefix is processed in Frame Model, for the word separated by _ at a front
+     component must accept a name prop
+     options are for Html component in drei
+     */
+
     register(prefix, component, options = {}) {
         const { distanceFactor = undefined } = options;
         const hasNamePropType = component?.propTypes && Object.prototype.hasOwnProperty.call(component.propTypes, 'name');
