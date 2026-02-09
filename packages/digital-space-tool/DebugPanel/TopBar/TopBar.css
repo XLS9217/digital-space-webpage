@@ -23,3 +23,25 @@
      letter-spacing: 0.3px;
  }
 
+ .json-toggle-button {
+     background: none;
+     border: none;
+     outline: none;
+     color: rgba(255, 255, 255, 0.5);
+     font-size: 14px;
+     font-weight: 600;
+     padding: 2px 8px;
+     margin-right: 8px;
+     cursor: pointer;
+     transition: color 0.2s ease;
+     font-family: monospace;
+ }
+
+ .json-toggle-button:hover {
+     color: rgba(255, 255, 255, 1);
+ }
+
+ .json-toggle-button:focus {
+     outline: none;
+ }
+

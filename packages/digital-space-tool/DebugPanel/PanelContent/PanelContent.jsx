@@ -3,7 +3,7 @@ import { eventChannelHub, DEBUG_CHANNELS } from "../../EventChannelHub";
 import { CopyIcon } from "../CodeSvg";
 import './PanelContent.css';
 
-export default function PanelContent({ sceneData }) {
+export default function PanelContent({ sceneData, showJson }) {
 
     const FLOAT_PRECISION = 3;
 
@@ -67,17 +67,31 @@ export default function PanelContent({ sceneData }) {
 
     return (
         <div className="debug-panel-content">
-            <h3>Debug Info</h3>
-            <div className="debug-list">
-                <div className="debug-item">
-                    {renderPosition()}
-                </div>
-                {sceneData && (
-                    <div className="debug-item scene-data">
-                        <pre>{JSON.stringify(sceneData, null, 2)}</pre>
+            {showJson ? (
+                <>
+                    <h3>Scene JSON</h3>
+                    <div className="debug-list">
+                        {sceneData ? (
+                            <div className="debug-item scene-data">
+                                <pre>{JSON.stringify(sceneData, null, 2)}</pre>
+                            </div>
+                        ) : (
+                            <div className="debug-item">
+                                <span>No scene data available</span>
+                            </div>
+                        )}
                     </div>
-                )}
-            </div>
+                </>
+            ) : (
+                <>
+                    <h3>Debug Info</h3>
+                    <div className="debug-list">
+                        <div className="debug-item">
+                            {renderPosition()}
+                        </div>
+                    </div>
+                </>
+            )}
         </div>
     );
 }

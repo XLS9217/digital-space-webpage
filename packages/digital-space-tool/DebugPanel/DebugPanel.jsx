@@ -10,6 +10,7 @@ export default function DebugPanel() {
     const [isCollapsed, setIsCollapsed] = useState(false);
     const [sceneData, setSceneData] = useState(null);
     const [size, setSize] = useState({ width: 300, height: 400 });
+    const [showJson, setShowJson] = useState(false);
     const isResizing = useRef(false);
 
     // Fixed dimensions for the panel - commented as requested
@@ -86,8 +87,10 @@ export default function DebugPanel() {
                 setIsCollapsed={setIsCollapsed}
                 isCollapsed={isCollapsed}
                 sceneName={sceneData?.scene || "[scene]"}
+                showJson={showJson}
+                setShowJson={setShowJson}
             />
-            {!isCollapsed && <PanelContent sceneData={sceneData} />}
+            {!isCollapsed && <PanelContent sceneData={sceneData} showJson={showJson} />}
             {!isCollapsed && (
                 <div
                     className="resize-handle"

@@ -1,9 +1,9 @@
-import { MoveIcon } from '../CodeSvg';
+import { MoveIcon, CodeBracketsIcon } from '../CodeSvg';
 import CollapseToggle from './CollapseToggle';
 import useDragHandle from './DragHandle';
 import './TopBar.css';
 
-export default function TopBar({ panelWidth, panelHeight, setPanelPosition, setIsCollapsed, isCollapsed, sceneName }) {
+export default function TopBar({ panelWidth, panelHeight, setPanelPosition, setIsCollapsed, isCollapsed, sceneName, showJson, setShowJson }) {
     const { handleRef, handleMouseDown } = useDragHandle(panelWidth, panelHeight, setPanelPosition);
     console.log("sceneName", sceneName);
     return (
@@ -18,6 +18,13 @@ export default function TopBar({ panelWidth, panelHeight, setPanelPosition, setI
             <div className="topbar-title">
                 Debug{sceneName && `:${sceneName}`}
             </div>
+            <button
+                className="json-toggle-button"
+                onClick={() => setShowJson(!showJson)}
+                title={showJson ? "Show camera view" : "Show scene JSON"}
+            >
+                &lt;/&gt;
+            </button>
             <CollapseToggle
                 isCollapsed={isCollapsed}
                 setIsCollapsed={setIsCollapsed}
