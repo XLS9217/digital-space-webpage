@@ -1,5 +1,5 @@
 .debug-panel-overlay {
-    z-index: 9999;
+    z-index: 999999;
     background: rgba(30, 30, 30, 0.3);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
@@ -15,4 +15,19 @@
 .debug-panel-overlay:hover {
     background: rgba(30, 30, 30, 0.4);
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+.resize-handle {
+    user-select: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+}
+
+.resize-handle:hover svg {
+    opacity: 0.8 !important;
+}
+
+.resize-handle:active svg {
+    opacity: 1 !important;
 }

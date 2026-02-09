@@ -64,3 +64,21 @@ export const CopyIcon = ({ size = 20, color = "currentColor", ...props }) => (
         <rect x="4" y="9" width="11" height="11" rx="2" ry="2" />
     </svg>
 );
+
+export const ResizeSlashIcon = ({ size = 20, color = "currentColor", ...props }) => (
+    <svg
+        width={size}
+        height={size}
+        viewBox="0 0 20 20"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+        {...props}
+    >
+        <path
+            d="M 20 14 L 20 20 L 14 20 M 20 8 L 20 14 L 14 14 L 8 20 L 14 20 M 20 2 L 20 8 L 14 8 L 8 14 L 2 20 L 8 20 L 14 14 L 20 8"
+            fill="none"
+            stroke={color}
+            strokeWidth="1.5"
+        />
+    </svg>
+);

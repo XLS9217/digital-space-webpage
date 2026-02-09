@@ -2,8 +2,9 @@ import { useState, useEffect } from 'react'
 import DigitalSpace from 'digital-space-tool/DigitalSpace.jsx'
 import DigitalScene from "digital-space-tool/DigitalScene/DigitalScene.jsx";
 import { getSceneByName } from "../API/gateway.js";
-import TagStyleRegister from './TagStyleRegister.jsx'
+import {ClassroomTag, MeetingTag} from './TagStyleRegister.jsx'
 import './Stage.css'
+import tagRegistry from "../../packages/digital-space-tool/TagRegistry.js";
 
 export default function Stage()
 {
@@ -18,11 +19,22 @@ export default function Stage()
         })
     }, [])
 
+    useEffect(() => {
+        tagRegistry
+            .register('CLASSROOM', ClassroomTag, { distanceFactor: 40 })
+            .register('MEETING', MeetingTag)
+
+        return () => {
+            tagRegistry
+                .unregister('CLASSROOM')
+                .unregister('MEETING')
+        }
+    }, [])
+
     return (
         <DigitalSpace
             debug={true}
         >
-            <TagStyleRegister />
             <DigitalScene scene_data={sceneData} />
         </DigitalSpace>
     )
