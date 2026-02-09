@@ -23,10 +23,18 @@ export default function DigitalScene({ scene_data }) {
         <group>
             <SceneLights />
             {models.map((model, index) => {
+                const modelProps = {
+                    key: index,
+                    url: model.url,
+                    name: model.name,
+                    scale: model.scale,
+                    position: model.position,
+                    rotation: model.rotation
+                };
                 if (model.type === 'frame') {
-                    return <FrameModel key={index} url={model.url} name={model.name} scale={model.scale} />
+                    return <FrameModel {...modelProps} />
                 } else {
-                    return <BaseModel key={index} url={model.url} name={model.name} scale={model.scale} />
+                    return <BaseModel {...modelProps} />
                 }
             })}
         </group>

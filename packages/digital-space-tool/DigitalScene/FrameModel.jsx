@@ -27,7 +27,7 @@ function parseTagName(rawName) {
     Assumption
     the prefix is separated by _ at front, processed in parseTagName
  */
-export default function FrameModel({ url, name, scale = 1 }) {
+export default function FrameModel({ url, name, scale = 1, position = [0, 0, 0], rotation = [0, 0, 0] }) {
     const { scene } = useGLTF(url)
     // Get child models from the root group's children
     const children = scene.children[0]?.children || []
@@ -48,7 +48,7 @@ export default function FrameModel({ url, name, scale = 1 }) {
     }, [hoveredIndex, children])
 
     return (
-        <group>
+        <group position={position} rotation={rotation}>
             <primitive
                 object={scene}
                 name={name}

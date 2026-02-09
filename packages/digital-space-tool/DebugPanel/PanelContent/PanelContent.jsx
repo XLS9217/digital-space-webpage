@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { eventChannelHub, DEBUG_CHANNELS } from "../../EventChannelHub";
 import { CopyIcon } from "../CodeSvg";
+import ModelList from "./ModelList";
+import LightList from "./LightList";
 import './PanelContent.css';
 
 export default function PanelContent({ sceneData, showJson }) {
@@ -89,6 +91,10 @@ export default function PanelContent({ sceneData, showJson }) {
                         <div className="debug-item">
                             {renderPosition()}
                         </div>
+                        <h3>Model List</h3>
+                        <ModelList models={sceneData?.models} />
+                        <h3>Light List</h3>
+                        <LightList lights={sceneData?.lights} />
                     </div>
                 </>
             )}

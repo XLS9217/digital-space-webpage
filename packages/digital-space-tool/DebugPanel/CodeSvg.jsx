@@ -34,14 +34,14 @@ export const ChevronIcon = ({ size = 20, color = "currentColor", isCollapsed = f
         strokeLinejoin="round"
         style={{
             transition: 'transform 0.2s ease-in-out',
-            transform: isCollapsed ? 'rotate(180deg)' : 'rotate(0deg)',
+            transform: isCollapsed ? 'rotate(-90deg)' : 'rotate(0deg)',
             transformOrigin: 'center',
             cursor: 'pointer',
             ...style
         }}
         {...props}
     >
-        <polyline points="18 15 12 9 6 15" />
+        <polyline points="6 9 12 15 18 9" />
     </svg>
 );
 
@@ -100,5 +100,27 @@ export const CodeBracketsIcon = ({ size = 20, color = "currentColor", ...props }
         <polyline points="16 18 22 12 16 6" />
         {/* Right bracket > */}
         <polyline points="8 6 2 12 8 18" />
+    </svg>
+);
+
+export const PrinterIcon = ({ size = 20, color = "currentColor", ...props }) => (
+    <svg
+        width={size}
+        height={size}
+        viewBox="0 0 24 24"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+        stroke={color}
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        {...props}
+    >
+        {/* Top paper tray */}
+        <path d="M6 9V2h12v7" />
+        {/* Printer body */}
+        <path d="M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2" />
+        {/* Bottom output paper */}
+        <rect x="6" y="14" width="12" height="8" rx="1" ry="1" />
     </svg>
 );
