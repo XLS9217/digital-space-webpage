@@ -1,7 +1,6 @@
 import { useGLTF, Html } from '@react-three/drei'
 import { useEffect, useState } from 'react';
-import { eventChannelHub, DEBUG_CHANNELS } from './EventChannelHub';
-import tagRegistry from './TagRegistry'
+import tagRegistry from '../TagRegistry'
 
 function DefaultTag({ name }) {
     return <span>{name}</span>
@@ -24,20 +23,11 @@ function parseTagName(rawName) {
     return { prefix, tagName: rest.join('_') }
 }
 
-function BaseModel({ url, name, scale = 1 }) {
-    const { scene } = useGLTF(url)
-    return <primitive
-        object={scene}
-        name={name}
-        scale={scale}
-    />
-}
-
 /*
     Assumption
     the prefix is separated by _ at front, processed in parseTagName
  */
-function FrameModel({ url, name, scale = 1 }) {
+export default function FrameModel({ url, name, scale = 1 }) {
     const { scene } = useGLTF(url)
     // Get child models from the root group's children
     const children = scene.children[0]?.children || []
@@ -86,34 +76,6 @@ function FrameModel({ url, name, scale = 1 }) {
                         </div>
                     </Html>
                 )
-            })}
-        </group>
-    )
-}
-
-export default function DigitalScene({ scene_data }) {
-    useEffect(() => {
-        if (scene_data) {
-            eventChannelHub.publish(DEBUG_CHANNELS.INTERNAL_DEBUG_SCENE, scene_data);
-        }
-    }, [scene_data]);
-
-    if(!scene_data)
-    {
-        console.log("no scene data yet")
-        return null;
-    }
-
-    const models = scene_data.models;
-
-    return (
-        <group>
-            {models.map((model, index) => {
-                if (model.type === 'frame') {
-                    return <FrameModel key={index} url={model.url} name={model.name} scale={model.scale} />
-                } else {
-                    return <BaseModel key={index} url={model.url} name={model.name} scale={model.scale} />
-                }
             })}
         </group>
     )

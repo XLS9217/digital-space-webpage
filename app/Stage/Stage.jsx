@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import DigitalSpace from 'digital-space-tool/DigitalSpace.jsx'
-import DigitalScene from "digital-space-tool/DigitalScene.jsx";
+import DigitalScene from "digital-space-tool/DigitalScene/DigitalScene.jsx";
 import { getSceneByName } from "../API/gateway.js";
 import TagStyleRegister from './TagStyleRegister.jsx'
 import './Stage.css'
