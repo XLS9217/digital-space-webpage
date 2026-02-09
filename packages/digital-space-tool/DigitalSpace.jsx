@@ -25,7 +25,6 @@ export default function DigitalSpace({
         <>
             <Canvas style={{ width: "100vw", height: "100vh" }}>
                 <DigitalSpaceControl defaultStyle={defaultControlStyle}>
-                    <ambientLight intensity={0.5} />
                     <axesHelper args={[5]} />
                     {children}
                 </DigitalSpaceControl>

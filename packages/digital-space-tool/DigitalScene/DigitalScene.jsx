@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { eventChannelHub, DEBUG_CHANNELS } from '../EventChannelHub';
 import BaseModel from './BaseModel';
 import FrameModel from './FrameModel';
+import SceneLights from "./SceneLights";
 
 export default function DigitalScene({ scene_data }) {
     useEffect(() => {
@@ -20,6 +21,7 @@ export default function DigitalScene({ scene_data }) {
 
     return (
         <group>
+            <SceneLights />
             {models.map((model, index) => {
                 if (model.type === 'frame') {
                     return <FrameModel key={index} url={model.url} name={model.name} scale={model.scale} />
