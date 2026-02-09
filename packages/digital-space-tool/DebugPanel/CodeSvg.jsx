@@ -124,3 +124,23 @@ export const PrinterIcon = ({ size = 20, color = "currentColor", ...props }) => 
         <rect x="6" y="14" width="12" height="8" rx="1" ry="1" />
     </svg>
 );
+
+export const DownloadIcon = ({ size = 20, color = "currentColor", ...props }) => (
+    <svg
+        width={size}
+        height={size}
+        viewBox="0 0 24 24"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+        stroke={color}
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        {...props}
+    >
+        {/* Downward Arrow */}
+        <path d="M12 3v12m0 0l-4-4m4 4l4-4" />
+        {/* Tray / Bottom Container */}
+        <path d="M4 17v1a2 2 0 002 2h12a2 2 0 002-2v-1" />
+    </svg>
+);
