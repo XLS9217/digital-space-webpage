@@ -57,7 +57,7 @@ const LightItem = ({ light, index, onItemSerialized }) => {
 
     return (
         <DebugBlock
-            title={light.name || `Light ${index}`}
+            title={light.name || `Light ${index} NO name`}
             type={light.type}
         >
             <BarHandle
