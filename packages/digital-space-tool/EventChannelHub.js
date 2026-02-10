@@ -68,4 +68,4 @@ class EventChannelHub {
     }
 }
 export const eventChannelHub = new EventChannelHub();
-export { DEBUG_CHANNELS, INFO_CHANNELS };
+export { DEBUG_CHANNELS, INFO_CHANNELS, CONTROL_CHANNELS };

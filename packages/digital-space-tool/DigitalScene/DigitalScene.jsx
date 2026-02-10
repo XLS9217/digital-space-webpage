@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { eventChannelHub, DEBUG_CHANNELS } from '../EventChannelHub';
+import { eventChannelHub, DEBUG_CHANNELS, CONTROL_CHANNELS } from '../EventChannelHub';
 import BaseModel from './BaseModel';
 import FrameModel from './FrameModel';
 import SceneLights from "./SceneLights";
@@ -8,6 +8,11 @@ export default function DigitalScene({ scene_data }) {
     useEffect(() => {
         if (scene_data) {
             eventChannelHub.publish(DEBUG_CHANNELS.INTERNAL_DEBUG_SCENE, scene_data);
+
+            // Send control data if it exists
+            if (scene_data.control) {
+                eventChannelHub.publish(CONTROL_CHANNELS.CAMERA_CONTROL_UPDATE, scene_data.control);
+            }
         }
     }, [scene_data]);
 

@@ -13,8 +13,8 @@
 
 import { OrbitControls, PointerLockControls } from '@react-three/drei'
 import { useFrame, useThree } from '@react-three/fiber'
-import { useRef } from 'react'
-import { eventChannelHub, INFO_CHANNELS } from './EventChannelHub'
+import { useRef, useEffect } from 'react'
+import { eventChannelHub, INFO_CHANNELS, CONTROL_CHANNELS } from './EventChannelHub'
 
 export const ControlStyle = {
     ORBIT: 'orbit',
@@ -24,6 +24,47 @@ export const ControlStyle = {
 export default function DigitalSpaceControl({ controlType = ControlStyle.ORBIT }) {
     const { camera } = useThree()
     const orbitControlsRef = useRef()
+
+    // Subscribe to camera control updates
+    useEffect(() => {
+        const handleControlUpdate = (controlData) => {
+            if (!controlData) return;
+
+            // Update camera position
+            if (controlData.position) {
+                camera.position.set(
+                    controlData.position.x,
+                    controlData.position.y,
+                    controlData.position.z
+                );
+            }
+
+            // Update orbit controls target if available
+            if (controlData.target && orbitControlsRef.current) {
+                orbitControlsRef.current.target.set(
+                    controlData.target.x,
+                    controlData.target.y,
+                    controlData.target.z
+                );
+                orbitControlsRef.current.update();
+            }
+
+            // Update camera rotation for first-person controls
+            if (controlData.rotation) {
+                camera.rotation.set(
+                    controlData.rotation.x,
+                    controlData.rotation.y,
+                    controlData.rotation.z
+                );
+            }
+        };
+
+        eventChannelHub.subscribe(CONTROL_CHANNELS.CAMERA_CONTROL_UPDATE, handleControlUpdate);
+
+        return () => {
+            eventChannelHub.unsubscribe(CONTROL_CHANNELS.CAMERA_CONTROL_UPDATE, handleControlUpdate);
+        };
+    }, [camera]);
 
     useFrame(() => {
         let controlInfo
