@@ -27,11 +27,17 @@ function parseTagName(rawName) {
     Assumption
     the prefix is separated by _ at front, processed in parseTagName
  */
-export default function FrameModel({ url, name, scale = 1, position = [0, 0, 0], rotation = [0, 0, 0] }) {
+export default function FrameModel({ url, name, scale = 1, position = {x:0, y:0, z:0}, rotation = {x:0, y:0, z:0} }) {
     const { scene } = useGLTF(url)
     // Get child models from the root group's children
     const children = scene.children[0]?.children || []
     const [hoveredIndex, setHoveredIndex] = useState(null)
+
+    const posArr = [position.x || 0, position.y || 0, position.z || 0];
+    const rotArr = [rotation.x || 0, rotation.y || 0, rotation.z || 0];
+    const scaleArr = typeof scale === 'object' 
+        ? [scale.x || 1, scale.y || 1, scale.z || 1] 
+        : [scale, scale, scale];
 
     useEffect(() => {
         // Hide all children initially
@@ -48,11 +54,11 @@ export default function FrameModel({ url, name, scale = 1, position = [0, 0, 0],
     }, [hoveredIndex, children])
 
     return (
-        <group position={position} rotation={rotation}>
+        <group position={posArr} rotation={rotArr}>
             <primitive
                 object={scene}
                 name={name}
-                scale={scale}
+                scale={scaleArr}
             />
             {children.map((child, index) => {
                 const { prefix, tagName } = parseTagName(child.name)

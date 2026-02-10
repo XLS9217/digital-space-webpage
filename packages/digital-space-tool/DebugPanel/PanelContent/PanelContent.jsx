@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { eventChannelHub, DEBUG_CHANNELS } from "../../EventChannelHub";
-import { CopyIcon } from "../CodeSvg";
+import { CopyIcon, PrinterIcon, DownloadIcon } from "../CodeSvg";
 import ModelList from "./ModelList";
 import LightList from "./LightList";
 import './PanelContent.css';
@@ -31,6 +31,76 @@ export default function PanelContent({ sceneData, showJson }) {
             eventChannelHub.unsubscribe(DEBUG_CHANNELS.INTERNAL_DEBUG_CAMERA, handleDebugMessage);
         };
     }, []);
+
+    const getSanitizedSceneJson = () => {
+        if (!sceneData) return null;
+
+        const sanitizeVector = (vec) => {
+            if (!vec) return { x: 0, y: 0, z: 0 };
+            if (Array.isArray(vec)) return { x: vec[0], y: vec[1], z: vec[2] };
+            return {
+                x: vec.x || 0,
+                y: vec.y || 0,
+                z: vec.z || 0
+            };
+        };
+
+        const sanitizedModels = (sceneData.models || []).map(model => ({
+            name: model.name,
+            type: model.type,
+            file_location: model.file_location,
+            url: model.url, // KEEPING URL as it's in the input example
+            position: sanitizeVector(model.position),
+            rotation: sanitizeVector(model.rotation),
+            scale: typeof model.scale === 'number' 
+                ? { x: model.scale, y: model.scale, z: model.scale } 
+                : sanitizeVector(model.scale)
+        }));
+
+        return {
+            _id: sceneData._id,
+            scene: sceneData.scene,
+            camera: cameraPosition ? {
+                position: {
+                    x: parseFloat(cameraPosition.x.toFixed(FLOAT_PRECISION)),
+                    y: parseFloat(cameraPosition.y.toFixed(FLOAT_PRECISION)),
+                    z: parseFloat(cameraPosition.z.toFixed(FLOAT_PRECISION))
+                }
+            } : null,
+            lights: (sceneData.lights && sceneData.lights.length > 0) 
+                ? sceneData.lights.map(light => ({
+                    ...light,
+                    position: light.position ? sanitizeVector(light.position) : undefined
+                }))
+                : [
+                    { name: 'Ambient', type: 'AmbientLight', intensity: 0.5 },
+                    { name: 'Directional', type: 'DirectionalLight', intensity: 1, position: { x: 10, y: 10, z: 5 } }
+                ],
+            models: sanitizedModels
+        };
+    };
+
+    const handlePrint = () => {
+        const json = getSanitizedSceneJson();
+        if (json) {
+            console.log("Scene JSON:", json);
+        }
+    };
+
+    const handleDownload = () => {
+        const json = getSanitizedSceneJson();
+        if (!json) return;
+
+        const blob = new Blob([JSON.stringify(json, null, 2)], { type: "application/json" });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = `${json.scene || 'scene'}_${new Date().getTime()}.json`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+    };
 
     const handleCopy = () => {
         const jsonData = {
@@ -86,7 +156,23 @@ export default function PanelContent({ sceneData, showJson }) {
                 </>
             ) : (
                 <>
-                    <h3>Debug Info</h3>
+                    <div className="debug-header-row">
+                        <h3>Debug Info</h3>
+                        <div className="debug-actions">
+                            <PrinterIcon 
+                                size={16} 
+                                className="debug-action-icon" 
+                                onClick={handlePrint}
+                                title="Print Scene JSON to console"
+                            />
+                            <DownloadIcon 
+                                size={16} 
+                                className="debug-action-icon" 
+                                onClick={handleDownload}
+                                title="Download Scene JSON"
+                            />
+                        </div>
+                    </div>
                     <div className="debug-list">
                         <div className="debug-item">
                             {renderPosition()}
