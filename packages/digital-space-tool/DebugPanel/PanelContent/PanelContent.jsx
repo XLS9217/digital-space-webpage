@@ -18,9 +18,9 @@ export default function PanelContent({ sceneData, showJson }) {
             setControlInfo(data);
         };
 
-        eventChannelHub.subscribe(INFO_CHANNELS.CONTROL_INFO, handleControlInfo);
+        eventChannelHub.subscribe(INFO_CHANNELS.CAMERA_CONTROL_INFO, handleControlInfo);
         return () => {
-            eventChannelHub.unsubscribe(INFO_CHANNELS.CONTROL_INFO, handleControlInfo);
+            eventChannelHub.unsubscribe(INFO_CHANNELS.CAMERA_CONTROL_INFO, handleControlInfo);
         };
     }, []);
 

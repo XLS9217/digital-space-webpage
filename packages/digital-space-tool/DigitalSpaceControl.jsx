@@ -62,7 +62,7 @@ export default function DigitalSpaceControl({ controlType = ControlStyle.ORBIT }
         }
         // console.log(controlInfo)
         // Publish to the CONTROL_INFO channel
-        eventChannelHub.publish(INFO_CHANNELS.CONTROL_INFO, controlInfo)
+        eventChannelHub.publish(INFO_CHANNELS.CAMERA_CONTROL_INFO, controlInfo)
 
     })
 

@@ -4,19 +4,17 @@ const DEBUG_CHANNELS = {
 }
 
 const INFO_CHANNELS = {
-    CONTROL_INFO: "CONTROL_INFO",
+    CAMERA_CONTROL_INFO: "CAMERA_CONTROL_INFO",
+}
+
+const CONTROL_CHANNELS = {
+    CAMERA_CONTROL_UPDATE: "CAMERA_CONTROL_UPDATE"
 }
 
 class EventChannelHub {
     constructor() {
         // Store channels and their subscribers
         this.channels = new Map();
-        Object.values(DEBUG_CHANNELS).forEach((channelName) => {
-            this.channels.set(channelName, []);
-        });
-        Object.values(INFO_CHANNELS).forEach((channelName) => {
-            this.channels.set(channelName, []);
-        });
     }
 
     subscribe(channelName, callback)
