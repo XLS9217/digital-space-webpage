@@ -1,77 +1,79 @@
 /**
  * Use Guide:
  *
- * 1. Wrap your scene with DigitalSpaceControl at the top level:
- *    <DigitalSpaceControl defaultStyle={ControlStyle.ORBIT}>
- *      <YourScene />
- *    </DigitalSpaceControl>
+ * 1. Use DigitalSpaceControl as a normal component:
+ *    <DigitalSpaceControl controlType="orbit" />
+ *    or
+ *    <DigitalSpaceControl controlType="first-person" />
  *
- * 2. In any child component, use the hook to control the camera:
- *    const { controlStyle, toggleControl, setOrbitControl, setFirstPersonControl } = useDigitalSpaceControl()
- *
- * 3. Available control styles:
- *    - ControlStyle.ORBIT: Orbit camera control (default)
- *    - ControlStyle.FIRST_PERSON: First-person pointer lock control
- *
- * 4. Hook returns:
- *    - controlStyle: current control style
- *    - setControlStyle(style): set specific control style
- *    - toggleControl(): toggle between orbit and first-person
- *    - setOrbitControl(): switch to orbit control
- *    - setFirstPersonControl(): switch to first-person control
- *    - isOrbit: boolean, true if current style is orbit
- *    - isFirstPerson: boolean, true if current style is first-person
+ * 2. Available control types:
+ *    - "orbit": Orbit camera control (default)
+ *    - "first-person": First-person pointer lock control
  */
 
-import { useState, createContext, useContext } from 'react'
 import { OrbitControls, PointerLockControls } from '@react-three/drei'
+import { useFrame, useThree } from '@react-three/fiber'
+import { useRef } from 'react'
+import { eventChannelHub, INFO_CHANNELS } from './EventChannelHub'
 
 export const ControlStyle = {
     ORBIT: 'orbit',
-    FIRST_PERSON: 'first-person',
-    EDITOR: 'editor'
+    FIRST_PERSON: 'first-person'
 }
 
-const ControlContext = createContext()
+export default function DigitalSpaceControl({ controlType = ControlStyle.ORBIT }) {
+    const { camera } = useThree()
+    const orbitControlsRef = useRef()
 
-export function useDigitalSpaceControl() {
-    const context = useContext(ControlContext)
-    if (!context) {
-        throw new Error('useDigitalSpaceControl must be used within a DigitalSpaceControl')
-    }
-    return context
-}
+    useFrame(() => {
+        let controlInfo
 
-export default function DigitalSpaceControl({ defaultStyle = ControlStyle.ORBIT, children }) {
-    const [controlStyle, setControlStyle] = useState(defaultStyle)
+        if (controlType === ControlStyle.ORBIT) {
+            // For orbit controls: type, position (xyz), target (xyz)
+            const target = orbitControlsRef.current?.target || { x: 0, y: 0, z: 0 }
+            controlInfo = {
+                type: 'orbit',
+                position: {
+                    x: camera.position.x,
+                    y: camera.position.y,
+                    z: camera.position.z
+                },
+                target: {
+                    x: target.x,
+                    y: target.y,
+                    z: target.z
+                }
+            }
+        } else if (controlType === ControlStyle.FIRST_PERSON) {
+            // For first person: type, position (xyz), rotation (xyz)
+            controlInfo = {
+                type: 'first-person',
+                position: {
+                    x: camera.position.x,
+                    y: camera.position.y,
+                    z: camera.position.z
+                },
+                rotation: {
+                    x: camera.rotation.x,
+                    y: camera.rotation.y,
+                    z: camera.rotation.z
+                }
+            }
+        }
 
-    const toggleControl = () => {
-        setControlStyle(prev => 
-            prev === ControlStyle.ORBIT ? ControlStyle.FIRST_PERSON : ControlStyle.ORBIT
-        )
-    }
-
-    const setOrbitControl = () => setControlStyle(ControlStyle.ORBIT)
-    const setFirstPersonControl = () => setControlStyle(ControlStyle.FIRST_PERSON)
-
-    const contextValue = {
-        controlStyle,
-        setControlStyle,
-        toggleControl,
-        setOrbitControl,
-        setFirstPersonControl,
-        isOrbit: controlStyle === ControlStyle.ORBIT,
-        isFirstPerson: controlStyle === ControlStyle.FIRST_PERSON
-    }
+        // Publish to the CONTROL_INFO channel
+        if (controlInfo) {
+            eventChannelHub.publish(INFO_CHANNELS.CONTROL_INFO, controlInfo)
+        }
+    })
 
     return (
-        <ControlContext.Provider value={contextValue}>
-            {controlStyle === ControlStyle.ORBIT ? (
-                <OrbitControls />
+        <>
+            {controlType === ControlStyle.ORBIT ? (
+                <OrbitControls ref={orbitControlsRef} />
             ) : (
                 <PointerLockControls />
             )}
-            {children}
-        </ControlContext.Provider>
+        </>
     )
 }

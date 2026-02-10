@@ -9,8 +9,8 @@ export default function DigitalScene({ scene_data }) {
         if (scene_data) {
             eventChannelHub.publish(DEBUG_CHANNELS.INTERNAL_DEBUG_SCENE, scene_data);
         }
-        return () => eventChannelHub.unsubscribe(DEBUG_CHANNELS.INTERNAL_DEBUG_SCENE);
     }, [scene_data]);
+
 
     if(!scene_data)
     {
@@ -18,13 +18,16 @@ export default function DigitalScene({ scene_data }) {
         return null;
     }
 
+
     const models = scene_data.models || [];
     const lights = scene_data.lights || [];
+
 
     return (
         <group>
             <SceneLights lights={lights} />
             {models.map((model, index) => {
+                console.log(`Model type: ${model.type}, name: ${model.name}`);
                 const modelProps = {
                     key: index,
                     url: model.url,

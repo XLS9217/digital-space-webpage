@@ -32,7 +32,7 @@ export default function PanelContent({ sceneData, showJson }) {
         };
     }, []);
 
-    const getSanitizedSceneJson = () => {
+    const getSerializedSceneJson = () => {
         if (!sceneData) return null;
 
         const sanitizeVector = (vec) => {
@@ -81,14 +81,14 @@ export default function PanelContent({ sceneData, showJson }) {
     };
 
     const handlePrint = () => {
-        const json = getSanitizedSceneJson();
+        const json = getSerializedSceneJson();
         if (json) {
             console.log("Scene JSON:", json);
         }
     };
 
     const handleDownload = () => {
-        const json = getSanitizedSceneJson();
+        const json = getSerializedSceneJson();
         if (!json) return;
 
         const blob = new Blob([JSON.stringify(json, null, 2)], { type: "application/json" });

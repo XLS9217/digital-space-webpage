@@ -2,6 +2,7 @@ import { useGLTF } from '@react-three/drei'
 
 export default function BaseModel({ url, name, scale = 1, position = {x:0, y:0, z:0}, rotation = {x:0, y:0, z:0} }) {
     const { scene } = useGLTF(url)
+    console.log(scene)
 
     // Convert objects to arrays for R3F if needed, 
     // although R3F props accept objects {x,y,z}, 

@@ -3,8 +3,8 @@ const DEBUG_CHANNELS = {
     INTERNAL_DEBUG_SCENE: "__INTERNAL__DEBUG_SCENE" //for scene data right now is just a json fetch from backend
 }
 
-const CONTROL_CHANNELS = {
-
+const INFO_CHANNELS = {
+    CONTROL_INFO: "CONTROL_INFO",
 }
 
 class EventChannelHub {
@@ -75,4 +75,4 @@ class EventChannelHub {
     }
 }
 export const eventChannelHub = new EventChannelHub();
-export { DEBUG_CHANNELS };
+export { DEBUG_CHANNELS, INFO_CHANNELS };

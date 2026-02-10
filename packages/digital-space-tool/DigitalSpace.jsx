@@ -17,17 +17,16 @@ import DebugPanel from "./DebugPanel/DebugPanel";
 import DebugTunnel from "./DebugPanel/DebugTunnel";
 
 export default function DigitalSpace({
-    defaultControlStyle, 
+    defaultControlStyle,
     debug = false,
     children
 }) {
     return (
         <>
             <Canvas style={{ width: "100vw", height: "100vh" }}>
-                <DigitalSpaceControl defaultStyle={defaultControlStyle}>
-                    <axesHelper args={[5]} />
-                    {children}
-                </DigitalSpaceControl>
+                <DigitalSpaceControl controlType={defaultControlStyle} />
+                <axesHelper args={[5]} />
+                {children}
                 {debug && <DebugTunnel/>}
             </Canvas>
 
