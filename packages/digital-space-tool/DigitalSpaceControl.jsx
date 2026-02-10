@@ -32,7 +32,7 @@ export default function DigitalSpaceControl({ controlType = ControlStyle.ORBIT }
             // For orbit controls: type, position (xyz), target (xyz)
             const target = orbitControlsRef.current?.target || { x: 0, y: 0, z: 0 }
             controlInfo = {
-                type: 'orbit',
+                type: ControlStyle.ORBIT,
                 position: {
                     x: camera.position.x,
                     y: camera.position.y,
@@ -47,7 +47,7 @@ export default function DigitalSpaceControl({ controlType = ControlStyle.ORBIT }
         } else if (controlType === ControlStyle.FIRST_PERSON) {
             // For first person: type, position (xyz), rotation (xyz)
             controlInfo = {
-                type: 'first-person',
+                type: ControlStyle.FIRST_PERSON,
                 position: {
                     x: camera.position.x,
                     y: camera.position.y,
@@ -60,11 +60,10 @@ export default function DigitalSpaceControl({ controlType = ControlStyle.ORBIT }
                 }
             }
         }
-
+        // console.log(controlInfo)
         // Publish to the CONTROL_INFO channel
-        if (controlInfo) {
-            eventChannelHub.publish(INFO_CHANNELS.CONTROL_INFO, controlInfo)
-        }
+        eventChannelHub.publish(INFO_CHANNELS.CONTROL_INFO, controlInfo)
+
     })
 
     return (

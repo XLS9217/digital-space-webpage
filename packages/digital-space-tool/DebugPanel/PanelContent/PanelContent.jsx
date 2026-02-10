@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { eventChannelHub, DEBUG_CHANNELS } from "../../EventChannelHub";
+import { eventChannelHub, INFO_CHANNELS } from "../../EventChannelHub";
 import { CopyIcon, PrinterIcon, DownloadIcon } from "../CodeSvg";
 import ModelList from "./ModelList";
 import LightList from "./LightList";
@@ -9,26 +9,16 @@ export default function PanelContent({ sceneData, showJson }) {
 
     const FLOAT_PRECISION = 3;
 
-    const [cameraPosition, setCameraPosition] = useState(null);
+    const [controlInfo, setControlInfo] = useState(null);
 
     useEffect(() => {
-        const handleDebugMessage = (data) => {
-            if (typeof data === "string") {
-                try {
-                    const parsed = JSON.parse(data);
-                    setCameraPosition(parsed);
-                } catch {
-                    setCameraPosition(data);
-                }
-                return;
-            }
-
-            setCameraPosition(data);
+        const handleControlInfo = (data) => {
+            setControlInfo(data);
         };
 
-        eventChannelHub.subscribe(DEBUG_CHANNELS.INTERNAL_DEBUG_CAMERA, handleDebugMessage);
+        eventChannelHub.subscribe(INFO_CHANNELS.CONTROL_INFO, handleControlInfo);
         return () => {
-            eventChannelHub.unsubscribe(DEBUG_CHANNELS.INTERNAL_DEBUG_CAMERA, handleDebugMessage);
+            eventChannelHub.unsubscribe(INFO_CHANNELS.CONTROL_INFO, handleControlInfo);
         };
     }, []);
 
@@ -52,22 +42,37 @@ export default function PanelContent({ sceneData, showJson }) {
             url: model.url, // KEEPING URL as it's in the input example
             position: sanitizeVector(model.position),
             rotation: sanitizeVector(model.rotation),
-            scale: typeof model.scale === 'number' 
-                ? { x: model.scale, y: model.scale, z: model.scale } 
+            scale: typeof model.scale === 'number'
+                ? { x: model.scale, y: model.scale, z: model.scale }
                 : sanitizeVector(model.scale)
         }));
 
         return {
             _id: sceneData._id,
             scene: sceneData.scene,
-            camera: cameraPosition ? {
+            control: controlInfo ? {
+                type: controlInfo.type,
                 position: {
-                    x: parseFloat(cameraPosition.x.toFixed(FLOAT_PRECISION)),
-                    y: parseFloat(cameraPosition.y.toFixed(FLOAT_PRECISION)),
-                    z: parseFloat(cameraPosition.z.toFixed(FLOAT_PRECISION))
-                }
+                    x: parseFloat(controlInfo.position.x.toFixed(FLOAT_PRECISION)),
+                    y: parseFloat(controlInfo.position.y.toFixed(FLOAT_PRECISION)),
+                    z: parseFloat(controlInfo.position.z.toFixed(FLOAT_PRECISION))
+                },
+                ...(controlInfo.target && {
+                    target: {
+                        x: parseFloat(controlInfo.target.x.toFixed(FLOAT_PRECISION)),
+                        y: parseFloat(controlInfo.target.y.toFixed(FLOAT_PRECISION)),
+                        z: parseFloat(controlInfo.target.z.toFixed(FLOAT_PRECISION))
+                    }
+                }),
+                ...(controlInfo.rotation && {
+                    rotation: {
+                        x: parseFloat(controlInfo.rotation.x.toFixed(FLOAT_PRECISION)),
+                        y: parseFloat(controlInfo.rotation.y.toFixed(FLOAT_PRECISION)),
+                        z: parseFloat(controlInfo.rotation.z.toFixed(FLOAT_PRECISION))
+                    }
+                })
             } : null,
-            lights: (sceneData.lights && sceneData.lights.length > 0) 
+            lights: (sceneData.lights && sceneData.lights.length > 0)
                 ? sceneData.lights.map(light => ({
                     ...light,
                     position: light.position ? sanitizeVector(light.position) : undefined
@@ -103,38 +108,66 @@ export default function PanelContent({ sceneData, showJson }) {
     };
 
     const handleCopy = () => {
+        if (!controlInfo) return;
+
         const jsonData = {
-            x: parseFloat(cameraPosition.x.toFixed(FLOAT_PRECISION)),
-            y: parseFloat(cameraPosition.y.toFixed(FLOAT_PRECISION)),
-            z: parseFloat(cameraPosition.z.toFixed(FLOAT_PRECISION))
+            type: controlInfo.type,
+            position: {
+                x: parseFloat(controlInfo.position.x.toFixed(FLOAT_PRECISION)),
+                y: parseFloat(controlInfo.position.y.toFixed(FLOAT_PRECISION)),
+                z: parseFloat(controlInfo.position.z.toFixed(FLOAT_PRECISION))
+            },
+            ...(controlInfo.target && {
+                target: {
+                    x: parseFloat(controlInfo.target.x.toFixed(FLOAT_PRECISION)),
+                    y: parseFloat(controlInfo.target.y.toFixed(FLOAT_PRECISION)),
+                    z: parseFloat(controlInfo.target.z.toFixed(FLOAT_PRECISION))
+                }
+            }),
+            ...(controlInfo.rotation && {
+                rotation: {
+                    x: parseFloat(controlInfo.rotation.x.toFixed(FLOAT_PRECISION)),
+                    y: parseFloat(controlInfo.rotation.y.toFixed(FLOAT_PRECISION)),
+                    z: parseFloat(controlInfo.rotation.z.toFixed(FLOAT_PRECISION))
+                }
+            })
         };
-        console.log( JSON.stringify(jsonData) );
+        console.log(JSON.stringify(jsonData));
         navigator.clipboard.writeText(JSON.stringify(jsonData));
     };
 
-    const renderPosition = () => {
-        if (!cameraPosition) return <span>No data</span>;
+    const renderControlInfo = () => {
+        if (!controlInfo) return <span>No data</span>;
 
-        if (typeof cameraPosition === 'object' && cameraPosition.x !== undefined) {
-            const x = parseFloat(cameraPosition.x).toFixed(FLOAT_PRECISION);
-            const y = parseFloat(cameraPosition.y).toFixed(FLOAT_PRECISION);
-            const z = parseFloat(cameraPosition.z).toFixed(FLOAT_PRECISION);
+        const { type, position, target, rotation } = controlInfo;
 
-            return (
-                <>
-                    <div className="position-value">x:<span>{x}</span></div>
-                    <div className="position-value">y:<span>{y}</span></div>
-                    <div className="position-value">z:<span>{z}</span></div>
-                    <CopyIcon
-                        size={16}
-                        className="copy-icon"
-                        onClick={handleCopy}
-                    />
-                </>
-            );
-        }
-
-        return <span>{JSON.stringify(cameraPosition)}</span>;
+        return (
+            <>
+                <div className="position-value">type:<span>{type}</span></div>
+                <div className="position-value">pos.x:<span>{parseFloat(position.x).toFixed(FLOAT_PRECISION)}</span></div>
+                <div className="position-value">pos.y:<span>{parseFloat(position.y).toFixed(FLOAT_PRECISION)}</span></div>
+                <div className="position-value">pos.z:<span>{parseFloat(position.z).toFixed(FLOAT_PRECISION)}</span></div>
+                {target && (
+                    <>
+                        <div className="position-value">target.x:<span>{parseFloat(target.x).toFixed(FLOAT_PRECISION)}</span></div>
+                        <div className="position-value">target.y:<span>{parseFloat(target.y).toFixed(FLOAT_PRECISION)}</span></div>
+                        <div className="position-value">target.z:<span>{parseFloat(target.z).toFixed(FLOAT_PRECISION)}</span></div>
+                    </>
+                )}
+                {rotation && (
+                    <>
+                        <div className="position-value">rot.x:<span>{parseFloat(rotation.x).toFixed(FLOAT_PRECISION)}</span></div>
+                        <div className="position-value">rot.y:<span>{parseFloat(rotation.y).toFixed(FLOAT_PRECISION)}</span></div>
+                        <div className="position-value">rot.z:<span>{parseFloat(rotation.z).toFixed(FLOAT_PRECISION)}</span></div>
+                    </>
+                )}
+                <CopyIcon
+                    size={16}
+                    className="copy-icon"
+                    onClick={handleCopy}
+                />
+            </>
+        );
     };
 
     return (
@@ -175,7 +208,7 @@ export default function PanelContent({ sceneData, showJson }) {
                     </div>
                     <div className="debug-list">
                         <div className="debug-item">
-                            {renderPosition()}
+                            {renderControlInfo()}
                         </div>
                         <h3>Model List</h3>
                         <ModelList models={sceneData?.models} />
