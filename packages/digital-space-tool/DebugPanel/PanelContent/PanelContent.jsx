@@ -41,7 +41,7 @@ export default function PanelContent({ sceneData, showJson }) {
             name: model.name,
             type: model.type,
             file_location: model.file_location,
-            url: model.url, // KEEPING URL as it's in the input example
+            // url filtered out
             position: sanitizeVector(model.position),
             rotation: sanitizeVector(model.rotation),
             scale: typeof model.scale === 'number'
@@ -50,7 +50,7 @@ export default function PanelContent({ sceneData, showJson }) {
         }));
 
         return {
-            _id: sceneData._id,
+            // _id filtered out
             scene: sceneData.scene,
             control: controlInfo ? {
                 type: controlInfo.type,
