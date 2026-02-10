@@ -14,13 +14,31 @@ const sanitizeVector = (vec) => {
 
 const ModelItem = ({ model, index }) => {
     return (
-        <DebugBlock 
-            title={model.name || `Model ${index}`} 
+        <DebugBlock
+            title={model.name || `Model ${index}`}
             type={model.type}
         >
-            <CoordDisplayer label="Pos" value={model.position} />
-            <CoordDisplayer label="Rot" value={model.rotation} />
-            <CoordDisplayer label="Scale" value={model.scale} />
+            <CoordDisplayer
+                label="Pos"
+                value={model.position}
+                objectName={model.name}
+                property="position"
+                editable={true}
+            />
+            <CoordDisplayer
+                label="Rot"
+                value={model.rotation}
+                objectName={model.name}
+                property="rotation"
+                editable={true}
+            />
+            <CoordDisplayer
+                label="Scale"
+                value={model.scale}
+                objectName={model.name}
+                property="scale"
+                editable={true}
+            />
         </DebugBlock>
     );
 };

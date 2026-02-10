@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 import DebugBlock from '../CommonComponent/DebugBlock';
 import CoordDisplayer from '../CommonComponent/CoordDisplayer';
+import BarHandle from '../CommonComponent/BarHandle';
 
 const sanitizeVector = (vec) => {
     if (!vec) return { x: 0, y: 0, z: 0 };
@@ -14,12 +15,29 @@ const sanitizeVector = (vec) => {
 
 const LightItem = ({ light, index }) => {
     return (
-        <DebugBlock 
-            title={light.name || `Light ${index}`} 
+        <DebugBlock
+            title={light.name || `Light ${index}`}
             type={light.type}
         >
-            <CoordDisplayer label="Inten" value={light.intensity} />
-            {light.position && <CoordDisplayer label="Pos" value={light.position} />}
+            <BarHandle
+                label="Intensity"
+                value={light.intensity || 0}
+                min={0}
+                max={10}
+                step={0.1}
+                objectName={light.name}
+                property="intensity"
+                editable={true}
+            />
+            {light.position && (
+                <CoordDisplayer
+                    label="Pos"
+                    value={light.position}
+                    objectName={light.name}
+                    property="position"
+                    editable={true}
+                />
+            )}
             {light.color && (
                 <div className="debug-detail-row">
                     <span className="debug-detail-label">Color:</span>
