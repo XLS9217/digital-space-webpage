@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { eventChannelHub, INFO_CHANNELS } from "../../EventChannelHub";
-import { PrinterIcon, DownloadIcon, CopyIcon } from "../CodeSvg";
+import { PrinterIcon, DownloadIcon } from "../CodeSvg";
 import ModelList from "./ModelList";
 import LightList from "./LightList";
 import DebugBlock from "../CommonComponent/DebugBlock";
@@ -109,35 +109,6 @@ export default function PanelContent({ sceneData, showJson }) {
         URL.revokeObjectURL(url);
     };
 
-    const handleCopy = () => {
-        if (!controlInfo) return;
-
-        const jsonData = {
-            type: controlInfo.type,
-            position: {
-                x: parseFloat(controlInfo.position.x.toFixed(FLOAT_PRECISION)),
-                y: parseFloat(controlInfo.position.y.toFixed(FLOAT_PRECISION)),
-                z: parseFloat(controlInfo.position.z.toFixed(FLOAT_PRECISION))
-            },
-            ...(controlInfo.target && {
-                target: {
-                    x: parseFloat(controlInfo.target.x.toFixed(FLOAT_PRECISION)),
-                    y: parseFloat(controlInfo.target.y.toFixed(FLOAT_PRECISION)),
-                    z: parseFloat(controlInfo.target.z.toFixed(FLOAT_PRECISION))
-                }
-            }),
-            ...(controlInfo.rotation && {
-                rotation: {
-                    x: parseFloat(controlInfo.rotation.x.toFixed(FLOAT_PRECISION)),
-                    y: parseFloat(controlInfo.rotation.y.toFixed(FLOAT_PRECISION)),
-                    z: parseFloat(controlInfo.rotation.z.toFixed(FLOAT_PRECISION))
-                }
-            })
-        };
-        console.log(JSON.stringify(jsonData));
-        navigator.clipboard.writeText(JSON.stringify(jsonData));
-    };
-
     const renderControlInfo = () => {
         if (!controlInfo) return <span>No data</span>;
 
@@ -145,18 +116,9 @@ export default function PanelContent({ sceneData, showJson }) {
 
         return (
             <DebugBlock title="Control Info" type={type} initialExpanded={true}>
-                <div style={{ position: 'relative' }}>
-                    <CoordDisplayer label="Pos" value={position} />
-                    {target && <CoordDisplayer label="Target" value={target} />}
-                    {rotation && <CoordDisplayer label="Rot" value={rotation} />}
-                    <CopyIcon
-                        size={16}
-                        className="copy-icon"
-                        style={{ position: 'absolute', top: 0, right: 0 }}
-                        onClick={handleCopy}
-                        title="Copy control JSON"
-                    />
-                </div>
+                <CoordDisplayer label="Pos" value={position} />
+                {target && <CoordDisplayer label="Target" value={target} />}
+                {rotation && <CoordDisplayer label="Rot" value={rotation} />}
             </DebugBlock>
         );
     };
