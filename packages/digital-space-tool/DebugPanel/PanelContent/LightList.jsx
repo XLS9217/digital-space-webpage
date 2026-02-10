@@ -1,6 +1,16 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import DebugBlock from '../CommonComponent/DebugBlock';
 import CoordDisplayer from '../CommonComponent/CoordDisplayer';
+
+const sanitizeVector = (vec) => {
+    if (!vec) return { x: 0, y: 0, z: 0 };
+    if (Array.isArray(vec)) return { x: vec[0], y: vec[1], z: vec[2] };
+    return {
+        x: vec.x || 0,
+        y: vec.y || 0,
+        z: vec.z || 0
+    };
+};
 
 const LightItem = ({ light, index }) => {
     return (
@@ -22,15 +32,24 @@ const LightItem = ({ light, index }) => {
     );
 };
 
-export default function LightList({ lights }) {
-    const displayLights = (!lights || lights.length === 0) ? [
-        { name: 'Ambient', type: 'AmbientLight', intensity: 0.5 },
-        { name: 'Directional', type: 'DirectionalLight', intensity: 1, position: { x: 10, y: 10, z: 5 } }
-    ] : lights;
+export default function LightList({ lights, onSerializedUpdate }) {
+    useEffect(() => {
+        if (onSerializedUpdate) {
+            const sanitizedLights = (lights || []).map(light => ({
+                ...light,
+                position: light.position ? sanitizeVector(light.position) : undefined
+            }));
+            onSerializedUpdate(sanitizedLights);
+        }
+    }, [lights, onSerializedUpdate]);
+
+    if (!lights || lights.length === 0) {
+        return <div className="debug-item no-data">No lights in scene</div>;
+    }
 
     return (
         <div className="debug-section-list">
-            {displayLights.map((light, index) => (
+            {lights.map((light, index) => (
                 <LightItem 
                     key={index} 
                     light={light} 

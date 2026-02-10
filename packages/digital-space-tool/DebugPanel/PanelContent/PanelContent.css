@@ -51,6 +51,12 @@
     color: white;
 }
 
+.no-data {
+    color: #999 !important;
+    font-style: italic;
+    padding: 10px 0;
+}
+
 .debug-item:last-child {
     border-bottom: none;
 }

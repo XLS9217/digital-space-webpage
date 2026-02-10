@@ -1,89 +1,24 @@
-import { useEffect, useState } from "react";
-import { eventChannelHub, INFO_CHANNELS } from "../../EventChannelHub";
+import { useState } from "react";
 import { PrinterIcon, DownloadIcon } from "../CodeSvg";
 import ModelList from "./ModelList";
 import LightList from "./LightList";
-import DebugBlock from "../CommonComponent/DebugBlock";
-import CoordDisplayer from "../CommonComponent/CoordDisplayer";
+import CameraControlBlock from "./CameraControlBlock";
 import './PanelContent.css';
 
 export default function PanelContent({ sceneData, showJson }) {
 
-    const FLOAT_PRECISION = 3;
-
     const [controlInfo, setControlInfo] = useState(null);
-
-    useEffect(() => {
-        const handleControlInfo = (data) => {
-            setControlInfo(data);
-        };
-
-        eventChannelHub.subscribe(INFO_CHANNELS.CAMERA_CONTROL_INFO, handleControlInfo);
-        return () => {
-            eventChannelHub.unsubscribe(INFO_CHANNELS.CAMERA_CONTROL_INFO, handleControlInfo);
-        };
-    }, []);
+    const [serializedModels, setSerializedModels] = useState([]);
+    const [serializedLights, setSerializedLights] = useState([]);
 
     const getSerializedSceneJson = () => {
         if (!sceneData) return null;
 
-        const sanitizeVector = (vec) => {
-            if (!vec) return { x: 0, y: 0, z: 0 };
-            if (Array.isArray(vec)) return { x: vec[0], y: vec[1], z: vec[2] };
-            return {
-                x: vec.x || 0,
-                y: vec.y || 0,
-                z: vec.z || 0
-            };
-        };
-
-        const sanitizedModels = (sceneData.models || []).map(model => ({
-            name: model.name,
-            type: model.type,
-            file_location: model.file_location,
-            // url filtered out
-            position: sanitizeVector(model.position),
-            rotation: sanitizeVector(model.rotation),
-            scale: typeof model.scale === 'number'
-                ? { x: model.scale, y: model.scale, z: model.scale }
-                : sanitizeVector(model.scale)
-        }));
-
         return {
-            // _id filtered out
             scene: sceneData.scene,
-            control: controlInfo ? {
-                type: controlInfo.type,
-                position: {
-                    x: parseFloat(controlInfo.position.x.toFixed(FLOAT_PRECISION)),
-                    y: parseFloat(controlInfo.position.y.toFixed(FLOAT_PRECISION)),
-                    z: parseFloat(controlInfo.position.z.toFixed(FLOAT_PRECISION))
-                },
-                ...(controlInfo.target && {
-                    target: {
-                        x: parseFloat(controlInfo.target.x.toFixed(FLOAT_PRECISION)),
-                        y: parseFloat(controlInfo.target.y.toFixed(FLOAT_PRECISION)),
-                        z: parseFloat(controlInfo.target.z.toFixed(FLOAT_PRECISION))
-                    }
-                }),
-                ...(controlInfo.rotation && {
-                    rotation: {
-                        x: parseFloat(controlInfo.rotation.x.toFixed(FLOAT_PRECISION)),
-                        y: parseFloat(controlInfo.rotation.y.toFixed(FLOAT_PRECISION)),
-                        z: parseFloat(controlInfo.rotation.z.toFixed(FLOAT_PRECISION))
-                    }
-                })
-            } : null,
-            lights: (sceneData.lights && sceneData.lights.length > 0)
-                ? sceneData.lights.map(light => ({
-                    ...light,
-                    position: light.position ? sanitizeVector(light.position) : undefined
-                }))
-                : [
-                    { name: 'Ambient', type: 'AmbientLight', intensity: 0.5 },
-                    { name: 'Directional', type: 'DirectionalLight', intensity: 1, position: { x: 10, y: 10, z: 5 } }
-                ],
-            models: sanitizedModels
+            control: controlInfo,
+            lights: serializedLights,
+            models: serializedModels
         };
     };
 
@@ -109,19 +44,6 @@ export default function PanelContent({ sceneData, showJson }) {
         URL.revokeObjectURL(url);
     };
 
-    const renderControlInfo = () => {
-        if (!controlInfo) return <span>No data</span>;
-
-        const { type, position, target, rotation } = controlInfo;
-
-        return (
-            <DebugBlock title="Control Info" type={type} initialExpanded={true}>
-                <CoordDisplayer label="Pos" value={position} />
-                {target && <CoordDisplayer label="Target" value={target} />}
-                {rotation && <CoordDisplayer label="Rot" value={rotation} />}
-            </DebugBlock>
-        );
-    };
 
     return (
         <div className="debug-panel-content">
@@ -160,11 +82,17 @@ export default function PanelContent({ sceneData, showJson }) {
                         </div>
                     </div>
                     <div className="debug-list">
-                        {renderControlInfo()}
+                        <CameraControlBlock onSerializedUpdate={setControlInfo} />
                         <h3>Model List</h3>
-                        <ModelList models={sceneData?.models} />
+                        <ModelList 
+                            models={sceneData?.models} 
+                            onSerializedUpdate={setSerializedModels} 
+                        />
                         <h3>Light List</h3>
-                        <LightList lights={sceneData?.lights} />
+                        <LightList 
+                            lights={sceneData?.lights} 
+                            onSerializedUpdate={setSerializedLights} 
+                        />
                     </div>
                 </>
             )}
