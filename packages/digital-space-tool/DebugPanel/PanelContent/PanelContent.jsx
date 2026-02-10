@@ -1,8 +1,10 @@
 import { useEffect, useState } from "react";
 import { eventChannelHub, INFO_CHANNELS } from "../../EventChannelHub";
-import { CopyIcon, PrinterIcon, DownloadIcon } from "../CodeSvg";
+import { PrinterIcon, DownloadIcon, CopyIcon } from "../CodeSvg";
 import ModelList from "./ModelList";
 import LightList from "./LightList";
+import DebugBlock from "../CommonComponent/DebugBlock";
+import CoordDisplayer from "../CommonComponent/CoordDisplayer";
 import './PanelContent.css';
 
 export default function PanelContent({ sceneData, showJson }) {
@@ -142,31 +144,20 @@ export default function PanelContent({ sceneData, showJson }) {
         const { type, position, target, rotation } = controlInfo;
 
         return (
-            <>
-                <div className="position-value">type:<span>{type}</span></div>
-                <div className="position-value">pos.x:<span>{parseFloat(position.x).toFixed(FLOAT_PRECISION)}</span></div>
-                <div className="position-value">pos.y:<span>{parseFloat(position.y).toFixed(FLOAT_PRECISION)}</span></div>
-                <div className="position-value">pos.z:<span>{parseFloat(position.z).toFixed(FLOAT_PRECISION)}</span></div>
-                {target && (
-                    <>
-                        <div className="position-value">target.x:<span>{parseFloat(target.x).toFixed(FLOAT_PRECISION)}</span></div>
-                        <div className="position-value">target.y:<span>{parseFloat(target.y).toFixed(FLOAT_PRECISION)}</span></div>
-                        <div className="position-value">target.z:<span>{parseFloat(target.z).toFixed(FLOAT_PRECISION)}</span></div>
-                    </>
-                )}
-                {rotation && (
-                    <>
-                        <div className="position-value">rot.x:<span>{parseFloat(rotation.x).toFixed(FLOAT_PRECISION)}</span></div>
-                        <div className="position-value">rot.y:<span>{parseFloat(rotation.y).toFixed(FLOAT_PRECISION)}</span></div>
-                        <div className="position-value">rot.z:<span>{parseFloat(rotation.z).toFixed(FLOAT_PRECISION)}</span></div>
-                    </>
-                )}
-                <CopyIcon
-                    size={16}
-                    className="copy-icon"
-                    onClick={handleCopy}
-                />
-            </>
+            <DebugBlock title="Control Info" type={type} initialExpanded={true}>
+                <div style={{ position: 'relative' }}>
+                    <CoordDisplayer label="Pos" value={position} />
+                    {target && <CoordDisplayer label="Target" value={target} />}
+                    {rotation && <CoordDisplayer label="Rot" value={rotation} />}
+                    <CopyIcon
+                        size={16}
+                        className="copy-icon"
+                        style={{ position: 'absolute', top: 0, right: 0 }}
+                        onClick={handleCopy}
+                        title="Copy control JSON"
+                    />
+                </div>
+            </DebugBlock>
         );
     };
 
@@ -207,9 +198,7 @@ export default function PanelContent({ sceneData, showJson }) {
                         </div>
                     </div>
                     <div className="debug-list">
-                        <div className="debug-item">
-                            {renderControlInfo()}
-                        </div>
+                        {renderControlInfo()}
                         <h3>Model List</h3>
                         <ModelList models={sceneData?.models} />
                         <h3>Light List</h3>
