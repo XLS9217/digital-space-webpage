@@ -33,6 +33,13 @@ export default function FrameModel({ url, name, scale = 1, position = {x:0, y:0,
     const children = scene.children[0]?.children || []
     const [hoveredIndex, setHoveredIndex] = useState(null)
 
+    console.log(name)
+
+    // Assign name to the scene object
+    if (name) {
+        scene.name = name
+    }
+
     const posArr = [position.x || 0, position.y || 0, position.z || 0];
     const rotArr = [rotation.x || 0, rotation.y || 0, rotation.z || 0];
     const scaleArr = typeof scale === 'object' 
@@ -54,10 +61,13 @@ export default function FrameModel({ url, name, scale = 1, position = {x:0, y:0,
     }, [hoveredIndex, children])
 
     return (
-        <group position={posArr} rotation={rotArr}>
+        <group
+            position={posArr}
+            rotation={rotArr}
+            name={name}
+        >
             <primitive
                 object={scene}
-                name={name}
                 scale={scaleArr}
             />
             {children.map((child, index) => {

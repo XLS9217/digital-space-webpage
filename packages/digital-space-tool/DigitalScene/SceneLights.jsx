@@ -11,17 +11,19 @@ export default function SceneLights({ lights = [] }) {
     return (
         <>
             {lights.map((light, index) => {
-                const position = light.position 
-                    ? [light.position.x, light.position.y, light.position.z] 
+                const position = light.position
+                    ? [light.position.x, light.position.y, light.position.z]
                     : undefined;
+                const key = light.name || `light-${index}`;
 
                 switch (light.type) {
                     case 'AmbientLight':
-                        return <ambientLight key={index} intensity={light.intensity} color={light.color} />;
+                        return <ambientLight key={key} name={light.name} intensity={light.intensity} color={light.color} />;
                     case 'DirectionalLight':
                         return (
                             <directionalLight
-                                key={index}
+                                key={key}
+                                name={light.name}
                                 position={position}
                                 intensity={light.intensity}
                                 color={light.color}
@@ -31,7 +33,8 @@ export default function SceneLights({ lights = [] }) {
                     case 'PointLight':
                         return (
                             <pointLight
-                                key={index}
+                                key={key}
+                                name={light.name}
                                 position={position}
                                 intensity={light.intensity}
                                 color={light.color}

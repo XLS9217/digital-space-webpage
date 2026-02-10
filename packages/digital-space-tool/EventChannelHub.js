@@ -1,10 +1,16 @@
 const DEBUG_CHANNELS = {
     INTERNAL_DEBUG_CAMERA: "__INTERNAL__DEBUG_CAMERA", //for camera position
     INTERNAL_DEBUG_SCENE: "__INTERNAL__DEBUG_SCENE" //for scene data right now is just a json fetch from backend
+
+
 }
 
 const INFO_CHANNELS = {
     CAMERA_CONTROL_INFO: "CAMERA_CONTROL_INFO",
+
+    SCENE_NAME_INFO: "SCENE_NAME_INFO",
+    MODEL_LIST_INFO: "MODEL_LIST_INFO",
+    LIGHT_LIST_INFO: "LIGHT_LIST_INFO"
 }
 
 const CONTROL_CHANNELS = {

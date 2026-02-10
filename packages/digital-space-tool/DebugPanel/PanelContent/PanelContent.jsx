@@ -44,7 +44,6 @@ export default function PanelContent({ sceneData, showJson }) {
         URL.revokeObjectURL(url);
     };
 
-
     return (
         <div className="debug-panel-content">
             {showJson ? (

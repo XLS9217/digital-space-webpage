@@ -3,6 +3,7 @@ import { eventChannelHub, DEBUG_CHANNELS, CONTROL_CHANNELS } from '../EventChann
 import BaseModel from './BaseModel';
 import FrameModel from './FrameModel';
 import SceneLights from "./SceneLights";
+import {useThree} from "@react-three/fiber";
 
 export default function DigitalScene({ scene_data }) {
     useEffect(() => {
@@ -13,10 +14,12 @@ export default function DigitalScene({ scene_data }) {
             if (scene_data.control) {
                 eventChannelHub.publish(CONTROL_CHANNELS.CAMERA_CONTROL_UPDATE, scene_data.control);
             }
+
         }
     }, [scene_data]);
 
-
+    const { scene } = useThree();
+    console.log(scene);
     if(!scene_data)
     {
         console.log("no scene data yet")
