@@ -52,7 +52,7 @@ export default function PanelContent({ sceneData, showJson }) {
                     <div className="debug-list">
                         {sceneData ? (
                             <div className="debug-item scene-data">
-                                <pre>{JSON.stringify(sceneData, null, 2)}</pre>
+                                <pre>{JSON.stringify(getSerializedSceneJson(), null, 2)}</pre>
                             </div>
                         ) : (
                             <div className="debug-item">

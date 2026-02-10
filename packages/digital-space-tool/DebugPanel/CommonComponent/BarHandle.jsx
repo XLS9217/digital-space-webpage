@@ -1,7 +1,6 @@
 import React, { useState, useRef } from 'react';
-import { eventChannelHub, CONTROL_CHANNELS } from '../../EventChannelHub';
 
-const BarHandle = ({ label, value, min = 0, max = 10, step = 0.1, objectName, property, editable = false }) => {
+const BarHandle = ({ label, value, min = 0, max = 10, step = 0.1, editable = false, onValueChange }) => {
     const [isHovered, setIsHovered] = useState(false);
     const [isDragging, setIsDragging] = useState(false);
     const [localValue, setLocalValue] = useState(value);
@@ -10,7 +9,7 @@ const BarHandle = ({ label, value, min = 0, max = 10, step = 0.1, objectName, pr
     const percentage = ((localValue - min) / (max - min)) * 100;
 
     const handleMouseDown = (e) => {
-        if (!editable || !objectName || !property) return;
+        if (!editable || !onValueChange) return;
         setIsDragging(true);
         updateValue(e);
     };
@@ -23,13 +22,8 @@ const BarHandle = ({ label, value, min = 0, max = 10, step = 0.1, objectName, pr
     const handleMouseUp = () => {
         if (isDragging) {
             setIsDragging(false);
-            // Publish the final value
-            if (objectName && property) {
-                eventChannelHub.publish(CONTROL_CHANNELS.OBJECT_UPDATE_BY_NAME, {
-                    name: objectName,
-                    property: property,
-                    value: localValue
-                });
+            if (onValueChange) {
+                onValueChange(localValue);
             }
         }
     };

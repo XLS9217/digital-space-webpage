@@ -1,7 +1,8 @@
-import React, { useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import DebugBlock from '../CommonComponent/DebugBlock';
 import CoordDisplayer from '../CommonComponent/CoordDisplayer';
 import BarHandle from '../CommonComponent/BarHandle';
+import { eventChannelHub, CONTROL_CHANNELS } from '../../EventChannelHub';
 
 const sanitizeVector = (vec) => {
     if (!vec) return { x: 0, y: 0, z: 0 };
@@ -13,7 +14,47 @@ const sanitizeVector = (vec) => {
     };
 };
 
-const LightItem = ({ light, index }) => {
+const LightItem = ({ light, index, onItemSerialized }) => {
+    const [localData, setLocalData] = useState({
+        intensity: light.intensity || 0,
+        position: light.position ? sanitizeVector(light.position) : undefined,
+        color: light.color
+    });
+
+    // Sync from props when light changes externally
+    useEffect(() => {
+        setLocalData({
+            intensity: light.intensity || 0,
+            position: light.position ? sanitizeVector(light.position) : undefined,
+            color: light.color
+        });
+    }, [light]);
+
+    // Notify parent whenever local data changes
+    useEffect(() => {
+        if (onItemSerialized) {
+            onItemSerialized(index, {
+                name: light.name,
+                type: light.type,
+                ...localData
+            });
+        }
+    }, [localData, index, light.name, light.type, onItemSerialized]);
+
+    const handlePropertyChange = useCallback((property) => (newValue) => {
+        // Publish to 3D engine
+        eventChannelHub.publish(CONTROL_CHANNELS.OBJECT_UPDATE_BY_NAME, {
+            name: light.name,
+            property: property,
+            value: newValue
+        });
+        // Update local state
+        setLocalData(prev => ({
+            ...prev,
+            [property]: newValue
+        }));
+    }, [light.name]);
+
     return (
         <DebugBlock
             title={light.name || `Light ${index}`}
@@ -21,28 +62,26 @@ const LightItem = ({ light, index }) => {
         >
             <BarHandle
                 label="Intensity"
-                value={light.intensity || 0}
+                value={localData.intensity}
                 min={0}
                 max={10}
                 step={0.1}
-                objectName={light.name}
-                property="intensity"
                 editable={true}
+                onValueChange={handlePropertyChange('intensity')}
             />
-            {light.position && (
+            {localData.position && (
                 <CoordDisplayer
                     label="Pos"
-                    value={light.position}
-                    objectName={light.name}
-                    property="position"
+                    value={localData.position}
                     editable={true}
+                    onValueChange={handlePropertyChange('position')}
                 />
             )}
-            {light.color && (
+            {localData.color && (
                 <div className="debug-detail-row">
                     <span className="debug-detail-label">Color:</span>
                     <span className="debug-detail-values">
-                        {light.color}
+                        {localData.color}
                     </span>
                 </div>
             )}
@@ -51,15 +90,30 @@ const LightItem = ({ light, index }) => {
 };
 
 export default function LightList({ lights, onSerializedUpdate }) {
+    const [serializedItems, setSerializedItems] = useState({});
+
+    const handleItemSerialized = useCallback((index, data) => {
+        setSerializedItems(prev => {
+            const next = { ...prev, [index]: data };
+            return next;
+        });
+    }, []);
+
+    // When serialized items change, notify parent with the full array
     useEffect(() => {
-        if (onSerializedUpdate) {
-            const sanitizedLights = (lights || []).map(light => ({
-                ...light,
-                position: light.position ? sanitizeVector(light.position) : undefined
-            }));
-            onSerializedUpdate(sanitizedLights);
+        if (onSerializedUpdate && lights && lights.length > 0) {
+            const keys = Object.keys(serializedItems);
+            if (keys.length === lights.length) {
+                const arr = lights.map((_, i) => serializedItems[i]).filter(Boolean);
+                onSerializedUpdate(arr);
+            }
         }
-    }, [lights, onSerializedUpdate]);
+    }, [serializedItems, lights, onSerializedUpdate]);
+
+    // Reset serialized items when lights array changes identity
+    useEffect(() => {
+        setSerializedItems({});
+    }, [lights]);
 
     if (!lights || lights.length === 0) {
         return <div className="debug-item no-data">No lights in scene</div>;
@@ -68,10 +122,11 @@ export default function LightList({ lights, onSerializedUpdate }) {
     return (
         <div className="debug-section-list">
             {lights.map((light, index) => (
-                <LightItem 
-                    key={index} 
-                    light={light} 
-                    index={index} 
+                <LightItem
+                    key={light.name || index}
+                    light={light}
+                    index={index}
+                    onItemSerialized={handleItemSerialized}
                 />
             ))}
         </div>

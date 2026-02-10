@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
 import { CopyIcon } from '../CodeSvg';
-import { eventChannelHub, CONTROL_CHANNELS } from '../../EventChannelHub';
 
-const CoordDisplayer = ({ label, value, precision = 3, objectName, property, editable = false }) => {
+const CoordDisplayer = ({ label, value, precision = 3, editable = false, onValueChange }) => {
     const [isHovered, setIsHovered] = useState(false);
     const [isEditing, setIsEditing] = useState(false);
     const [editValues, setEditValues] = useState({ x: 0, y: 0, z: 0 });
@@ -41,7 +40,7 @@ const CoordDisplayer = ({ label, value, precision = 3, objectName, property, edi
 
     const handleEdit = (e) => {
         e.stopPropagation();
-        if (editable && objectName && property) {
+        if (editable && onValueChange) {
             setEditValues({
                 x: value?.x ?? 0,
                 y: value?.y ?? 0,
@@ -60,12 +59,8 @@ const CoordDisplayer = ({ label, value, precision = 3, objectName, property, edi
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        if (objectName && property) {
-            eventChannelHub.publish(CONTROL_CHANNELS.OBJECT_UPDATE_BY_NAME, {
-                name: objectName,
-                property: property,
-                value: editValues
-            });
+        if (onValueChange) {
+            onValueChange(editValues);
         }
         setIsEditing(false);
     };
