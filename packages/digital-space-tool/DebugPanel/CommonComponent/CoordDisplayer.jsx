@@ -1,10 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { CopyIcon } from '../CodeSvg';
 
 const CoordDisplayer = ({ label, value, precision = 3, editable = false, onValueChange }) => {
     const [isHovered, setIsHovered] = useState(false);
-    const [isEditing, setIsEditing] = useState(false);
-    const [editValues, setEditValues] = useState({ x: 0, y: 0, z: 0 });
+    const [editValues, setEditValues] = useState({ x: '', y: '', z: '' });
+    const [focusedAxis, setFocusedAxis] = useState(null);
 
     const formatValue = (val) => {
         if (val === undefined || val === null) return (0).toFixed(precision);
@@ -12,16 +12,48 @@ const CoordDisplayer = ({ label, value, precision = 3, editable = false, onValue
         return val;
     };
 
-    const renderValues = () => {
-        if (typeof value === 'object' && value !== null) {
-            return `${formatValue(value.x)}, ${formatValue(value.y)}, ${formatValue(value.z)}`;
-        }
+    const getDisplayValue = (axis) => {
+        if (focusedAxis === axis) return editValues[axis];
+        if (typeof value === 'object' && value !== null) return formatValue(value[axis]);
         return formatValue(value);
+    };
+
+    const handleFocus = (axis) => {
+        if (!editable) return;
+        setFocusedAxis(axis);
+        setEditValues({
+            x: value?.x ?? 0,
+            y: value?.y ?? 0,
+            z: value?.z ?? 0,
+        });
+    };
+
+    const handleBlur = () => {
+        setFocusedAxis(null);
+    };
+
+    const handleInputChange = (axis, val) => {
+        setEditValues(prev => ({ ...prev, [axis]: val }));
+    };
+
+    const handleKeyDown = (e) => {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            if (onValueChange) {
+                onValueChange({
+                    x: parseFloat(editValues.x) || 0,
+                    y: parseFloat(editValues.y) || 0,
+                    z: parseFloat(editValues.z) || 0,
+                });
+            }
+            e.target.blur();
+        } else if (e.key === 'Escape') {
+            e.target.blur();
+        }
     };
 
     const handleCopy = (e) => {
         e.stopPropagation();
-
         let copyData;
         if (typeof value === 'object' && value !== null) {
             copyData = {
@@ -32,108 +64,44 @@ const CoordDisplayer = ({ label, value, precision = 3, editable = false, onValue
         } else {
             copyData = formatValue(value);
         }
-
-        const jsonString = JSON.stringify(copyData);
-        console.log(`Copied ${label}:`, jsonString);
-        navigator.clipboard.writeText(jsonString)
+        navigator.clipboard.writeText(JSON.stringify(copyData));
     };
 
-    const handleEdit = (e) => {
-        e.stopPropagation();
-        if (editable && onValueChange) {
-            setEditValues({
-                x: value?.x ?? 0,
-                y: value?.y ?? 0,
-                z: value?.z ?? 0
-            });
-            setIsEditing(true);
-        }
-    };
-
-    const handleInputChange = (axis, val) => {
-        setEditValues(prev => ({
-            ...prev,
-            [axis]: parseFloat(val) || 0
-        }));
-    };
-
-    const handleSubmit = (e) => {
-        e.preventDefault();
-        if (onValueChange) {
-            onValueChange(editValues);
-        }
-        setIsEditing(false);
-    };
-
-    const handleCancel = () => {
-        setIsEditing(false);
-    };
-
-    if (isEditing) {
-        return (
-            <form onSubmit={handleSubmit} className="debug-detail-row" style={{ flexDirection: 'column', gap: '4px' }}>
-                <span className="debug-detail-label">{label}:</span>
-                <div style={{ display: 'flex', gap: '4px', width: '100%' }}>
-                    <input
-                        type="number"
-                        step="0.01"
-                        value={editValues.x}
-                        onChange={(e) => handleInputChange('x', e.target.value)}
-                        className="coord-input"
-                        placeholder="X"
-                        autoFocus
-                    />
-                    <input
-                        type="number"
-                        step="0.01"
-                        value={editValues.y}
-                        onChange={(e) => handleInputChange('y', e.target.value)}
-                        className="coord-input"
-                        placeholder="Y"
-                    />
-                    <input
-                        type="number"
-                        step="0.01"
-                        value={editValues.z}
-                        onChange={(e) => handleInputChange('z', e.target.value)}
-                        className="coord-input"
-                        placeholder="Z"
-                    />
-                </div>
-                <div style={{ display: 'flex', gap: '4px', marginTop: '2px' }}>
-                    <button type="submit" className="coord-button coord-button-submit">✓</button>
-                    <button type="button" onClick={handleCancel} className="coord-button coord-button-cancel">✕</button>
-                </div>
-            </form>
-        );
-    }
+    const axes = ['x', 'y', 'z'];
 
     return (
         <div
-            className="debug-detail-row"
-            style={{ position: 'relative', cursor: editable ? 'pointer' : 'default' }}
+            className="coord-row"
             onMouseEnter={() => setIsHovered(true)}
             onMouseLeave={() => setIsHovered(false)}
-            onClick={handleEdit}
         >
-            <span className="debug-detail-label">{label}:</span>
-            <span className="debug-detail-values">
-                {renderValues()}
-            </span>
-            {isHovered && (
-                <CopyIcon
-                    size={12}
-                    className="copy-icon"
-                    style={{
-                        position: 'absolute',
-                        right: 0,
-                        top: '50%',
-                        transform: 'translateY(-50%)'
-                    }}
-                    onClick={handleCopy}
-                    title={`Copy ${label}`}
-                />
-            )}
+            <span className="coord-label">{label}</span>
+            <div className="coord-boxes">
+                {axes.map((axis) => (
+                    <input
+                        key={axis}
+                        className={`coord-box ${editable ? 'coord-box-editable' : 'coord-box-readonly'}`}
+                        type="text"
+                        value={getDisplayValue(axis)}
+                        readOnly={!editable}
+                        tabIndex={editable ? 0 : -1}
+                        onFocus={() => handleFocus(axis)}
+                        onBlur={handleBlur}
+                        onChange={(e) => handleInputChange(axis, e.target.value)}
+                        onKeyDown={handleKeyDown}
+                    />
+                ))}
+            </div>
+            <div className="coord-copy-icon-slot">
+                {isHovered && (
+                    <CopyIcon
+                        size={10}
+                        className="coord-copy-icon"
+                        onClick={handleCopy}
+                        title={`Copy ${label}`}
+                    />
+                )}
+            </div>
         </div>
     );
 };

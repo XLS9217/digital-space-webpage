@@ -1,7 +1,6 @@
 import React, { useState, useRef } from 'react';
 
 const BarHandle = ({ label, value, min = 0, max = 10, step = 0.1, editable = false, onValueChange }) => {
-    const [isHovered, setIsHovered] = useState(false);
     const [isDragging, setIsDragging] = useState(false);
     const [localValue, setLocalValue] = useState(value);
     const barRef = useRef(null);
@@ -30,14 +29,12 @@ const BarHandle = ({ label, value, min = 0, max = 10, step = 0.1, editable = fal
 
     const updateValue = (e) => {
         if (!barRef.current) return;
-
         const rect = barRef.current.getBoundingClientRect();
         const x = Math.max(0, Math.min(e.clientX - rect.left, rect.width));
         const percent = x / rect.width;
         const newValue = min + percent * (max - min);
         const steppedValue = Math.round(newValue / step) * step;
         const clampedValue = Math.max(min, Math.min(max, steppedValue));
-
         setLocalValue(clampedValue);
     };
 
@@ -52,42 +49,26 @@ const BarHandle = ({ label, value, min = 0, max = 10, step = 0.1, editable = fal
         }
     }, [isDragging, localValue]);
 
-    // Update local value when prop changes
     React.useEffect(() => {
         setLocalValue(value);
     }, [value]);
 
     return (
-        <div
-            className="debug-detail-row"
-            style={{ flexDirection: 'column', gap: '4px', paddingRight: '8px' }}
-            onMouseEnter={() => setIsHovered(true)}
-            onMouseLeave={() => setIsHovered(false)}
-        >
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span className="debug-detail-label">{label}:</span>
-                <span className="debug-detail-values" style={{ minWidth: '40px', textAlign: 'right' }}>
-                    {localValue.toFixed(2)}
-                </span>
-            </div>
+        <div className="bar-handle-wrapper">
+            <span className="bar-handle-label">{label}</span>
             <div
                 ref={barRef}
-                className={`bar-handle-track ${editable ? 'bar-handle-editable' : ''}`}
+                className="bar-handle-track-clean"
                 onMouseDown={handleMouseDown}
-                style={{
-                    cursor: editable ? 'pointer' : 'default',
-                    opacity: isDragging ? 1 : (isHovered ? 0.9 : 0.7)
-                }}
+                style={{ cursor: editable ? 'pointer' : 'default' }}
             >
+                <div className="bar-handle-rail" />
                 <div
-                    className="bar-handle-fill"
-                    style={{ width: `${percentage}%` }}
-                />
-                <div
-                    className="bar-handle-thumb"
+                    className="bar-handle-circle"
                     style={{ left: `${percentage}%` }}
                 />
             </div>
+            <span className="bar-handle-value">{localValue.toFixed(2)}</span>
         </div>
     );
 };
