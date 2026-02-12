@@ -1,10 +1,9 @@
 import { useState, useEffect } from 'react'
-import DigitalSpace from 'digital-space-toolkit/DigitalSpace.jsx'
-import DigitalScene from "digital-space-toolkit/DigitalScene/DigitalScene.jsx";
+import { DigitalSpace, DigitalScene, tagRegistry } from 'digital-space-toolkit'
 import { getSceneByName } from "../API/gateway.js";
 import {ClassroomTag, MeetingTag} from './TagWithStyle.jsx'
 import './Stage.css'
-import tagRegistry from "digital-space-toolkit/TagRegistry.js";
+
 
 export default function Stage()
 {

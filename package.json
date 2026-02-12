@@ -18,7 +18,8 @@
     "axios": "^1.13.2",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
-    "three": "^0.182.0"
+    "three": "^0.182.0",
+    "digital-space-toolkit": "*"
   },
   "devDependencies": {
     "@eslint/js": "^9.25.0",
