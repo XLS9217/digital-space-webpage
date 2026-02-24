@@ -35,7 +35,8 @@ const BarHandle = ({ label, value, min = 0, max = 10, step = 0.1, editable = fal
         const newValue = min + percent * (max - min);
         const steppedValue = Math.round(newValue / step) * step;
         const clampedValue = Math.max(min, Math.min(max, steppedValue));
-        setLocalValue(clampedValue);
+        const normalizedValue = Number(clampedValue.toFixed(3));
+        setLocalValue(normalizedValue);
     };
 
     React.useEffect(() => {
