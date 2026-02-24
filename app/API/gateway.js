@@ -14,3 +14,20 @@ export async function getSceneByName(name) {
         throw error;
     }
 }
+
+/**
+ * Download scene as zip with models
+ * @param {string} name - The scene name
+ * @returns {Promise<Blob>}
+ */
+export async function downloadSceneZip(name) {
+    try {
+        const response = await request.get(`/scene-zip/${name}`, {
+            responseType: 'blob'
+        });
+        return response.data;
+    } catch (error) {
+        console.error('Error downloading scene zip:', error);
+        throw error;
+    }
+}

@@ -3,6 +3,7 @@ import { PrinterIcon, DownloadIcon } from "../CodeSvg";
 import ModelList from "./ModelList";
 import LightList from "./LightList";
 import CameraControlBlock from "./CameraControlBlock";
+import { downloadSceneZip } from "../../../../app/API/gateway";
 import './PanelContent.css';
 
 export default function PanelContent({ sceneData, showJson }) {
@@ -29,19 +30,24 @@ export default function PanelContent({ sceneData, showJson }) {
         }
     };
 
-    const handleDownload = () => {
+    const handleDownload = async () => {
         const json = getSerializedSceneJson();
-        if (!json) return;
+        if (!json || !json.scene) return;
 
-        const blob = new Blob([JSON.stringify(json, null, 2)], { type: "application/json" });
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement("a");
-        link.href = url;
-        link.download = `${json.scene || 'scene'}_${new Date().getTime()}.json`;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        URL.revokeObjectURL(url);
+        try {
+            const blob = await downloadSceneZip(json.scene);
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement("a");
+            link.href = url;
+            link.download = `${json.scene}.zip`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+        } catch (error) {
+            console.error('Failed to download scene zip:', error);
+            alert('Failed to download scene. Please try again.');
+        }
     };
 
     return (
