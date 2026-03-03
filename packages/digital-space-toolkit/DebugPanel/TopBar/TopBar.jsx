@@ -5,7 +5,7 @@ import './TopBar.css';
 
 export default function TopBar({ panelWidth, panelHeight, setPanelPosition, setIsCollapsed, isCollapsed, sceneName, showJson, setShowJson }) {
     const { handleRef, handleMouseDown } = useDragHandle(panelWidth, panelHeight, setPanelPosition);
-    console.log("sceneName", sceneName);
+    // console.log("sceneName", sceneName);
     return (
         <div className="drag-handle">
             <MoveIcon

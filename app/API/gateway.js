@@ -8,6 +8,7 @@ import request from "./request.js";
 export async function getSceneByName(name) {
     try {
         const response = await request.get(`/scene/${name}`);
+        console.log(response.data)
         return response.data;
     } catch (error) {
         console.error('Error fetching scene by name:', error);
