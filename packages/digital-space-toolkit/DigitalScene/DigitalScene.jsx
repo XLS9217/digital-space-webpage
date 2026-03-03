@@ -1,3 +1,4 @@
+import React from 'react'//for webpack consistency,
 import { useEffect } from 'react';
 import { eventChannelHub, DEBUG_CHANNELS, CONTROL_CHANNELS } from '../EventChannelHub';
 import BaseModel from './BaseModel';

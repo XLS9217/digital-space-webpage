@@ -13,6 +13,7 @@
 
 import { OrbitControls, PointerLockControls } from '@react-three/drei'
 import { useFrame, useThree } from '@react-three/fiber'
+import React from 'react'//for webpack consistency,
 import { useRef, useEffect } from 'react'
 import { eventChannelHub, INFO_CHANNELS, CONTROL_CHANNELS } from './EventChannelHub'
 

@@ -2,6 +2,7 @@
 * This stays in the Canvas, use the INTERNAL_DEBUG to send things to debug panel
 * */
 
+import React from 'react'//for webpack consistency,
 import { useEffect } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
 import { eventChannelHub, DEBUG_CHANNELS, CONTROL_CHANNELS } from "../EventChannelHub";

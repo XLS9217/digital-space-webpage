@@ -1,3 +1,4 @@
+import React from 'react'//for webpack consistency,
 export default function SceneLights({ lights = [] }) {
     if (!lights || lights.length === 0) {
         console.warn("No lights in scene, adding ambient light")

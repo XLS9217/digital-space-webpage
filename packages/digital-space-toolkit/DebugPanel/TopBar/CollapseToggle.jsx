@@ -1,3 +1,4 @@
+import React from 'react'//for webpack consistency,
 import { ChevronIcon } from '../CodeSvg';
 
 export default function CollapseToggle({ isCollapsed, setIsCollapsed }) {

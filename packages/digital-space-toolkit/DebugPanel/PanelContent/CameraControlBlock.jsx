@@ -51,7 +51,7 @@ export default function CameraControlBlock({ onSerializedUpdate }) {
 
     return (
         <DebugBlock title="Control Info" type={type} initialExpanded={true}>
-            <CoordDisplayer label="Pos" value={position} />
+            <CoordDisplayer label="Init Pos" value={position} />
             {target && <CoordDisplayer label="Target" value={target} />}
             {rotation && <CoordDisplayer label="Rot" value={rotation} />}
         </DebugBlock>

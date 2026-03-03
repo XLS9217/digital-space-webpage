@@ -1,3 +1,4 @@
+import React from 'react'
 import { useGLTF } from '@react-three/drei'
 
 export default function BaseModel({ url, name, scale = 1, position = {x:0, y:0, z:0}, rotation = {x:0, y:0, z:0} }) {

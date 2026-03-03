@@ -11,6 +11,7 @@
  * Then use useDigitalSpaceControl() hook in any child component to control the camera.
  */
 
+import React from 'react'//for webpack consistency,
 import { Canvas } from "@react-three/fiber";
 import DigitalSpaceControl from "./DigitalSpaceControl";
 import DebugPanel from "./DebugPanel/DebugPanel";

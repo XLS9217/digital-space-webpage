@@ -1,3 +1,4 @@
+import React from 'react'//for webpack consistency,
 import { useEffect, useState, useRef } from "react";
 import { eventChannelHub, DEBUG_CHANNELS } from "../EventChannelHub";
 import TopBar from "./TopBar/TopBar";

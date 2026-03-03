@@ -1,4 +1,4 @@
-
+import React from 'react'//for webpack consistency,
 export const MoveIcon = ({ size = 20, color = "currentColor", ...props }) => (
     <svg
         width={size}

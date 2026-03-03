@@ -1,3 +1,4 @@
+import React from 'react'//for webpack consistency,
 import { MoveIcon, CodeBracketsIcon } from '../CodeSvg';
 import CollapseToggle from './CollapseToggle';
 import useDragHandle from './DragHandle';
