@@ -90,6 +90,33 @@ export default function DigitalSpaceControl({ controlType = ControlStyle.ORBIT }
                     controlData.rotation.z
                 );
             }
+
+            // Load zoom and angle settings from scene data
+            if (controlData.zoom) {
+                setControlSettings(prev => ({
+                    ...prev,
+                    minDistance: controlData.zoom.min ?? prev.minDistance,
+                    maxDistance: controlData.zoom.max ?? prev.maxDistance
+                }));
+
+                if (orbitControlsRef.current) {
+                    orbitControlsRef.current.minDistance = controlData.zoom.min;
+                    orbitControlsRef.current.maxDistance = controlData.zoom.max;
+                }
+            }
+
+            if (controlData.angle) {
+                setControlSettings(prev => ({
+                    ...prev,
+                    minPolarAngle: controlData.angle.min ?? prev.minPolarAngle,
+                    maxPolarAngle: controlData.angle.max ?? prev.maxPolarAngle
+                }));
+
+                if (orbitControlsRef.current) {
+                    orbitControlsRef.current.minPolarAngle = controlData.angle.min;
+                    orbitControlsRef.current.maxPolarAngle = controlData.angle.max;
+                }
+            }
         };
 
         eventChannelHub.subscribe(CONTROL_CHANNELS.CAMERA_CONTROL_UPDATE, handleControlUpdate);
@@ -103,7 +130,7 @@ export default function DigitalSpaceControl({ controlType = ControlStyle.ORBIT }
         let controlInfo
 
         if (controlType === ControlStyle.ORBIT) {
-            // For orbit controls: type, position (xyz), target (xyz)
+            // For orbit controls: type, position (xyz), target (xyz), zoom, angle
             const target = orbitControlsRef.current?.target || { x: 0, y: 0, z: 0 }
             controlInfo = {
                 type: ControlStyle.ORBIT,
@@ -116,6 +143,14 @@ export default function DigitalSpaceControl({ controlType = ControlStyle.ORBIT }
                     x: target.x,
                     y: target.y,
                     z: target.z
+                },
+                zoom: {
+                    min: controlSettings.minDistance,
+                    max: controlSettings.maxDistance
+                },
+                angle: {
+                    min: controlSettings.minPolarAngle,
+                    max: controlSettings.maxPolarAngle
                 }
             }
         } else if (controlType === ControlStyle.FIRST_PERSON) {

@@ -20,7 +20,7 @@ export default function DigitalScene({ scene_data }) {
     }, [scene_data]);
 
     const { scene } = useThree();
-    console.log(scene);
+    //console.log(scene);
     if(!scene_data)
     {
         console.log("no scene data yet")
@@ -36,9 +36,8 @@ export default function DigitalScene({ scene_data }) {
         <group>
             <SceneLights lights={lights} />
             {models.map((model, index) => {
-                console.log(`Model type: ${model.type}, name: ${model.name}`);
+                //console.log(`Model type: ${model.type}, name: ${model.name}`);
                 const modelProps = {
-                    key: index,
                     url: model.url,
                     name: model.name,
                     scale: model.scale,
@@ -46,9 +45,9 @@ export default function DigitalScene({ scene_data }) {
                     rotation: model.rotation
                 };
                 if (model.type === 'frame') {
-                    return <FrameModel {...modelProps} />
+                    return <FrameModel key={index} {...modelProps} />
                 } else {
-                    return <BaseModel {...modelProps} />
+                    return <BaseModel key={index} {...modelProps} />
                 }
             })}
         </group>

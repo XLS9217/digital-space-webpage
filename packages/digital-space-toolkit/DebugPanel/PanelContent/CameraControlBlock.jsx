@@ -47,6 +47,24 @@ export default function CameraControlBlock({ onSerializedUpdate }) {
         const handleControlInfo = (data) => {
             setControlInfo(data);
 
+            // Load zoom and angle settings from incoming data if available
+            if (data && data.type === 'orbit') {
+                if (data.zoom) {
+                    setControlSettings(prev => ({
+                        ...prev,
+                        minDistance: data.zoom.min,
+                        maxDistance: data.zoom.max
+                    }));
+                }
+                if (data.angle) {
+                    setControlSettings(prev => ({
+                        ...prev,
+                        minPolarAngle: data.angle.min,
+                        maxPolarAngle: data.angle.max
+                    }));
+                }
+            }
+
             if (onSerializedUpdate) {
                 const serialized = data ? {
                     type: data.type,
@@ -67,6 +85,17 @@ export default function CameraControlBlock({ onSerializedUpdate }) {
                             x: parseFloat(data.rotation.x.toFixed(FLOAT_PRECISION)),
                             y: parseFloat(data.rotation.y.toFixed(FLOAT_PRECISION)),
                             z: parseFloat(data.rotation.z.toFixed(FLOAT_PRECISION))
+                        }
+                    }),
+                    // Include control settings for orbit controls
+                    ...(data.type === 'orbit' && data.zoom && data.angle && {
+                        zoom: {
+                            min: parseFloat(data.zoom.min.toFixed(FLOAT_PRECISION)),
+                            max: parseFloat(data.zoom.max.toFixed(FLOAT_PRECISION))
+                        },
+                        angle: {
+                            min: parseFloat(data.angle.min.toFixed(FLOAT_PRECISION)),
+                            max: parseFloat(data.angle.max.toFixed(FLOAT_PRECISION))
                         }
                     })
                 } : null;

@@ -34,7 +34,7 @@ export default function FrameModel({ url, name, scale = 1, position = {x:0, y:0,
     const children = scene.children[0]?.children || []
     const [hoveredIndex, setHoveredIndex] = useState(null)
 
-    console.log(name)
+    //console.log(name)
 
     // Assign name to the scene object
     if (name) {
