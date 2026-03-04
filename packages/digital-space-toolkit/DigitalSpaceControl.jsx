@@ -14,7 +14,7 @@
 import { OrbitControls, PointerLockControls } from '@react-three/drei'
 import { useFrame, useThree } from '@react-three/fiber'
 import React from 'react'//for webpack consistency,
-import { useRef, useEffect } from 'react'
+import { useRef, useEffect, useState } from 'react'
 import { eventChannelHub, INFO_CHANNELS, CONTROL_CHANNELS } from './EventChannelHub'
 
 export const ControlStyle = {
@@ -25,6 +25,38 @@ export const ControlStyle = {
 export default function DigitalSpaceControl({ controlType = ControlStyle.ORBIT }) {
     const { camera } = useThree()
     const orbitControlsRef = useRef()
+    const [controlSettings, setControlSettings] = useState({
+        minDistance: 1,
+        maxDistance: 100,
+        minPolarAngle: 0,
+        maxPolarAngle: Math.PI
+    })
+
+    // Subscribe to camera control settings updates
+    useEffect(() => {
+        const handleSettingsUpdate = (settings) => {
+            setControlSettings(prev => ({ ...prev, ...settings }));
+
+            // Apply to orbit controls
+            if (orbitControlsRef.current) {
+                Object.keys(settings).forEach(key => {
+                    orbitControlsRef.current[key] = settings[key];
+                });
+            }
+        };
+
+        eventChannelHub.subscribe(
+            CONTROL_CHANNELS.CAMERA_CONTROL_SETTINGS_UPDATE,
+            handleSettingsUpdate
+        );
+
+        return () => {
+            eventChannelHub.unsubscribe(
+                CONTROL_CHANNELS.CAMERA_CONTROL_SETTINGS_UPDATE,
+                handleSettingsUpdate
+            );
+        };
+    }, []);
 
     // Subscribe to camera control updates
     useEffect(() => {
@@ -111,7 +143,13 @@ export default function DigitalSpaceControl({ controlType = ControlStyle.ORBIT }
     return (
         <>
             {controlType === ControlStyle.ORBIT ? (
-                <OrbitControls ref={orbitControlsRef} />
+                <OrbitControls
+                    ref={orbitControlsRef}
+                    minDistance={controlSettings.minDistance}
+                    maxDistance={controlSettings.maxDistance}
+                    minPolarAngle={controlSettings.minPolarAngle}
+                    maxPolarAngle={controlSettings.maxPolarAngle}
+                />
             ) : (
                 <PointerLockControls />
             )}

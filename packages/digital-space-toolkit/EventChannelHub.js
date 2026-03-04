@@ -12,6 +12,7 @@ const INFO_CHANNELS = {
 
 const CONTROL_CHANNELS = {
     CAMERA_CONTROL_UPDATE: "CAMERA_CONTROL_UPDATE",
+    CAMERA_CONTROL_SETTINGS_UPDATE: "CAMERA_CONTROL_SETTINGS_UPDATE", // For updating camera control settings
     OBJECT_UPDATE_BY_NAME: "OBJECT_UPDATE_BY_NAME" // For updating lights/models by name
 }
 

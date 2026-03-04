@@ -210,3 +210,15 @@ Reusable list and item styles
 .bar-handle-circle:hover {
     transform: translate(-50%, -50%) scale(1.15);
 }
+
+/* MinMaxHandle highlight line */
+.minmax-handle-highlight {
+    position: absolute;
+    height: 4px;
+    background: rgba(255, 255, 255, 0.6);
+    border-radius: 2px;
+    top: 50%;
+    transform: translateY(-50%);
+    pointer-events: none;
+    transition: left 0.05s ease, width 0.05s ease;
+}
