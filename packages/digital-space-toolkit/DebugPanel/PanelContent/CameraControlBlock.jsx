@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { eventChannelHub, INFO_CHANNELS, CONTROL_CHANNELS } from "../../EventChannelHub";
 import DebugBlock from "../CommonComponent/DebugBlock";
 import CoordDisplayer from "../CommonComponent/CoordDisplayer";
-import BarHandle from "../CommonComponent/BarHandle";
+import MinMaxHandle from "../CommonComponent/MinMaxHandle";
 
 const FLOAT_PRECISION = 3;
 
@@ -15,15 +15,31 @@ export default function CameraControlBlock({ onSerializedUpdate }) {
         maxPolarAngle: Math.PI
     });
 
-    const handleSettingChange = (property) => (newValue) => {
+    const handleZoomChange = (values) => {
         setControlSettings(prev => ({
             ...prev,
-            [property]: newValue
+            minDistance: values.min,
+            maxDistance: values.max
         }));
 
         // Publish to update the controls
         eventChannelHub.publish(CONTROL_CHANNELS.CAMERA_CONTROL_SETTINGS_UPDATE, {
-            [property]: newValue
+            minDistance: values.min,
+            maxDistance: values.max
+        });
+    };
+
+    const handleAngleChange = (values) => {
+        setControlSettings(prev => ({
+            ...prev,
+            minPolarAngle: values.min,
+            maxPolarAngle: values.max
+        }));
+
+        // Publish to update the controls
+        eventChannelHub.publish(CONTROL_CHANNELS.CAMERA_CONTROL_SETTINGS_UPDATE, {
+            minPolarAngle: values.min,
+            maxPolarAngle: values.max
         });
     };
 
@@ -76,41 +92,25 @@ export default function CameraControlBlock({ onSerializedUpdate }) {
 
             {type === 'orbit' && (
                 <>
-                    <BarHandle
-                        label="Min Zoom"
-                        value={controlSettings.minDistance}
-                        min={0.1}
-                        max={50}
+                    <MinMaxHandle
+                        label="Zoom"
+                        minValue={controlSettings.minDistance}
+                        maxValue={controlSettings.maxDistance}
+                        rangeMin={0.1}
+                        rangeMax={200}
                         step={0.1}
                         editable={true}
-                        onValueChange={handleSettingChange('minDistance')}
+                        onValueChange={handleZoomChange}
                     />
-                    <BarHandle
-                        label="Max Zoom"
-                        value={controlSettings.maxDistance}
-                        min={10}
-                        max={200}
-                        step={1}
-                        editable={true}
-                        onValueChange={handleSettingChange('maxDistance')}
-                    />
-                    <BarHandle
-                        label="Min Angle"
-                        value={controlSettings.minPolarAngle}
-                        min={0}
-                        max={Math.PI}
+                    <MinMaxHandle
+                        label="Angle"
+                        minValue={controlSettings.minPolarAngle}
+                        maxValue={controlSettings.maxPolarAngle}
+                        rangeMin={0}
+                        rangeMax={Math.PI}
                         step={0.01}
                         editable={true}
-                        onValueChange={handleSettingChange('minPolarAngle')}
-                    />
-                    <BarHandle
-                        label="Max Angle"
-                        value={controlSettings.maxPolarAngle}
-                        min={0}
-                        max={Math.PI}
-                        step={0.01}
-                        editable={true}
-                        onValueChange={handleSettingChange('maxPolarAngle')}
+                        onValueChange={handleAngleChange}
                     />
                 </>
             )}
