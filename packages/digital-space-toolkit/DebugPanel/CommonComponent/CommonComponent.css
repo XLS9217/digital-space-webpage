@@ -27,7 +27,6 @@ Reusable list and item styles
     display: flex;
     justify-content: space-between;
     align-items: center;
-    cursor: pointer;
 }
 
 .debug-section-title {
@@ -36,9 +35,29 @@ Reusable list and item styles
 }
 
 .debug-section-name {
-    font-weight: 600;
+    font-weight: 500;
     font-size: 13px;
     color: #fff;
+}
+
+.debug-section-name-editable {
+    cursor: text;
+}
+
+.debug-section-name-editable:hover {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.4);
+}
+
+.debug-section-name-input {
+    font-weight: 500;
+    font-size: 13px;
+    color: #fff;
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.6);
+    outline: none;
+    padding: 0;
+    font-family: inherit;
 }
 
 .debug-section-type {

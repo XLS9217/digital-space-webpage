@@ -15,6 +15,7 @@ const sanitizeVector = (vec) => {
 };
 
 const LightItem = ({ light, index, onItemSerialized }) => {
+    const [localName, setLocalName] = useState(light.name || '');
     const [localData, setLocalData] = useState({
         intensity: light.intensity || 0,
         position: light.position ? sanitizeVector(light.position) : undefined,
@@ -23,6 +24,7 @@ const LightItem = ({ light, index, onItemSerialized }) => {
 
     // Sync from props when light changes externally
     useEffect(() => {
+        setLocalName(light.name || '');
         setLocalData({
             intensity: light.intensity || 0,
             position: light.position ? sanitizeVector(light.position) : undefined,
@@ -34,12 +36,12 @@ const LightItem = ({ light, index, onItemSerialized }) => {
     useEffect(() => {
         if (onItemSerialized) {
             onItemSerialized(index, {
-                name: light.name,
+                name: localName,
                 type: light.type,
                 ...localData
             });
         }
-    }, [localData, index, light.name, light.type, onItemSerialized]);
+    }, [localData, localName, index, light.type, onItemSerialized]);
 
     const handlePropertyChange = useCallback((property) => (newValue) => {
         // Publish to 3D engine
@@ -57,8 +59,9 @@ const LightItem = ({ light, index, onItemSerialized }) => {
 
     return (
         <DebugBlock
-            title={light.name || `Light ${index} NO name`}
+            title={localName || `Light ${index} NO name`}
             type={light.type}
+            onTitleChange={(newName) => setLocalName(newName)}
         >
             <BarHandle
                 label="Intensity"

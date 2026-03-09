@@ -15,6 +15,7 @@ const sanitizeVector = (vec) => {
 };
 
 const ModelItem = ({ model, index, onItemSerialized }) => {
+    const [localName, setLocalName] = useState(model.name || '');
     const [localData, setLocalData] = useState({
         position: sanitizeVector(model.position),
         rotation: sanitizeVector(model.rotation),
@@ -26,6 +27,7 @@ const ModelItem = ({ model, index, onItemSerialized }) => {
 
     // Sync from props when model changes externally
     useEffect(() => {
+        setLocalName(model.name || '');
         setLocalData({
             position: sanitizeVector(model.position),
             rotation: sanitizeVector(model.rotation),
@@ -40,12 +42,12 @@ const ModelItem = ({ model, index, onItemSerialized }) => {
     useEffect(() => {
         if (onItemSerialized) {
             onItemSerialized(index, {
-                name: model.name,
+                name: localName,
                 type: model.type,
                 ...localData
             });
         }
-    }, [localData, index, model.name, model.type, onItemSerialized]);
+    }, [localData, localName, index, model.type, onItemSerialized]);
 
     const handleValueChange = useCallback((property) => (newValue) => {
         // Publish to 3D engine
@@ -63,8 +65,9 @@ const ModelItem = ({ model, index, onItemSerialized }) => {
 
     return (
         <DebugBlock
-            title={model.name || `Model ${index}`}
+            title={localName || `Model ${index}`}
             type={model.type}
+            onTitleChange={(newName) => setLocalName(newName)}
         >
             <CoordDisplayer
                 label="Pos"

@@ -1,26 +1,83 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { ChevronIcon } from '../CodeSvg';
 
-const DebugBlock = ({ title, type, children, initialExpanded = false }) => {
+const EditableName = ({ title, onTitleChange }) => {
+    const [isEditing, setIsEditing] = useState(false);
+    const [editValue, setEditValue] = useState(title);
+    const inputRef = useRef(null);
+
+    useEffect(() => {
+        if (isEditing && inputRef.current) {
+            inputRef.current.focus();
+            inputRef.current.select();
+        }
+    }, [isEditing]);
+
+    const commit = () => {
+        setIsEditing(false);
+        const trimmed = editValue.trim();
+        if (trimmed && trimmed !== title) {
+            onTitleChange(trimmed);
+        } else {
+            setEditValue(title);
+        }
+    };
+
+    if (!isEditing) {
+        return (
+            <span
+                className={`debug-section-name ${onTitleChange ? 'debug-section-name-editable' : ''}`}
+                onClick={(e) => {
+                    if (onTitleChange) {
+                        e.stopPropagation();
+                        setEditValue(title);
+                        setIsEditing(true);
+                    }
+                }}
+            >
+                {title}
+            </span>
+        );
+    }
+
+    return (
+        <input
+            ref={inputRef}
+            className="debug-section-name-input"
+            type="text"
+            value={editValue}
+            onClick={(e) => e.stopPropagation()}
+            onChange={(e) => setEditValue(e.target.value)}
+            onBlur={commit}
+            onKeyDown={(e) => {
+                if (e.key === 'Enter') commit();
+                if (e.key === 'Escape') {
+                    setEditValue(title);
+                    setIsEditing(false);
+                }
+            }}
+        />
+    );
+};
+
+const DebugBlock = ({ title, type, children, initialExpanded = false, onTitleChange }) => {
     const [isExpanded, setIsExpanded] = useState(initialExpanded);
 
     return (
         <div className="debug-section-item">
-            <div 
-                className="debug-section-header" 
-                onClick={() => setIsExpanded(!isExpanded)}
-            >
+            <div className="debug-section-header">
                 <div className="debug-section-title">
-                    <ChevronIcon 
-                        size={14} 
-                        isCollapsed={!isExpanded} 
-                        style={{ marginRight: '4px' }}
+                    <ChevronIcon
+                        size={14}
+                        isCollapsed={!isExpanded}
+                        style={{ marginRight: '4px', cursor: 'pointer' }}
+                        onClick={() => setIsExpanded(!isExpanded)}
                     />
-                    <span className="debug-section-name">{title}</span>
+                    <EditableName title={title} onTitleChange={onTitleChange} />
                 </div>
                 {type && <span className="debug-section-type">{type}</span>}
             </div>
-            
+
             {isExpanded && (
                 <div className="debug-section-details">
                     {children}
