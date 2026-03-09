@@ -1,6 +1,6 @@
 import React from 'react'//for webpack consistency,
 import { useState } from "react";
-import { PrinterIcon, DownloadIcon } from "../CodeSvg";
+import { PrinterIcon, DownloadIcon, UploadIcon } from "../CodeSvg";
 import ModelList from "./ModelList";
 import LightList from "./LightList";
 import CameraControlBlock from "./CameraControlBlock";
@@ -79,11 +79,17 @@ export default function PanelContent({ sceneData, showJson }) {
                                 onClick={handlePrint}
                                 title="Print Scene JSON to console"
                             />
-                            <DownloadIcon 
-                                size={16} 
-                                className="debug-action-icon" 
+                            <DownloadIcon
+                                size={16}
+                                className="debug-action-icon"
                                 onClick={handleDownload}
                                 title="Download Scene JSON"
+                            />
+                            <UploadIcon
+                                size={16}
+                                className="debug-action-icon"
+                                onClick={() => console.log("Upload clicked", getSerializedSceneJson())}
+                                title="Upload Scene JSON"
                             />
                         </div>
                     </div>

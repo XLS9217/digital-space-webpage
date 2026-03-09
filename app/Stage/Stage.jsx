@@ -10,7 +10,7 @@ export default function Stage()
     const [sceneData, setSceneData] = useState(null)
 
     useEffect(() => {
-        getSceneByName("test_scene_2").then(data => {
+        getSceneByName("beijing_white").then(data => {
             setSceneData(data)
             console.log(data)
         }).catch(err => {

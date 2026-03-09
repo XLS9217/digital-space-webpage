@@ -144,3 +144,23 @@ export const DownloadIcon = ({ size = 20, color = "currentColor", ...props }) =>
         <path d="M4 17v1a2 2 0 002 2h12a2 2 0 002-2v-1" />
     </svg>
 );
+
+export const UploadIcon = ({ size = 20, color = "currentColor", ...props }) => (
+    <svg
+        width={size}
+        height={size}
+        viewBox="0 0 24 24"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+        stroke={color}
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        {...props}
+    >
+        {/* Upward Arrow - Start at y=15 to create the gap from the tray */}
+        <path d="M12 15V3m0 0l-4 4m4-4l4 4" />
+        {/* Tray / Bottom Container */}
+        <path d="M4 17v1a2 2 0 002 2h12a2 2 0 002-2v-1" />
+    </svg>
+);
