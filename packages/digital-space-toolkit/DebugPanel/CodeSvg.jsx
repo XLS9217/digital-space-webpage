@@ -164,3 +164,23 @@ export const UploadIcon = ({ size = 20, color = "currentColor", ...props }) => (
         <path d="M4 17v1a2 2 0 002 2h12a2 2 0 002-2v-1" />
     </svg>
 );
+
+export const PlusCircleIcon = ({ size = 20, color = "currentColor", ...props }) => (
+    <svg
+        width={size}
+        height={size}
+        viewBox="0 0 24 24"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+        stroke={color}
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        {...props}
+    >
+        {/* Outer Circle (O) */}
+        <circle cx="12" cy="12" r="10" />
+        {/* Plus Sign (+) */}
+        <path d="M12 8v8m-4-4h8" />
+    </svg>
+);

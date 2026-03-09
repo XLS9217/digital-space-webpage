@@ -1,6 +1,6 @@
 import React from 'react'//for webpack consistency,
 import { useState } from "react";
-import { PrinterIcon, DownloadIcon, UploadIcon } from "../CodeSvg";
+import { PrinterIcon, DownloadIcon, UploadIcon, PlusCircleIcon } from "../CodeSvg";
 import ModelList from "./ModelList";
 import LightList from "./LightList";
 import CameraControlBlock from "./CameraControlBlock";
@@ -95,12 +95,28 @@ export default function PanelContent({ sceneData, showJson }) {
                     </div>
                     <div className="debug-list">
                         <CameraControlBlock onSerializedUpdate={setControlInfo} />
-                        <h3>Model List</h3>
+                        <div className="debug-list-title">
+                            <h3>Model List</h3>
+                            <PlusCircleIcon
+                                size={20}
+                                className="debug-action-icon"
+                                onClick={() => console.log("model list add clicked")}
+                                title="Add Model"
+                            />
+                        </div>
                         <ModelList 
                             models={sceneData?.models} 
                             onSerializedUpdate={setSerializedModels} 
                         />
-                        <h3>Light List</h3>
+                        <div className="debug-list-title">
+                            <h3>Light List</h3>
+                            <PlusCircleIcon
+                                size={20}
+                                className="debug-action-icon"
+                                onClick={() => console.log("light list add clicked")}
+                                title="Add Light"
+                            />
+                        </div>
                         <LightList 
                             lights={sceneData?.lights} 
                             onSerializedUpdate={setSerializedLights} 
