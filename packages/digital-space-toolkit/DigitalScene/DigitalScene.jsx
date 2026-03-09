@@ -1,6 +1,7 @@
 import React from 'react'//for webpack consistency,
 import { useEffect } from 'react';
 import { eventChannelHub, DEBUG_CHANNELS, CONTROL_CHANNELS } from '../EventChannelHub';
+import { MODEL_TYPE } from '../SceneTypeEnum';
 import BaseModel from './BaseModel';
 import FrameModel from './FrameModel';
 import SceneLights from "./SceneLights";
@@ -44,7 +45,7 @@ export default function DigitalScene({ scene_data }) {
                     position: model.position,
                     rotation: model.rotation
                 };
-                if (model.type === 'frame') {
+                if (model.type === MODEL_TYPE.FRAME) {
                     return <FrameModel key={index} {...modelProps} />
                 } else {
                     return <BaseModel key={index} {...modelProps} />

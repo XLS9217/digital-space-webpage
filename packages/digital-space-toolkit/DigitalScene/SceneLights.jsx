@@ -1,4 +1,6 @@
 import React from 'react'//for webpack consistency,
+import { LIGHT_TYPE } from '../SceneTypeEnum';
+
 export default function SceneLights({ lights = [] }) {
     if (!lights || lights.length === 0) {
         console.warn("No lights in scene, adding ambient light")
@@ -18,9 +20,9 @@ export default function SceneLights({ lights = [] }) {
                 const key = light.name || `light-${index}`;
 
                 switch (light.type) {
-                    case 'AmbientLight':
+                    case LIGHT_TYPE.AMBIENT:
                         return <ambientLight key={key} name={light.name} intensity={light.intensity} color={light.color} />;
-                    case 'DirectionalLight':
+                    case LIGHT_TYPE.DIRECTIONAL:
                         return (
                             <directionalLight
                                 key={key}
@@ -31,7 +33,7 @@ export default function SceneLights({ lights = [] }) {
                                 castShadow
                             />
                         );
-                    case 'PointLight':
+                    case LIGHT_TYPE.POINT:
                         return (
                             <pointLight
                                 key={key}

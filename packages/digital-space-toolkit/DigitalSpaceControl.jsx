@@ -16,13 +16,9 @@ import { useFrame, useThree } from '@react-three/fiber'
 import React from 'react'//for webpack consistency,
 import { useRef, useEffect, useState } from 'react'
 import { eventChannelHub, INFO_CHANNELS, CONTROL_CHANNELS } from './EventChannelHub'
+import { CONTROL_TYPE } from './SceneTypeEnum'
 
-export const ControlStyle = {
-    ORBIT: 'orbit',
-    FIRST_PERSON: 'first-person'
-}
-
-export default function DigitalSpaceControl({ controlType = ControlStyle.ORBIT }) {
+export default function DigitalSpaceControl({ controlType = CONTROL_TYPE.ORBIT }) {
     const { camera } = useThree()
     const orbitControlsRef = useRef()
     const [controlSettings, setControlSettings] = useState({
@@ -129,11 +125,11 @@ export default function DigitalSpaceControl({ controlType = ControlStyle.ORBIT }
     useFrame(() => {
         let controlInfo
 
-        if (controlType === ControlStyle.ORBIT) {
+        if (controlType === CONTROL_TYPE.ORBIT) {
             // For orbit controls: type, position (xyz), target (xyz), zoom, angle
             const target = orbitControlsRef.current?.target || { x: 0, y: 0, z: 0 }
             controlInfo = {
-                type: ControlStyle.ORBIT,
+                type: CONTROL_TYPE.ORBIT,
                 position: {
                     x: camera.position.x,
                     y: camera.position.y,
@@ -153,10 +149,10 @@ export default function DigitalSpaceControl({ controlType = ControlStyle.ORBIT }
                     max: controlSettings.maxPolarAngle
                 }
             }
-        } else if (controlType === ControlStyle.FIRST_PERSON) {
+        } else if (controlType === CONTROL_TYPE.FIRST_PERSON) {
             // For first person: type, position (xyz), rotation (xyz)
             controlInfo = {
-                type: ControlStyle.FIRST_PERSON,
+                type: CONTROL_TYPE.FIRST_PERSON,
                 position: {
                     x: camera.position.x,
                     y: camera.position.y,
@@ -177,7 +173,7 @@ export default function DigitalSpaceControl({ controlType = ControlStyle.ORBIT }
 
     return (
         <>
-            {controlType === ControlStyle.ORBIT ? (
+            {controlType === CONTROL_TYPE.ORBIT ? (
                 <OrbitControls
                     ref={orbitControlsRef}
                     minDistance={controlSettings.minDistance}

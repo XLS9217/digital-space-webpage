@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { eventChannelHub, INFO_CHANNELS, CONTROL_CHANNELS } from "../../EventChannelHub";
+import { CONTROL_TYPE } from "../../SceneTypeEnum";
 import DebugBlock from "../CommonComponent/DebugBlock";
 import CoordDisplayer from "../CommonComponent/CoordDisplayer";
 import MinMaxHandle from "../CommonComponent/MinMaxHandle";
@@ -48,7 +49,7 @@ export default function CameraControlBlock({ onSerializedUpdate }) {
             setControlInfo(data);
 
             // Load zoom and angle settings from incoming data if available
-            if (data && data.type === 'orbit') {
+            if (data && data.type === CONTROL_TYPE.ORBIT) {
                 if (data.zoom) {
                     setControlSettings(prev => ({
                         ...prev,
@@ -88,7 +89,7 @@ export default function CameraControlBlock({ onSerializedUpdate }) {
                         }
                     }),
                     // Include control settings for orbit controls
-                    ...(data.type === 'orbit' && data.zoom && data.angle && {
+                    ...(data.type === CONTROL_TYPE.ORBIT && data.zoom && data.angle && {
                         zoom: {
                             min: parseFloat(data.zoom.min.toFixed(FLOAT_PRECISION)),
                             max: parseFloat(data.zoom.max.toFixed(FLOAT_PRECISION))
@@ -119,7 +120,7 @@ export default function CameraControlBlock({ onSerializedUpdate }) {
             {target && <CoordDisplayer label="Target" value={target} />}
             {rotation && <CoordDisplayer label="Rot" value={rotation} />}
 
-            {type === 'orbit' && (
+            {type === CONTROL_TYPE.ORBIT && (
                 <>
                     <MinMaxHandle
                         label="Zoom"
