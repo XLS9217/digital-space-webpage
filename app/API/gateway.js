@@ -32,3 +32,19 @@ export async function downloadSceneZip(name) {
         throw error;
     }
 }
+
+/**
+ * Upsert scene config
+ * @param {string} name - The scene name
+ * @param {Object} sceneJson - The scene config (control, models, lights - no urls)
+ * @returns {Promise<Object>}
+ */
+export async function upsertScene(name, sceneJson) {
+    try {
+        const response = await request.post(`/scene-upsert/${name}`, sceneJson);
+        return response.data;
+    } catch (error) {
+        console.error('Error upserting scene:', error);
+        throw error;
+    }
+}

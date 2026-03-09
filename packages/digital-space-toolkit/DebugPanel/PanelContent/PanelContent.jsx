@@ -4,7 +4,7 @@ import { PrinterIcon, DownloadIcon, UploadIcon, PlusCircleIcon } from "../CodeSv
 import ModelList from "./ModelList";
 import LightList from "./LightList";
 import CameraControlBlock from "./CameraControlBlock";
-import { downloadSceneZip } from "../../../../app/API/gateway";
+import { downloadSceneZip, upsertScene } from "../../../../app/API/gateway";
 import './PanelContent.css';
 
 export default function PanelContent({ sceneData, showJson }) {
@@ -51,6 +51,20 @@ export default function PanelContent({ sceneData, showJson }) {
         }
     };
 
+    const handleUpload = async () => {
+        const json = getSerializedSceneJson();
+        if (!json || !json.scene) return;
+
+        try {
+            const { scene, ...config } = json;
+            const result = await upsertScene(scene, config);
+            console.log("Scene upserted:", result);
+        } catch (error) {
+            console.error('Failed to upsert scene:', error);
+            alert('Failed to upload scene config. Please try again.');
+        }
+    };
+
     return (
         <div className="debug-panel-content">
             {showJson ? (
@@ -88,8 +102,8 @@ export default function PanelContent({ sceneData, showJson }) {
                             <UploadIcon
                                 size={16}
                                 className="debug-action-icon"
-                                onClick={() => console.log("Upload clicked", getSerializedSceneJson())}
-                                title="Upload Scene JSON"
+                                onClick={handleUpload}
+                                title="Upload Scene Config"
                             />
                         </div>
                     </div>

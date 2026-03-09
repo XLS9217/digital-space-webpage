@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import DebugBlock from '../CommonComponent/DebugBlock';
 import CoordDisplayer from '../CommonComponent/CoordDisplayer';
+import TextInputBox from '../CommonComponent/TextInputBox';
 import { eventChannelHub, CONTROL_CHANNELS } from '../../EventChannelHub';
 
 const sanitizeVector = (vec) => {
@@ -19,7 +20,8 @@ const ModelItem = ({ model, index, onItemSerialized }) => {
         rotation: sanitizeVector(model.rotation),
         scale: typeof model.scale === 'number'
             ? { x: model.scale, y: model.scale, z: model.scale }
-            : sanitizeVector(model.scale)
+            : sanitizeVector(model.scale),
+        file_location: model.file_location || ''
     });
 
     // Sync from props when model changes externally
@@ -29,7 +31,8 @@ const ModelItem = ({ model, index, onItemSerialized }) => {
             rotation: sanitizeVector(model.rotation),
             scale: typeof model.scale === 'number'
                 ? { x: model.scale, y: model.scale, z: model.scale }
-                : sanitizeVector(model.scale)
+                : sanitizeVector(model.scale),
+            file_location: model.file_location || ''
         });
     }, [model]);
 
@@ -39,11 +42,10 @@ const ModelItem = ({ model, index, onItemSerialized }) => {
             onItemSerialized(index, {
                 name: model.name,
                 type: model.type,
-                file_location: model.file_location,
                 ...localData
             });
         }
-    }, [localData, index, model.name, model.type, model.file_location, onItemSerialized]);
+    }, [localData, index, model.name, model.type, onItemSerialized]);
 
     const handleValueChange = useCallback((property) => (newValue) => {
         // Publish to 3D engine
@@ -81,6 +83,14 @@ const ModelItem = ({ model, index, onItemSerialized }) => {
                 value={localData.scale}
                 editable={true}
                 onValueChange={handleValueChange('scale')}
+            />
+            <TextInputBox
+                label="File"
+                value={localData.file_location}
+                editable={true}
+                onValueChange={(newValue) => {
+                    setLocalData(prev => ({ ...prev, file_location: newValue }));
+                }}
             />
         </DebugBlock>
     );
