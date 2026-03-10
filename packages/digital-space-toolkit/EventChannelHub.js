@@ -8,8 +8,6 @@ const DEBUG_CHANNELS = {
      * - ./DebugPanel/DebugPanel.jsx
      */
     INTERNAL_DEBUG_SCENE: "__INTERNAL__DEBUG_SCENE" //for scene data right now is just a json fetch from backend
-
-
 }
 
 const INFO_CHANNELS = {
@@ -24,6 +22,7 @@ const INFO_CHANNELS = {
     CAMERA_CONTROL_INFO: "CAMERA_CONTROL_INFO",
 }
 
+//this channel is for scene control from debug panel
 const CONTROL_CHANNELS = {
     
     /* For camera control update
@@ -52,7 +51,25 @@ const CONTROL_CHANNELS = {
      * Subscribe by:
      * - ./DebugPanel/DebugTunnel.jsx
      */
-    OBJECT_UPDATE_BY_NAME: "OBJECT_UPDATE_BY_NAME" 
+    OBJECT_UPDATE_BY_NAME: "OBJECT_UPDATE_BY_NAME",
+
+    /* For model list update (add/remove)
+     * Inside digital-space-toolkit package,
+     * Publish by:
+     * - TBD
+     * Subscribe by:
+     * - ./DigitalScene/DigitalScene.jsx
+     */
+    MODEL_LIST_UPDATE: "MODEL_LIST_UPDATE",
+
+    /* For light list update (add/remove)
+     * Inside digital-space-toolkit package,
+     * Publish by:
+     * - TBD
+     * Subscribe by:
+     * - ./DigitalScene/DigitalScene.jsx
+     */
+    LIGHT_LIST_UPDATE: "LIGHT_LIST_UPDATE"
 }
 
 class EventChannelHub {

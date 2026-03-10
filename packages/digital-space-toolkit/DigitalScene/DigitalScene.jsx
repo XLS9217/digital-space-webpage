@@ -20,6 +20,23 @@ export default function DigitalScene({ scene_data }) {
         }
     }, [scene_data]);
 
+    useEffect(() => {
+        const handleModelListUpdate = (data) => {
+            console.log("model list update triggers", data);
+        };
+        const handleLightListUpdate = (data) => {
+            console.log("light list update triggers", data);
+        };
+
+        eventChannelHub.subscribe(CONTROL_CHANNELS.MODEL_LIST_UPDATE, handleModelListUpdate);
+        eventChannelHub.subscribe(CONTROL_CHANNELS.LIGHT_LIST_UPDATE, handleLightListUpdate);
+
+        return () => {
+            eventChannelHub.unsubscribe(CONTROL_CHANNELS.MODEL_LIST_UPDATE, handleModelListUpdate);
+            eventChannelHub.unsubscribe(CONTROL_CHANNELS.LIGHT_LIST_UPDATE, handleLightListUpdate);
+        };
+    }, []);
+
     const { scene } = useThree();
     console.log(scene);
     if(!scene_data)

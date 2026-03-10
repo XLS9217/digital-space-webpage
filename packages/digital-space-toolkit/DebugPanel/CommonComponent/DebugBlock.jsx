@@ -1,8 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { ChevronIcon } from '../CodeSvg';
 
-const EditableName = ({ title, onTitleChange }) => {
-    const [isEditing, setIsEditing] = useState(false);
+const EditableName = ({ title, onTitleChange, initialEditing = false }) => {
+    const [isEditing, setIsEditing] = useState(initialEditing);
     const [editValue, setEditValue] = useState(title);
     const inputRef = useRef(null);
 
@@ -60,7 +60,7 @@ const EditableName = ({ title, onTitleChange }) => {
     );
 };
 
-const DebugBlock = ({ title, type, children, initialExpanded = false, onTitleChange }) => {
+const DebugBlock = ({ title, type, children, initialExpanded = false, initialEditing = false, onTitleChange, onDelete }) => {
     const [isExpanded, setIsExpanded] = useState(initialExpanded);
 
     return (
@@ -73,9 +73,16 @@ const DebugBlock = ({ title, type, children, initialExpanded = false, onTitleCha
                         style={{ marginRight: '4px', cursor: 'pointer' }}
                         onClick={() => setIsExpanded(!isExpanded)}
                     />
-                    <EditableName title={title} onTitleChange={onTitleChange} />
+                    <EditableName title={title} onTitleChange={onTitleChange} initialEditing={initialEditing} />
                 </div>
-                {type && <span className="debug-section-type">{type}</span>}
+                <div className="debug-section-header-right">
+                    {type && <span className="debug-section-type">{type}</span>}
+                    {onDelete && (
+                        <span className="debug-section-delete" onClick={onDelete} title="Delete">
+                            &times;
+                        </span>
+                    )}
+                </div>
             </div>
 
             {isExpanded && (

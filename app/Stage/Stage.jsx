@@ -24,7 +24,7 @@ export default function Stage()
             .register('MEETING', MeetingTag)
 
         webRegistry
-            // .registerUpload(upsertScene)
+            .registerUpload(upsertScene)
             .registerDownload(downloadSceneZip)
 
         return () => {

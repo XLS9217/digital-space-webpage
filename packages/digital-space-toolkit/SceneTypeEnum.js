@@ -5,8 +5,7 @@ export const CONTROL_TYPE = {
 
 export const LIGHT_TYPE = {
     AMBIENT: "AmbientLight",
-    DIRECTIONAL: "DirectionalLight",
-    POINT: "PointLight",
+    DIRECTIONAL: "DirectionalLight"
 }
 
 export const MODEL_TYPE = {

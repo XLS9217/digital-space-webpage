@@ -2,7 +2,9 @@ import React, { useState, useEffect, useCallback } from 'react';
 import DebugBlock from '../CommonComponent/DebugBlock';
 import CoordDisplayer from '../CommonComponent/CoordDisplayer';
 import BarHandle from '../CommonComponent/BarHandle';
+import EnumSelect from '../CommonComponent/EnumSelect';
 import { eventChannelHub, CONTROL_CHANNELS } from '../../EventChannelHub';
+import { LIGHT_TYPE } from '../../SceneTypeEnum';
 
 const sanitizeVector = (vec) => {
     if (!vec) return { x: 0, y: 0, z: 0 };
@@ -14,7 +16,7 @@ const sanitizeVector = (vec) => {
     };
 };
 
-const LightItem = ({ light, index, onItemSerialized }) => {
+const LightItem = ({ light, index, onItemSerialized, onDelete }) => {
     const [localName, setLocalName] = useState(light.name || '');
     const [localData, setLocalData] = useState({
         intensity: light.intensity || 0,
@@ -62,6 +64,7 @@ const LightItem = ({ light, index, onItemSerialized }) => {
             title={localName || `Light ${index} NO name`}
             type={light.type}
             onTitleChange={(newName) => setLocalName(newName)}
+            onDelete={onDelete}
         >
             <BarHandle
                 label="Intensity"
@@ -92,7 +95,38 @@ const LightItem = ({ light, index, onItemSerialized }) => {
     );
 };
 
-export default function LightList({ lights, onSerializedUpdate }) {
+const NewLightItem = ({ onNewItemDone }) => {
+    const [newName, setNewName] = useState('');
+    const [error, setError] = useState('');
+
+    return (
+        <DebugBlock
+            title={newName}
+            onTitleChange={(name) => {
+                setNewName(name);
+                if (name.trim()) setError('');
+            }}
+            onDelete={onNewItemDone}
+            initialExpanded={true}
+            initialEditing={true}
+        >
+            <EnumSelect
+                enumObj={LIGHT_TYPE}
+                onSelect={(type) => {
+                    if (!newName.trim()) {
+                        setError('name should not be empty');
+                        return;
+                    }
+                    console.log("Add light type:", type, "name:", newName);
+                    onNewItemDone();
+                }}
+            />
+            {error && <span className="enum-select-error">{error}</span>}
+        </DebugBlock>
+    );
+};
+
+export default function LightList({ lights, onSerializedUpdate, showNewItem, onNewItemDone }) {
     const [serializedItems, setSerializedItems] = useState({});
 
     const handleItemSerialized = useCallback((index, data) => {
@@ -124,12 +158,16 @@ export default function LightList({ lights, onSerializedUpdate }) {
 
     return (
         <div className="debug-section-list">
+            {showNewItem && (
+                <NewLightItem onNewItemDone={onNewItemDone} />
+            )}
             {lights.map((light, index) => (
                 <LightItem
                     key={light.name || index}
                     light={light}
                     index={index}
                     onItemSerialized={handleItemSerialized}
+                    onDelete={() => console.log("Delete light:", light.name, index)}
                 />
             ))}
         </div>
