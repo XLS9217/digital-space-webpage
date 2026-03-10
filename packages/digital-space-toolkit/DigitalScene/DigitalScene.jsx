@@ -21,7 +21,7 @@ export default function DigitalScene({ scene_data }) {
     }, [scene_data]);
 
     const { scene } = useThree();
-    //console.log(scene);
+    console.log(scene);
     if(!scene_data)
     {
         console.log("no scene data yet")

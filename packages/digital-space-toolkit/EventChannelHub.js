@@ -1,19 +1,58 @@
 const DEBUG_CHANNELS = {
-    INTERNAL_DEBUG_CAMERA: "__INTERNAL__DEBUG_CAMERA", //for camera position
+
+    /* For scene data debug
+     * Inside digital-space-toolkit package,
+     * Publish by:
+     * - ./DigitalScene/DigitalScene.jsx
+     * Subscribe by:
+     * - ./DebugPanel/DebugPanel.jsx
+     */
     INTERNAL_DEBUG_SCENE: "__INTERNAL__DEBUG_SCENE" //for scene data right now is just a json fetch from backend
 
 
 }
 
 const INFO_CHANNELS = {
+    
+    /* For camera control info
+     * Inside digital-space-toolkit package,
+     * Publish by:
+     * - ./DigitalSpaceControl.jsx
+     * Subscribe by:
+     * - ./DebugPanel/PanelContent/CameraControlBlock.jsx
+     */
     CAMERA_CONTROL_INFO: "CAMERA_CONTROL_INFO",
-    OBJECT_REGISTRY_NOTIFICATION: "OBJECT_REGISTRY_NOTIFICATION"
 }
 
 const CONTROL_CHANNELS = {
+    
+    /* For camera control update
+     * Inside digital-space-toolkit package,
+     * Publish by:
+     * - ./DigitalScene/DigitalScene.jsx
+     * Subscribe by:
+     * - ./DigitalSpaceControl.jsx
+     */
     CAMERA_CONTROL_UPDATE: "CAMERA_CONTROL_UPDATE",
-    CAMERA_CONTROL_SETTINGS_UPDATE: "CAMERA_CONTROL_SETTINGS_UPDATE", // For updating camera control settings
-    OBJECT_UPDATE_BY_NAME: "OBJECT_UPDATE_BY_NAME" // For updating lights/models by name
+    
+    /* For camera control settings update
+     * Inside digital-space-toolkit package,
+     * Publish by:
+     * - ./DebugPanel/PanelContent/CameraControlBlock.jsx
+     * Subscribe by:
+     * - ./DigitalSpaceControl.jsx
+     */
+    CAMERA_CONTROL_SETTINGS_UPDATE: "CAMERA_CONTROL_SETTINGS_UPDATE", 
+    
+    /* For object update by name
+     * Inside digital-space-toolkit package,
+     * Publish by:
+     * - ./DebugPanel/PanelContent/LightList.jsx
+     * - ./DebugPanel/PanelContent/ModelList.jsx
+     * Subscribe by:
+     * - ./DebugPanel/DebugTunnel.jsx
+     */
+    OBJECT_UPDATE_BY_NAME: "OBJECT_UPDATE_BY_NAME" 
 }
 
 class EventChannelHub {

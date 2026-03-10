@@ -26,7 +26,7 @@ export default function DigitalSpace({
         <>
             <Canvas style={{ width: "100vw", height: "100vh" }}>
                 <DigitalSpaceControl controlType={defaultControlStyle} />
-                <axesHelper args={[5]} />
+                <axesHelper args={[10]} />
                 {children}
                 {debug && <DebugTunnel/>}
             </Canvas>
