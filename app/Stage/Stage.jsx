@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
-import { DigitalSpace, DigitalScene, tagRegistry } from 'digital-space-toolkit'
-import { getSceneByName } from "../API/gateway.js";
+import { DigitalSpace, DigitalScene, tagRegistry, webRegistry } from 'digital-space-toolkit'
+import { getSceneByName, downloadSceneZip, upsertScene } from "../API/gateway.js";
 import {ClassroomTag, MeetingTag} from './TagWithStyle.jsx'
 import './Stage.css'
 
@@ -22,6 +22,10 @@ export default function Stage()
         tagRegistry
             .register('CLASSROOM', ClassroomTag, { distanceFactor: 40 })
             .register('MEETING', MeetingTag)
+
+        webRegistry
+            // .registerUpload(upsertScene)
+            .registerDownload(downloadSceneZip)
 
         return () => {
             tagRegistry

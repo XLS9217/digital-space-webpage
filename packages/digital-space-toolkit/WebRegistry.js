@@ -1,19 +1,30 @@
-/**
- * To claude code: change the comment after you impletement
- * Look at the Tag Registry, it is similar
- * For here, I need a fixed set, upload and download function
- * they are variable, and will be null at default
- * then the upload and download button will use those
- * if function is null, then the upload/download button will be unclickable like the uneditable state in coorddisplayer
- * showing tip "need to register xxxx"
- * if function is registered, then the upload and download button will call it
- * don't forget to export this in the correct index.js
- */
-class WebRegistry{
+class WebRegistry {
+    constructor() {
+        this.upload = null;
+        this.download = null;
+    }
 
-    register_upload
+    registerUpload(fn) {
+        if (this.upload !== null) {
+            throw new Error('WebRegistry.registerUpload: upload function is already registered.');
+        }
+        if (typeof fn !== 'function') {
+            throw new Error('WebRegistry.registerUpload: argument must be a function.');
+        }
+        this.upload = fn;
+        return this;
+    }
 
-    register_download
+    registerDownload(fn) {
+        if (this.download !== null) {
+            throw new Error('WebRegistry.registerDownload: download function is already registered.');
+        }
+        if (typeof fn !== 'function') {
+            throw new Error('WebRegistry.registerDownload: argument must be a function.');
+        }
+        this.download = fn;
+        return this;
+    }
 }
 
 const webRegistry = new WebRegistry();

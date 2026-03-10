@@ -44,6 +44,15 @@
     color: rgba(255, 255, 255, 1);
 }
 
+.debug-action-icon.disabled {
+    color: rgba(255, 255, 255, 0.25);
+    cursor: not-allowed;
+}
+
+.debug-action-icon.disabled:hover {
+    color: rgba(255, 255, 255, 0.25);
+}
+
 .debug-list {
     list-style-type: none;
     padding: 0 0 20px 0;
