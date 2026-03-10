@@ -1,0 +1,1 @@
+//a super simple class for a button with words inside, just fit the style as other buttons
