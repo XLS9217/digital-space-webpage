@@ -13,6 +13,7 @@ export default function PanelContent({ sceneData, showJson }) {
     const [serializedModels, setSerializedModels] = useState([]);
     const [serializedLights, setSerializedLights] = useState([]);
     const [showNewLight, setShowNewLight] = useState(false);
+    const [showNewModel, setShowNewModel] = useState(false);
 
     const getSerializedSceneJson = () => {
         if (!sceneData) return null;
@@ -118,13 +119,15 @@ export default function PanelContent({ sceneData, showJson }) {
                             <PlusCircleIcon
                                 size={20}
                                 className="debug-action-icon"
-                                onClick={() => console.log("model list add clicked")}
+                                onClick={() => setShowNewModel(true)}
                                 title="Add Model"
                             />
                         </div>
-                        <ModelList 
-                            models={sceneData?.models} 
-                            onSerializedUpdate={setSerializedModels} 
+                        <ModelList
+                            models={sceneData?.models}
+                            onSerializedUpdate={setSerializedModels}
+                            showNewItem={showNewModel}
+                            onNewItemDone={() => setShowNewModel(false)}
                         />
                         <div className="debug-list-title">
                             <h3>Light List</h3>

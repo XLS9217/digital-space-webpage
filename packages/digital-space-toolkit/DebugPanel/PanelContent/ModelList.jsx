@@ -2,7 +2,9 @@ import React, { useState, useEffect, useCallback } from 'react';
 import DebugBlock from '../CommonComponent/DebugBlock';
 import CoordDisplayer from '../CommonComponent/CoordDisplayer';
 import TextInputBox from '../CommonComponent/TextInputBox';
+import EnumSelect from '../CommonComponent/EnumSelect';
 import { eventChannelHub, CONTROL_CHANNELS } from '../../EventChannelHub';
+import { MODEL_TYPE } from '../../SceneTypeEnum';
 
 const sanitizeVector = (vec) => {
     if (!vec) return { x: 0, y: 0, z: 0 };
@@ -99,7 +101,59 @@ const ModelItem = ({ model, index, onItemSerialized }) => {
     );
 };
 
-export default function ModelList({ models, onSerializedUpdate }) {
+const NewModelItem = ({ onNewItemDone }) => {
+    const [newName, setNewName] = useState('');
+    const [fileLocation, setFileLocation] = useState('');
+    const [error, setError] = useState('');
+
+    const validate = () => {
+        if (!newName.trim() && !fileLocation.trim()) {
+            return 'name and file should not be empty';
+        }
+        if (!newName.trim()) return 'name should not be empty';
+        if (!fileLocation.trim()) return 'file should not be empty';
+        return '';
+    };
+
+    return (
+        <DebugBlock
+            title={newName}
+            onTitleChange={(name) => {
+                setNewName(name);
+                if (error) setError('');
+            }}
+            onDelete={onNewItemDone}
+            initialExpanded={true}
+            initialEditing={true}
+        >
+            <EnumSelect
+                enumObj={MODEL_TYPE}
+                onSelect={(type) => {
+                    const msg = validate();
+                    if (msg) {
+                        setError(msg);
+                        return;
+                    }
+                    console.log("Add model type:", type, "name:", newName, "file:", fileLocation);
+                    onNewItemDone();
+                }}
+            />
+            <TextInputBox
+                label="File"
+                value={fileLocation}
+                editable={true}
+                onValueChange={(val) => {
+                    setFileLocation(val);
+                    if (error) setError('');
+                }}
+            />
+
+            {error && <span className="enum-select-error">{error}</span>}
+        </DebugBlock>
+    );
+};
+
+export default function ModelList({ models, onSerializedUpdate, showNewItem, onNewItemDone }) {
     const [serializedItems, setSerializedItems] = useState({});
 
     const handleItemSerialized = useCallback((index, data) => {
@@ -131,6 +185,9 @@ export default function ModelList({ models, onSerializedUpdate }) {
 
     return (
         <div className="debug-section-list">
+            {showNewItem && (
+                <NewModelItem onNewItemDone={onNewItemDone} />
+            )}
             {models.map((model, index) => (
                 <ModelItem
                     key={model.name || index}
