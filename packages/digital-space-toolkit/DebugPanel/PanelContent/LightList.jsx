@@ -95,6 +95,17 @@ const LightItem = ({ light, index, onItemSerialized, onDelete }) => {
     );
 };
 
+const createDefaultLight = (type, name) => {
+    switch (type) {
+        case LIGHT_TYPE.AMBIENT:
+            return { name, type, intensity: 1, color: '#ffffff' };
+        case LIGHT_TYPE.DIRECTIONAL:
+            return { name, type, intensity: 1, color: '#ffffff', position: { x: 0, y: 5, z: 0 } };
+        default:
+            return { name, type, intensity: 1, color: '#ffffff' };
+    }
+};
+
 const NewLightItem = ({ onNewItemDone }) => {
     const [newName, setNewName] = useState('');
     const [error, setError] = useState('');
@@ -117,7 +128,10 @@ const NewLightItem = ({ onNewItemDone }) => {
                         setError('name should not be empty');
                         return;
                     }
-                    console.log("Add light type:", type, "name:", newName);
+                    eventChannelHub.publish(CONTROL_CHANNELS.LIGHT_LIST_UPDATE, {
+                        action: 'add',
+                        light: createDefaultLight(type, newName.trim())
+                    });
                     onNewItemDone();
                 }}
             />
@@ -167,7 +181,12 @@ export default function LightList({ lights, onSerializedUpdate, showNewItem, onN
                     light={light}
                     index={index}
                     onItemSerialized={handleItemSerialized}
-                    onDelete={() => console.log("Delete light:", light.name, index)}
+                    onDelete={() => {
+                        eventChannelHub.publish(CONTROL_CHANNELS.LIGHT_LIST_UPDATE, {
+                            action: 'remove',
+                            index
+                        });
+                    }}
                 />
             ))}
         </div>

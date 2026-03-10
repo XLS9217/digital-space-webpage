@@ -1,5 +1,5 @@
 import React from 'react'//for webpack consistency,
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { eventChannelHub, DEBUG_CHANNELS, CONTROL_CHANNELS } from '../EventChannelHub';
 import { MODEL_TYPE } from '../SceneTypeEnum';
 import BaseModel from './BaseModel';
@@ -8,6 +8,15 @@ import SceneLights from "./SceneLights";
 import {useThree} from "@react-three/fiber";
 
 export default function DigitalScene({ scene_data }) {
+    const [localLights, setLocalLights] = useState([]);
+
+    // Sync local lights from scene_data
+    useEffect(() => {
+        if (scene_data?.lights) {
+            setLocalLights(scene_data.lights);
+        }
+    }, [scene_data]);
+
     useEffect(() => {
         if (scene_data) {
             eventChannelHub.publish(DEBUG_CHANNELS.INTERNAL_DEBUG_SCENE, scene_data);
@@ -24,8 +33,12 @@ export default function DigitalScene({ scene_data }) {
         const handleModelListUpdate = (data) => {
             console.log("model list update triggers", data);
         };
-        const handleLightListUpdate = (data) => {
-            console.log("light list update triggers", data);
+        const handleLightListUpdate = ({ action, light, index }) => {
+            if (action === 'add') {
+                setLocalLights(prev => [...prev, light]);
+            } else if (action === 'remove') {
+                setLocalLights(prev => prev.filter((_, i) => i !== index));
+            }
         };
 
         eventChannelHub.subscribe(CONTROL_CHANNELS.MODEL_LIST_UPDATE, handleModelListUpdate);
@@ -47,12 +60,11 @@ export default function DigitalScene({ scene_data }) {
 
 
     const models = scene_data.models || [];
-    const lights = scene_data.lights || [];
 
 
     return (
         <group>
-            <SceneLights lights={lights} />
+            <SceneLights lights={localLights} />
             {models.map((model, index) => {
                 //console.log(`Model type: ${model.type}, name: ${model.name}`);
                 const modelProps = {

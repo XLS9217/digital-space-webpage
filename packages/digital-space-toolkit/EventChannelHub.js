@@ -65,7 +65,7 @@ const CONTROL_CHANNELS = {
     /* For light list update (add/remove)
      * Inside digital-space-toolkit package,
      * Publish by:
-     * - TBD
+     * - ./DebugPanel/PanelContent/LightList.jsx
      * Subscribe by:
      * - ./DigitalScene/DigitalScene.jsx
      */

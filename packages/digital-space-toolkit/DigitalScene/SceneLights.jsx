@@ -33,17 +33,6 @@ export default function SceneLights({ lights = [] }) {
                                 castShadow
                             />
                         );
-                    case LIGHT_TYPE.POINT:
-                        return (
-                            <pointLight
-                                key={key}
-                                name={light.name}
-                                position={position}
-                                intensity={light.intensity}
-                                color={light.color}
-                                castShadow
-                            />
-                        );
                     default:
                         return null;
                 }
