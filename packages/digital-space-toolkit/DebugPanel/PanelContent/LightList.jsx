@@ -106,7 +106,7 @@ const createDefaultLight = (type, name) => {
     }
 };
 
-const NewLightItem = ({ onNewItemDone }) => {
+const NewLightItem = ({ onNewItemDone, onAddLight }) => {
     const [newName, setNewName] = useState('');
     const [error, setError] = useState('');
 
@@ -128,10 +128,7 @@ const NewLightItem = ({ onNewItemDone }) => {
                         setError('name should not be empty');
                         return;
                     }
-                    eventChannelHub.publish(CONTROL_CHANNELS.LIGHT_LIST_UPDATE, {
-                        action: 'add',
-                        light: createDefaultLight(type, newName.trim())
-                    });
+                    onAddLight(createDefaultLight(type, newName.trim()));
                     onNewItemDone();
                 }}
             />
@@ -141,7 +138,40 @@ const NewLightItem = ({ onNewItemDone }) => {
 };
 
 export default function LightList({ lights, onSerializedUpdate, showNewItem, onNewItemDone }) {
+    const [localLights, setLocalLights] = useState([]);
     const [serializedItems, setSerializedItems] = useState({});
+
+    // Sync from props when lights change externally
+    useEffect(() => {
+        setLocalLights(lights || []);
+    }, [lights]);
+
+    const handleAddLight = (light) => {
+        const updated = [...localLights, light];
+        setLocalLights(updated);
+        eventChannelHub.publish(CONTROL_CHANNELS.LIGHT_LIST_UPDATE, {
+            action: 'add',
+            light
+        });
+    };
+
+    const handleDeleteLight = (index) => {
+        const updated = localLights.filter((_, i) => i !== index);
+        setLocalLights(updated);
+        // Re-index serialized items to match new array
+        const newSerialized = {};
+        updated.forEach((_, i) => {
+            const oldIndex = i >= index ? i + 1 : i;
+            if (serializedItems[oldIndex]) {
+                newSerialized[i] = serializedItems[oldIndex];
+            }
+        });
+        setSerializedItems(newSerialized);
+        eventChannelHub.publish(CONTROL_CHANNELS.LIGHT_LIST_UPDATE, {
+            action: 'remove',
+            index
+        });
+    };
 
     const handleItemSerialized = useCallback((index, data) => {
         setSerializedItems(prev => {
@@ -152,41 +182,39 @@ export default function LightList({ lights, onSerializedUpdate, showNewItem, onN
 
     // When serialized items change, notify parent with the full array
     useEffect(() => {
-        if (onSerializedUpdate && lights && lights.length > 0) {
-            const keys = Object.keys(serializedItems);
-            if (keys.length === lights.length) {
-                const arr = lights.map((_, i) => serializedItems[i]).filter(Boolean);
-                onSerializedUpdate(arr);
-            }
+        if (!onSerializedUpdate) return;
+        if (localLights.length === 0) {
+            onSerializedUpdate([]);
+            return;
         }
-    }, [serializedItems, lights, onSerializedUpdate]);
+        const keys = Object.keys(serializedItems);
+        if (keys.length === localLights.length) {
+            const arr = localLights.map((_, i) => serializedItems[i]).filter(Boolean);
+            onSerializedUpdate(arr);
+        }
+    }, [serializedItems, localLights, onSerializedUpdate]);
 
-    // Reset serialized items when lights array changes identity
+    // Reset serialized items when lights prop changes externally
     useEffect(() => {
         setSerializedItems({});
     }, [lights]);
 
-    if (!lights || lights.length === 0) {
+    if (localLights.length === 0 && !showNewItem) {
         return <div className="debug-item no-data">No lights in scene</div>;
     }
 
     return (
         <div className="debug-section-list">
             {showNewItem && (
-                <NewLightItem onNewItemDone={onNewItemDone} />
+                <NewLightItem onNewItemDone={onNewItemDone} onAddLight={handleAddLight} />
             )}
-            {lights.map((light, index) => (
+            {localLights.map((light, index) => (
                 <LightItem
                     key={light.name || index}
                     light={light}
                     index={index}
                     onItemSerialized={handleItemSerialized}
-                    onDelete={() => {
-                        eventChannelHub.publish(CONTROL_CHANNELS.LIGHT_LIST_UPDATE, {
-                            action: 'remove',
-                            index
-                        });
-                    }}
+                    onDelete={() => handleDeleteLight(index)}
                 />
             ))}
         </div>
