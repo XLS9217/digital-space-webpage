@@ -136,7 +136,7 @@ export default function PanelContent({ sceneData, showJson }) {
                                 />
                             </div>
                         </div>
-                        {modelsExpanded && (
+                        <div style={{ display: modelsExpanded ? 'block' : 'none' }}>
                             <ModelList
                                 models={sceneData?.models}
                                 onSerializedUpdate={setSerializedModels}
@@ -144,7 +144,7 @@ export default function PanelContent({ sceneData, showJson }) {
                                 onNewItemDone={() => setShowNewModel(false)}
                                 onAddModel={handleAddModel}
                             />
-                        )}
+                        </div>
                         <div className="debug-list-title">
                             <div className="debug-list-title-left" onClick={() => setLightsExpanded(!lightsExpanded)}>
                                 <ChevronIcon size={14} isCollapsed={!lightsExpanded} style={{ marginRight: '4px' }} />
@@ -157,14 +157,14 @@ export default function PanelContent({ sceneData, showJson }) {
                                 />
                             </div>
                         </div>
-                        {lightsExpanded && (
+                        <div style={{ display: lightsExpanded ? 'block' : 'none' }}>
                             <LightList
                                 lights={sceneData?.lights}
                                 onSerializedUpdate={setSerializedLights}
                                 showNewItem={showNewLight}
                                 onNewItemDone={() => setShowNewLight(false)}
                             />
-                        )}
+                        </div>
                     </div>
                 </>
             )}

@@ -12,3 +12,7 @@ export const MODEL_TYPE = {
     BASE: "base",
     FRAME: "frame",
 }
+
+export const GROUP_TYPE = {
+    LEVEL: "level",
+}
