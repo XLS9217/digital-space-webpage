@@ -24,8 +24,17 @@
 .debug-list-title {
     display: flex;
     align-items: center;
+    justify-content: space-between;
     gap: 6px;
     margin-top: 12px;
+}
+
+.debug-list-title-left {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+    user-select: none;
 }
 
 .debug-actions {

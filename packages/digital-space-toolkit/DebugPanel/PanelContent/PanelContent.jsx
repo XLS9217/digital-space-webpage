@@ -1,6 +1,6 @@
 import React from 'react'//for webpack consistency,
 import { useState } from "react";
-import { PrinterIcon, DownloadIcon, UploadIcon, PlusCircleIcon } from "../CodeSvg";
+import { PrinterIcon, DownloadIcon, UploadIcon, PlusCircleIcon, ChevronIcon } from "../CodeSvg";
 import ModelList from "./ModelList";
 import LightList from "./LightList";
 import CameraControlBlock from "./CameraControlBlock";
@@ -15,6 +15,8 @@ export default function PanelContent({ sceneData, showJson }) {
     const [serializedLights, setSerializedLights] = useState([]);
     const [showNewLight, setShowNewLight] = useState(false);
     const [showNewModel, setShowNewModel] = useState(false);
+    const [modelsExpanded, setModelsExpanded] = useState(false);
+    const [lightsExpanded, setLightsExpanded] = useState(false);
 
     const getSerializedSceneJson = () => {
         if (!sceneData) return null;
@@ -123,36 +125,46 @@ export default function PanelContent({ sceneData, showJson }) {
                     <div className="debug-list">
                         <CameraControlBlock onSerializedUpdate={setControlInfo} />
                         <div className="debug-list-title">
-                            <h3>Model List</h3>
-                            <PlusCircleIcon
-                                size={20}
-                                className="debug-action-icon"
-                                onClick={() => setShowNewModel(true)}
-                                title="Add Model"
-                            />
+                            <div className="debug-list-title-left" onClick={() => setModelsExpanded(!modelsExpanded)}>
+                                <ChevronIcon size={14} isCollapsed={!modelsExpanded} style={{ marginRight: '4px' }} />
+                                <h3>Model List [{sceneData?.models?.length || 0}]</h3>
+                                <PlusCircleIcon
+                                    size={20}
+                                    className="debug-action-icon"
+                                    onClick={(e) => { e.stopPropagation(); setShowNewModel(true); }}
+                                    title="Add Model"
+                                />
+                            </div>
                         </div>
-                        <ModelList
-                            models={sceneData?.models}
-                            onSerializedUpdate={setSerializedModels}
-                            showNewItem={showNewModel}
-                            onNewItemDone={() => setShowNewModel(false)}
-                            onAddModel={handleAddModel}
-                        />
+                        {modelsExpanded && (
+                            <ModelList
+                                models={sceneData?.models}
+                                onSerializedUpdate={setSerializedModels}
+                                showNewItem={showNewModel}
+                                onNewItemDone={() => setShowNewModel(false)}
+                                onAddModel={handleAddModel}
+                            />
+                        )}
                         <div className="debug-list-title">
-                            <h3>Light List</h3>
-                            <PlusCircleIcon
-                                size={20}
-                                className="debug-action-icon"
-                                onClick={() => setShowNewLight(true)}
-                                title="Add Light"
-                            />
+                            <div className="debug-list-title-left" onClick={() => setLightsExpanded(!lightsExpanded)}>
+                                <ChevronIcon size={14} isCollapsed={!lightsExpanded} style={{ marginRight: '4px' }} />
+                                <h3>Light List [{sceneData?.lights?.length || 0}]</h3>
+                                <PlusCircleIcon
+                                    size={20}
+                                    className="debug-action-icon"
+                                    onClick={(e) => { e.stopPropagation(); setShowNewLight(true); }}
+                                    title="Add Light"
+                                />
+                            </div>
                         </div>
-                        <LightList
-                            lights={sceneData?.lights}
-                            onSerializedUpdate={setSerializedLights}
-                            showNewItem={showNewLight}
-                            onNewItemDone={() => setShowNewLight(false)}
-                        />
+                        {lightsExpanded && (
+                            <LightList
+                                lights={sceneData?.lights}
+                                onSerializedUpdate={setSerializedLights}
+                                showNewItem={showNewLight}
+                                onNewItemDone={() => setShowNewLight(false)}
+                            />
+                        )}
                     </div>
                 </>
             )}
