@@ -103,27 +103,42 @@ export const CodeBracketsIcon = ({ size = 20, color = "currentColor", ...props }
     </svg>
 );
 
-export const PrinterIcon = ({ size = 20, color = "currentColor", ...props }) => (
-    <svg
-        width={size}
-        height={size}
-        viewBox="0 0 24 24"
-        fill="none"
-        xmlns="http://www.w3.org/2000/svg"
-        stroke={color}
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        {...props}
-    >
-        {/* Top paper tray */}
-        <path d="M6 9V2h12v7" />
-        {/* Printer body */}
-        <path d="M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2" />
-        {/* Bottom output paper */}
-        <rect x="6" y="14" width="12" height="8" rx="1" ry="1" />
-    </svg>
-);
+export const PrinterIcon = ({ size = 20, color = "currentColor", ...props }) => {
+    const [isHovered, setIsHovered] = React.useState(false);
+
+    return (
+        <svg
+            width={size}
+            height={size}
+            viewBox="0 0 24 24"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+            stroke={color}
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            onMouseEnter={() => setIsHovered(true)}
+            onMouseLeave={() => setIsHovered(false)}
+            style={{ cursor: 'pointer', ...props.style }}
+            {...props}
+        >
+            {/* Top paper - This now "extends" or slides down into the printer */}
+            <path
+                d="M6 9V2h12v7"
+                style={{
+                    transition: 'transform 0.25s ease-out',
+                    transform: isHovered ? 'translateY(2px)' : 'translateY(0)'
+                }}
+            />
+
+            {/* Printer body */}
+            <path d="M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2" />
+
+            {/* Bottom output paper - Animation removed as requested */}
+            <rect x="6" y="14" width="12" height="8" rx="1" ry="1" />
+        </svg>
+    );
+};
 
 export const DownloadIcon = ({ size = 20, color = "currentColor", ...props }) => (
     <svg
@@ -184,3 +199,86 @@ export const PlusCircleIcon = ({ size = 20, color = "currentColor", ...props }) 
         <path d="M12 8v8m-4-4h8" />
     </svg>
 );
+
+export const TrashBinIcon = ({ size = 20, color = "currentColor", ...props }) => {
+    const [isHovered, setIsHovered] = React.useState(false);
+
+    return (
+        <svg
+            width={size}
+            height={size}
+            viewBox="0 0 24 24"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+            stroke={color}
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            onMouseEnter={() => setIsHovered(true)}
+            onMouseLeave={() => setIsHovered(false)}
+            style={{ cursor: 'pointer', overflow: 'visible', ...props.style }} // Added overflow: visible as a safety
+            {...props}
+        >
+            {/* The Lid - Shifted down to y=8 to provide headroom */}
+            <path
+                d="M3 8h18M9 8V6a2 2 0 012-2h2a2 2 0 012 2v2"
+                style={{
+                    transition: 'transform 0.3s ease-out',
+                    transform: isHovered ? 'rotate(-25deg) translateY(-2px)' : 'rotate(0deg)',
+                    transformOrigin: '3px 8px'
+                }}
+            />
+
+            {/* The Bin Body - Shifted down to start at y=8 */}
+            <path d="M19 8v12a2 2 0 01-2 2H7a2 2 0 01-2-2V8" />
+
+            {/* Internal Lines (||) - Adjusted to match new body position */}
+            <line x1="10" y1="12" x2="10" y2="18" />
+            <line x1="14" y1="12" x2="14" y2="18" />
+        </svg>
+    );
+};
+
+export const EyeIcon = ({ size = 20, color = "currentColor", isClosed = false, ...props }) => {
+    // Path for the OPEN eye state
+    const pathOpen = "M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8zM12 15a3 3 0 100-6 3 3 0 000 6z";
+
+    // Path for the CLOSED eye state (a line over the open shape + strikethrough)
+    const pathClosed = "M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8zM12 15a3 3 0 100-6 3 3 0 000 6z M3 3l18 18";
+
+    return (
+        <svg
+            width={size}
+            height={size}
+            viewBox="0 0 24 24"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+            stroke={color}
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            style={{ cursor: 'pointer', ...props.style }}
+            {...props}
+        >
+            {/* The core eye shape that morphs */}
+            <path
+                d={isClosed ? pathClosed : pathOpen}
+                style={{
+                    transition: 'd 0.3s cubic-bezier(0.4, 0, 0.2, 1)', // Smooth path morphing
+                }}
+            />
+
+            {/* The diagonal line for the closed state - animates opacity */}
+            <line
+                x1="3"
+                y1="3"
+                x2="21"
+                y2="21"
+                style={{
+                    transition: 'opacity 0.2s ease',
+                    opacity: isClosed ? 1 : 0 // fades in/out
+                }}
+            />
+        </svg>
+    );
+};

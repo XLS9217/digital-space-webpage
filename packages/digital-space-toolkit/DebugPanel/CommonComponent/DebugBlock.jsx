@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { ChevronIcon } from '../CodeSvg';
+import { ChevronIcon, TrashBinIcon } from '../CodeSvg';
 
 const EditableName = ({ title, onTitleChange, initialEditing = false }) => {
     const [isEditing, setIsEditing] = useState(initialEditing);
@@ -78,9 +78,7 @@ const DebugBlock = ({ title, type, children, initialExpanded = false, initialEdi
                 <div className="debug-section-header-right">
                     {type && <span className="debug-section-type">{type}</span>}
                     {onDelete && (
-                        <span className="debug-section-delete" onClick={onDelete} title="Delete">
-                            &times;
-                        </span>
+                        <TrashBinIcon size={14} onClick={onDelete} title="Delete" />
                     )}
                 </div>
             </div>
