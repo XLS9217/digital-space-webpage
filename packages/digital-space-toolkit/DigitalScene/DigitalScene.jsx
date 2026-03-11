@@ -1,45 +1,30 @@
 import React from 'react'//for webpack consistency,
 import { useEffect, useState } from 'react';
 import { eventChannelHub, DEBUG_CHANNELS, CONTROL_CHANNELS } from '../EventChannelHub';
-import { MODEL_TYPE } from '../SceneTypeEnum';
 import dataRegistry from '../DataRegistry';
-import BaseModel from './BaseModel';
-import FrameModel from './FrameModel';
+import SceneModels from './DigitalModel/SceneModels.jsx';
 import SceneLights from "./SceneLights";
-import {useThree} from "@react-three/fiber";
 
 export default function DigitalScene({ sceneName }) {
-    const [sceneData, setSceneData] = useState(null);
+    const [loaded, setLoaded] = useState(false);
     const [localLights, setLocalLights] = useState([]);
+    const [localModels, setLocalModels] = useState([]);
 
-    // Load scene data using dataRegistry
+    // Load scene data, sync local state, and publish to debug panel
     useEffect(() => {
         if (!sceneName || !dataRegistry.load) return;
         dataRegistry.load(sceneName).then(data => {
-            setSceneData(data);
+            setLocalLights(data.lights || []);
+            setLocalModels(data.models || []);
+            setLoaded(true);
+            eventChannelHub.publish(DEBUG_CHANNELS.INTERNAL_DEBUG_SCENE, data);
+            if (data.control) {
+                eventChannelHub.publish(CONTROL_CHANNELS.CAMERA_CONTROL_UPDATE, data.control);
+            }
         }).catch(err => {
             console.error("Failed to load scene:", err);
         });
     }, [sceneName]);
-
-    // Sync local lights from scene data
-    useEffect(() => {
-        if (sceneData?.lights) {
-            setLocalLights(sceneData.lights);
-        }
-    }, [sceneData]);
-
-    useEffect(() => {
-        if (sceneData) {
-            eventChannelHub.publish(DEBUG_CHANNELS.INTERNAL_DEBUG_SCENE, sceneData);
-
-            // Send control data if it exists
-            if (sceneData.control) {
-                eventChannelHub.publish(CONTROL_CHANNELS.CAMERA_CONTROL_UPDATE, sceneData.control);
-            }
-
-        }
-    }, [sceneData]);
 
     useEffect(() => {
         const handleModelListUpdate = (data) => {
@@ -64,34 +49,17 @@ export default function DigitalScene({ sceneName }) {
 
     // const { scene } = useThree();
     // console.log(scene);
-    if(!sceneData)
+    if(!loaded)
     {
         console.log("no scene data yet")
         return null;
     }
 
 
-    const models = sceneData.models || [];
-
-
     return (
         <group>
-            <SceneLights lights={localLights.length > 0 ? localLights : sceneData.lights} />
-            {models.map((model, index) => {
-                //console.log(`Model type: ${model.type}, name: ${model.name}`);
-                const modelProps = {
-                    url: model.url,
-                    name: model.name,
-                    scale: model.scale,
-                    position: model.position,
-                    rotation: model.rotation
-                };
-                if (model.type === MODEL_TYPE.FRAME) {
-                    return <FrameModel key={index} {...modelProps} />
-                } else {
-                    return <BaseModel key={index} {...modelProps} />
-                }
-            })}
+            <SceneLights lights={localLights} />
+            <SceneModels models={localModels} />
         </group>
     )
 }

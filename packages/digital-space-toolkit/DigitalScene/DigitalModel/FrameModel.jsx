@@ -1,7 +1,7 @@
 import { useGLTF, Html } from '@react-three/drei'
 import React from 'react'//for webpack consistency,
 import { useEffect, useState } from 'react';
-import tagRegistry from '../TagRegistry'
+import tagRegistry from '../../TagRegistry.js'
 
 function DefaultTag({ name }) {
     return <span>{name}</span>
