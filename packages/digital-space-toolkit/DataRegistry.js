@@ -4,7 +4,7 @@ class DataRegistry {
         this.download = null;
     }
 
-    registerUpload(fn) {
+    registerUpsert(fn) {
         if (this.upsert !== null) {
             throw new Error('DataRegistry.registerUpload: upload function is already registered.');
         }
