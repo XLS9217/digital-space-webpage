@@ -16,7 +16,7 @@ const sanitizeVector = (vec) => {
     };
 };
 
-const ModelItem = ({ model, index, onItemSerialized }) => {
+const ModelItem = ({ model, index, onItemSerialized, onDelete }) => {
     const [localName, setLocalName] = useState(model.name || '');
     const [localData, setLocalData] = useState({
         position: sanitizeVector(model.position),
@@ -70,6 +70,7 @@ const ModelItem = ({ model, index, onItemSerialized }) => {
             title={localName || `Model ${index}`}
             type={model.type}
             onTitleChange={(newName) => setLocalName(newName)}
+            onDelete={onDelete}
         >
             <CoordDisplayer
                 label="Pos"
@@ -142,7 +143,7 @@ const NewModelItem = ({ onNewItemDone, onAddModel }) => {
                         });
                         onNewItemDone();
                     } catch (err) {
-                        setError('upsert failed: ' + err.message);
+                        setError('upsert failed: ' + (err.response?.data?.error || err.message));
                     }
                 }}
             />
@@ -162,7 +163,32 @@ const NewModelItem = ({ onNewItemDone, onAddModel }) => {
 };
 
 export default function ModelList({ models, onSerializedUpdate, showNewItem, onNewItemDone, onAddModel }) {
+    const [localData, setLocalData] = useState([]);
     const [serializedItems, setSerializedItems] = useState({});
+
+    // Sync from props when models change externally
+    useEffect(() => {
+        setLocalData(models || []);
+    }, [models]);
+
+    const handleDeleteModel = (index) => {
+        const model = localData[index];
+        const updated = localData.filter((_, i) => i !== index);
+        setLocalData(updated);
+        // Re-index serialized items to match new array
+        const newSerialized = {};
+        updated.forEach((_, i) => {
+            const oldIndex = i >= index ? i + 1 : i;
+            if (serializedItems[oldIndex]) {
+                newSerialized[i] = serializedItems[oldIndex];
+            }
+        });
+        setSerializedItems(newSerialized);
+        eventChannelHub.publish(CONTROL_CHANNELS.MODEL_LIST_UPDATE, {
+            action: 'remove',
+            name: model.name
+        });
+    };
 
     const handleItemSerialized = useCallback((index, data) => {
         setSerializedItems(prev => {
@@ -173,21 +199,24 @@ export default function ModelList({ models, onSerializedUpdate, showNewItem, onN
 
     // When serialized items change, notify parent with the full array
     useEffect(() => {
-        if (onSerializedUpdate && models && models.length > 0) {
-            const keys = Object.keys(serializedItems);
-            if (keys.length === models.length) {
-                const arr = models.map((_, i) => serializedItems[i]).filter(Boolean);
-                onSerializedUpdate(arr);
-            }
+        if (!onSerializedUpdate) return;
+        if (localData.length === 0) {
+            onSerializedUpdate([]);
+            return;
         }
-    }, [serializedItems, models, onSerializedUpdate]);
+        const keys = Object.keys(serializedItems);
+        if (keys.length === localData.length) {
+            const arr = localData.map((_, i) => serializedItems[i]).filter(Boolean);
+            onSerializedUpdate(arr);
+        }
+    }, [serializedItems, localData, onSerializedUpdate]);
 
-    // Reset serialized items when models array changes identity
+    // Reset serialized items when models prop changes externally
     useEffect(() => {
         setSerializedItems({});
     }, [models]);
 
-    if (!models || models.length === 0) {
+    if (localData.length === 0 && !showNewItem) {
         return <div className="debug-item no-data">No models in scene</div>;
     }
 
@@ -196,12 +225,13 @@ export default function ModelList({ models, onSerializedUpdate, showNewItem, onN
             {showNewItem && (
                 <NewModelItem onNewItemDone={onNewItemDone} onAddModel={onAddModel} />
             )}
-            {models.map((model, index) => (
+            {localData.map((model, index) => (
                 <ModelItem
                     key={model.name || index}
                     model={model}
                     index={index}
                     onItemSerialized={handleItemSerialized}
+                    onDelete={() => handleDeleteModel(index)}
                 />
             ))}
         </div>

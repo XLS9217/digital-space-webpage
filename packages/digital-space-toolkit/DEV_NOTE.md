@@ -10,8 +10,13 @@
 - Adding a model upserts to backend then publishes `SCENE_RELOAD` (not local state update)
 - `DigitalScene` subscribes to `SCENE_RELOAD`, re-fetches from backend, re-publishes `INTERNAL_DEBUG_SCENE`
 - `DebugPanel` receives fresh scene data — no need to manually sync ModelList
-- This is different from LightList which uses local state + `LIGHT_LIST_UPDATE` channel
+
+## Delete Model Flow: Local State + MODEL_LIST_UPDATE
+- ModelList now uses local state (`localData`) just like LightList
+- Deleting a model removes it from `localData` and publishes `MODEL_LIST_UPDATE` with `action: 'remove'`
+- `DigitalScene` subscribes to `MODEL_LIST_UPDATE` and removes the model from its own `localModels`
+- No backend round-trip needed — just unload locally (same pattern as light delete)
 
 ## In Progress
 - ModelList: add model works via upsert + reload
-- Next: wire up model delete (same upsert + reload pattern)
+- ModelList: delete model works via local state + `MODEL_LIST_UPDATE` channel

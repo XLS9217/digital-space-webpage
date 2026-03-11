@@ -31,8 +31,10 @@ export default function DigitalScene({ sceneName }) {
     }, [sceneName]);
 
     useEffect(() => {
-        const handleModelListUpdate = (data) => {
-            console.log("model list update triggers", data);
+        const handleModelListUpdate = ({ action, name }) => {
+            if (action === 'remove') {
+                setLocalModels(prev => prev.filter(m => m.name !== name));
+            }
         };
         const handleLightListUpdate = ({ action, light, index }) => {
             if (action === 'add') {

@@ -56,7 +56,7 @@ const CONTROL_CHANNELS = {
     /* For model list update (add/remove)
      * Inside digital-space-toolkit package,
      * Publish by:
-     * - TBD
+     * - ./DebugPanel/PanelContent/ModelList.jsx
      * Subscribe by:
      * - ./DigitalScene/DigitalScene.jsx
      */
