@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { ChevronIcon, TrashBinIcon, EyeIcon } from '../CodeSvg';
+import { ChevronIcon, TrashBinIcon, EyeIcon, PrinterIcon } from '../CodeSvg';
 
 const EditableName = ({ title, onTitleChange, initialEditing = false }) => {
     const [isEditing, setIsEditing] = useState(initialEditing);
@@ -60,7 +60,7 @@ const EditableName = ({ title, onTitleChange, initialEditing = false }) => {
     );
 };
 
-const DebugBlock = ({ title, type, children, initialExpanded = false, initialEditing = false, onTitleChange, onDelete, onVisibilityToggle, visible }) => {
+const DebugBlock = ({ title, type, children, initialExpanded = false, initialEditing = false, onTitleChange, onDelete, onVisibilityToggle, visible, onPrint }) => {
     const [isExpanded, setIsExpanded] = useState(initialExpanded);
 
     return (
@@ -77,6 +77,9 @@ const DebugBlock = ({ title, type, children, initialExpanded = false, initialEdi
                 </div>
                 <div className="debug-section-header-right">
                     {type && <span className="debug-section-type">{type}</span>}
+                    {onPrint && (
+                        <PrinterIcon size={14} onClick={onPrint} title="Print to console" />
+                    )}
                     {onVisibilityToggle && (
                         <EyeIcon size={14} isClosed={!visible} onClick={onVisibilityToggle} title={visible ? "Hide" : "Show"} />
                     )}

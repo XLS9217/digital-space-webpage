@@ -28,10 +28,7 @@ export default function PanelContent({ sceneData, showJson }) {
     };
 
     const handlePrint = () => {
-        const json = getSerializedSceneJson();
-        if (json) {
-            console.log("Scene JSON:", json);
-        }
+        eventChannelHub.publish(CONTROL_CHANNELS.PRINT_SCENE);
     };
 
     const handleDownload = async () => {
@@ -100,7 +97,7 @@ export default function PanelContent({ sceneData, showJson }) {
                     <div className="debug-header-row">
                         <h3>Debug Info</h3>
                         <div className="debug-actions">
-                            <span title="Print Scene JSON to console">
+                            <span title="Print Three.js Scene to console">
                                 <PrinterIcon
                                     size={16}
                                     className="debug-action-icon"

@@ -11,6 +11,22 @@ export default function DebugTunnel() {
     const { camera, scene } = useThree();
 
     useEffect(() => {
+        const handlePrintScene = () => {
+            console.log("Three.js Scene:", scene);
+        };
+
+        const handlePrintObject = ({ name }) => {
+            const object = scene.getObjectByName(name);
+            if (object) {
+                console.log(`Three.js Object [${name}]:`, object);
+            } else {
+                console.warn(`Object with name "${name}" not found in scene`);
+            }
+        };
+
+        eventChannelHub.subscribe(CONTROL_CHANNELS.PRINT_SCENE, handlePrintScene);
+        eventChannelHub.subscribe(CONTROL_CHANNELS.PRINT_OBJECT, handlePrintObject);
+
         // Subscribe to object update requests
         const handleObjectUpdate = (updateData) => {
             const { name, property, value } = updateData;
@@ -49,6 +65,8 @@ export default function DebugTunnel() {
         eventChannelHub.subscribe(CONTROL_CHANNELS.OBJECT_UPDATE_BY_NAME, handleObjectUpdate);
 
         return () => {
+            eventChannelHub.unsubscribe(CONTROL_CHANNELS.PRINT_SCENE, handlePrintScene);
+            eventChannelHub.unsubscribe(CONTROL_CHANNELS.PRINT_OBJECT, handlePrintObject);
             eventChannelHub.unsubscribe(CONTROL_CHANNELS.OBJECT_UPDATE_BY_NAME, handleObjectUpdate);
         };
     }, [scene]);

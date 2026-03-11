@@ -78,7 +78,25 @@ const CONTROL_CHANNELS = {
      * Subscribe by:
      * - ./DigitalScene/DigitalScene.jsx
      */
-    SCENE_RELOAD: "SCENE_RELOAD"
+    SCENE_RELOAD: "SCENE_RELOAD",
+
+    /* For printing Three.js scene object to console
+     * Inside digital-space-toolkit package,
+     * Publish by:
+     * - ./DebugPanel/PanelContent/PanelContent.jsx
+     * Subscribe by:
+     * - ./DebugPanel/DebugTunnel.jsx
+     */
+    PRINT_SCENE: "PRINT_SCENE",
+
+    /* For printing a Three.js object by name to console
+     * Inside digital-space-toolkit package,
+     * Publish by:
+     * - ./DebugPanel/PanelContent/ModelList.jsx
+     * Subscribe by:
+     * - ./DebugPanel/DebugTunnel.jsx
+     */
+    PRINT_OBJECT: "PRINT_OBJECT"
 }
 
 class EventChannelHub {

@@ -3,6 +3,7 @@ import DebugBlock from '../CommonComponent/DebugBlock';
 import CoordDisplayer from '../CommonComponent/CoordDisplayer';
 import TextInputBox from '../CommonComponent/TextInputBox';
 import EnumSelect from '../CommonComponent/EnumSelect';
+import { PrinterIcon } from '../CodeSvg';
 import { eventChannelHub, CONTROL_CHANNELS } from '../../EventChannelHub';
 import { MODEL_TYPE } from '../../SceneTypeEnum';
 
@@ -76,6 +77,10 @@ const ModelItem = ({ model, index, onItemSerialized, onDelete }) => {
         });
     }, [model.name, visible]);
 
+    const handlePrint = useCallback(() => {
+        eventChannelHub.publish(CONTROL_CHANNELS.PRINT_OBJECT, { name: model.name });
+    }, [model.name]);
+
     return (
         <DebugBlock
             title={localName || `Model ${index}`}
@@ -84,6 +89,7 @@ const ModelItem = ({ model, index, onItemSerialized, onDelete }) => {
             onDelete={onDelete}
             visible={visible}
             onVisibilityToggle={handleVisibilityToggle}
+            onPrint={handlePrint}
         >
             <CoordDisplayer
                 label="Pos"
