@@ -10,8 +10,7 @@ export default function DigitalScene({ sceneName }) {
     const [localLights, setLocalLights] = useState([]);
     const [localModels, setLocalModels] = useState([]);
 
-    // Load scene data, sync local state, and publish to debug panel
-    useEffect(() => {
+    const loadScene = () => {
         if (!sceneName || !dataRegistry.load) return;
         dataRegistry.load(sceneName).then(data => {
             setLocalLights(data.lights || []);
@@ -24,6 +23,11 @@ export default function DigitalScene({ sceneName }) {
         }).catch(err => {
             console.error("Failed to load scene:", err);
         });
+    };
+
+    // Load scene data on mount / sceneName change
+    useEffect(() => {
+        loadScene();
     }, [sceneName]);
 
     useEffect(() => {
@@ -37,13 +41,18 @@ export default function DigitalScene({ sceneName }) {
                 setLocalLights(prev => prev.filter((_, i) => i !== index));
             }
         };
+        const handleSceneReload = () => {
+            loadScene();
+        };
 
         eventChannelHub.subscribe(CONTROL_CHANNELS.MODEL_LIST_UPDATE, handleModelListUpdate);
         eventChannelHub.subscribe(CONTROL_CHANNELS.LIGHT_LIST_UPDATE, handleLightListUpdate);
+        eventChannelHub.subscribe(CONTROL_CHANNELS.SCENE_RELOAD, handleSceneReload);
 
         return () => {
             eventChannelHub.unsubscribe(CONTROL_CHANNELS.MODEL_LIST_UPDATE, handleModelListUpdate);
             eventChannelHub.unsubscribe(CONTROL_CHANNELS.LIGHT_LIST_UPDATE, handleLightListUpdate);
+            eventChannelHub.unsubscribe(CONTROL_CHANNELS.SCENE_RELOAD, handleSceneReload);
         };
     }, []);
 

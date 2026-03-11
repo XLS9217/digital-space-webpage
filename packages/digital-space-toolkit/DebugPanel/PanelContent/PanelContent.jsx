@@ -5,6 +5,7 @@ import ModelList from "./ModelList";
 import LightList from "./LightList";
 import CameraControlBlock from "./CameraControlBlock";
 import dataRegistry from "../../DataRegistry.js";
+import { eventChannelHub, CONTROL_CHANNELS } from '../../EventChannelHub';
 import './PanelContent.css';
 
 export default function PanelContent({ sceneData, showJson }) {
@@ -67,6 +68,16 @@ export default function PanelContent({ sceneData, showJson }) {
         }
     };
 
+    const handleAddModel = async (newModel) => {
+        const json = getSerializedSceneJson();
+        if (!json || !json.scene) throw new Error('No scene data');
+
+        const { scene, ...config } = json;
+        config.models = [...(config.models || []), newModel];
+        await dataRegistry.upsert(scene, config);
+        eventChannelHub.publish(CONTROL_CHANNELS.SCENE_RELOAD);
+    };
+
     return (
         <div className="debug-panel-content">
             {showJson ? (
@@ -103,7 +114,7 @@ export default function PanelContent({ sceneData, showJson }) {
                                     onClick={dataRegistry.download ? handleDownload : undefined}
                                 />
                             </span>
-                            <span title={dataRegistry.upsert ? "Upload Scene Config" : "Need to register via webRegistry"}>
+                            <span title={dataRegistry.upsert ? "Upsert Scene Config" : "Need to register via webRegistry"}>
                                 <UploadIcon
                                     size={16}
                                     className={`debug-action-icon${dataRegistry.upsert ? '' : ' disabled'}`}
@@ -128,6 +139,7 @@ export default function PanelContent({ sceneData, showJson }) {
                             onSerializedUpdate={setSerializedModels}
                             showNewItem={showNewModel}
                             onNewItemDone={() => setShowNewModel(false)}
+                            onAddModel={handleAddModel}
                         />
                         <div className="debug-list-title">
                             <h3>Light List</h3>

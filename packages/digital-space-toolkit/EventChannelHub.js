@@ -69,7 +69,16 @@ const CONTROL_CHANNELS = {
      * Subscribe by:
      * - ./DigitalScene/DigitalScene.jsx
      */
-    LIGHT_LIST_UPDATE: "LIGHT_LIST_UPDATE"
+    LIGHT_LIST_UPDATE: "LIGHT_LIST_UPDATE",
+
+    /* For scene reload (re-fetch from backend)
+     * Inside digital-space-toolkit package,
+     * Publish by:
+     * - ./DebugPanel/PanelContent/ModelList.jsx
+     * Subscribe by:
+     * - ./DigitalScene/DigitalScene.jsx
+     */
+    SCENE_RELOAD: "SCENE_RELOAD"
 }
 
 class EventChannelHub {

@@ -101,7 +101,7 @@ const ModelItem = ({ model, index, onItemSerialized }) => {
     );
 };
 
-const NewModelItem = ({ onNewItemDone }) => {
+const NewModelItem = ({ onNewItemDone, onAddModel }) => {
     const [newName, setNewName] = useState('');
     const [fileLocation, setFileLocation] = useState('');
     const [error, setError] = useState('');
@@ -128,14 +128,22 @@ const NewModelItem = ({ onNewItemDone }) => {
         >
             <EnumSelect
                 enumObj={MODEL_TYPE}
-                onSelect={(type) => {
+                onSelect={async (type) => {
                     const msg = validate();
                     if (msg) {
                         setError(msg);
                         return;
                     }
-                    console.log("Add model type:", type, "name:", newName, "file:", fileLocation);
-                    onNewItemDone();
+                    try {
+                        await onAddModel({
+                            name: newName.trim(),
+                            type,
+                            file_location: fileLocation.trim()
+                        });
+                        onNewItemDone();
+                    } catch (err) {
+                        setError('upsert failed: ' + err.message);
+                    }
                 }}
             />
             <TextInputBox
@@ -153,7 +161,7 @@ const NewModelItem = ({ onNewItemDone }) => {
     );
 };
 
-export default function ModelList({ models, onSerializedUpdate, showNewItem, onNewItemDone }) {
+export default function ModelList({ models, onSerializedUpdate, showNewItem, onNewItemDone, onAddModel }) {
     const [serializedItems, setSerializedItems] = useState({});
 
     const handleItemSerialized = useCallback((index, data) => {
@@ -186,7 +194,7 @@ export default function ModelList({ models, onSerializedUpdate, showNewItem, onN
     return (
         <div className="debug-section-list">
             {showNewItem && (
-                <NewModelItem onNewItemDone={onNewItemDone} />
+                <NewModelItem onNewItemDone={onNewItemDone} onAddModel={onAddModel} />
             )}
             {models.map((model, index) => (
                 <ModelItem
