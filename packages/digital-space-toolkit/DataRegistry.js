@@ -2,6 +2,18 @@ class DataRegistry {
     constructor() {
         this.upsert = null;
         this.download = null;
+        this.load = null;
+    }
+
+    registerLoad(fn) {
+        if (this.load !== null) {
+            throw new Error('DataRegistry.registerLoad: load function is already registered.');
+        }
+        if (typeof fn !== 'function') {
+            throw new Error('DataRegistry.registerLoad: argument must be a function.');
+        }
+        this.load = fn;
+        return this;
     }
 
     registerUpsert(fn) {

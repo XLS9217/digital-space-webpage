@@ -2,32 +2,44 @@ import React from 'react'//for webpack consistency,
 import { useEffect, useState } from 'react';
 import { eventChannelHub, DEBUG_CHANNELS, CONTROL_CHANNELS } from '../EventChannelHub';
 import { MODEL_TYPE } from '../SceneTypeEnum';
+import dataRegistry from '../DataRegistry';
 import BaseModel from './BaseModel';
 import FrameModel from './FrameModel';
 import SceneLights from "./SceneLights";
 import {useThree} from "@react-three/fiber";
 
-export default function DigitalScene({ scene_data }) {
+export default function DigitalScene({ sceneName }) {
+    const [sceneData, setSceneData] = useState(null);
     const [localLights, setLocalLights] = useState([]);
 
-    // Sync local lights from scene_data
+    // Load scene data using dataRegistry
     useEffect(() => {
-        if (scene_data?.lights) {
-            setLocalLights(scene_data.lights);
+        if (!sceneName || !dataRegistry.load) return;
+        dataRegistry.load(sceneName).then(data => {
+            setSceneData(data);
+        }).catch(err => {
+            console.error("Failed to load scene:", err);
+        });
+    }, [sceneName]);
+
+    // Sync local lights from scene data
+    useEffect(() => {
+        if (sceneData?.lights) {
+            setLocalLights(sceneData.lights);
         }
-    }, [scene_data]);
+    }, [sceneData]);
 
     useEffect(() => {
-        if (scene_data) {
-            eventChannelHub.publish(DEBUG_CHANNELS.INTERNAL_DEBUG_SCENE, scene_data);
+        if (sceneData) {
+            eventChannelHub.publish(DEBUG_CHANNELS.INTERNAL_DEBUG_SCENE, sceneData);
 
             // Send control data if it exists
-            if (scene_data.control) {
-                eventChannelHub.publish(CONTROL_CHANNELS.CAMERA_CONTROL_UPDATE, scene_data.control);
+            if (sceneData.control) {
+                eventChannelHub.publish(CONTROL_CHANNELS.CAMERA_CONTROL_UPDATE, sceneData.control);
             }
 
         }
-    }, [scene_data]);
+    }, [sceneData]);
 
     useEffect(() => {
         const handleModelListUpdate = (data) => {
@@ -50,21 +62,21 @@ export default function DigitalScene({ scene_data }) {
         };
     }, []);
 
-    const { scene } = useThree();
-    console.log(scene);
-    if(!scene_data)
+    // const { scene } = useThree();
+    // console.log(scene);
+    if(!sceneData)
     {
         console.log("no scene data yet")
         return null;
     }
 
 
-    const models = scene_data.models || [];
+    const models = sceneData.models || [];
 
 
     return (
         <group>
-            <SceneLights lights={localLights} />
+            <SceneLights lights={localLights.length > 0 ? localLights : sceneData.lights} />
             {models.map((model, index) => {
                 //console.log(`Model type: ${model.type}, name: ${model.name}`);
                 const modelProps = {
