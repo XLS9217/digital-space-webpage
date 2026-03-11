@@ -241,24 +241,21 @@ export const TrashBinIcon = ({ size = 20, color = "currentColor", ...props }) =>
 
 
 
+
 export const EyeIcon = ({ size = 20, color = "currentColor", isClosed = false, ...props }) => {
     const [isHovered, setIsHovered] = React.useState(false);
 
-    // VISIBLE STATE
-    const pathVisibleDefault = "M2 12 Q12 2 22 12 Q12 22 2 12";
-    const pathVisibleHover   = "M2 12 Q12 -4 22 12 Q12 28 2 12";
+    // lidPeak is the CONTROL POINT for the curve
+    const lidPeak = isClosed ? 12 : (isHovered ? -4 : 2);
 
-    // CLOSED STATE
-    const pathClosedDefault  = "M2 12 Q12 12 22 12 Q12 12 2 12";
-    // Lower lid drops significantly to reveal exactly half the pupil area
-    const pathClosedHover    = "M2 12 Q12 12 22 12 Q12 22 2 12";
+    // actualPeakY is the VISUAL TOP of the eyelid curve
+    const actualPeakY = (12 + lidPeak) / 2;
 
-    const getD = () => {
-        if (!isClosed) {
-            return isHovered ? pathVisibleHover : pathVisibleDefault;
-        }
-        return isHovered ? pathClosedHover : pathClosedDefault;
-    };
+    const bottomPeak = isClosed ? (isHovered ? 22 : 12) : (isHovered ? 28 : 22);
+
+    // THE FIX: Move the y1 (root) slightly deeper (e.g., +1.5px) than the lid's edge
+    const rootY = actualPeakY + 1.2;
+    const sideRootY = actualPeakY + 2.2; // Side lashes sit lower on the curve
 
     return (
         <svg
@@ -266,21 +263,29 @@ export const EyeIcon = ({ size = 20, color = "currentColor", isClosed = false, .
             height={size}
             viewBox="0 0 24 24"
             fill="none"
-            xmlns="http://www.w3.org/2000/svg"
             stroke={color}
             strokeWidth={isHovered ? "2.5" : "2"}
             strokeLinecap="round"
             strokeLinejoin="round"
             onMouseEnter={() => setIsHovered(true)}
             onMouseLeave={() => setIsHovered(false)}
-            style={{
-                cursor: 'pointer',
-                overflow: 'visible',
-                ...props.style
-            }}
+            style={{ cursor: 'pointer', overflow: 'visible', ...props.style }}
             {...props}
         >
-            {/* The Pupil - Stays at 12, but we clip the top half during the peek */}
+            {/* Eyelashes: Roots adjusted to overlap the lid stroke */}
+            <g style={{
+                opacity: isClosed ? 0 : 1,
+                transition: 'opacity 0.5s ease, transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275)'
+            }}>
+                {/* Left Lash */}
+                <line x1="7" y1={sideRootY} x2="6" y2={sideRootY - 4} />
+                {/* Middle Lash */}
+                <line x1="12" y1={rootY} x2="12" y2={rootY - 5} />
+                {/* Right Lash */}
+                <line x1="17" y1={sideRootY} x2="18" y2={sideRootY - 4} />
+            </g>
+
+            {/* Pupil: Centered, clipped for peek */}
             <circle
                 cx="12"
                 cy="12"
@@ -290,16 +295,15 @@ export const EyeIcon = ({ size = 20, color = "currentColor", isClosed = false, .
                 style={{
                     transition: 'opacity 0.25s ease, clip-path 0.25s ease',
                     opacity: isClosed ? (isHovered ? 1 : 0) : 1,
-                    // Insets the clip from the top to the middle (50%) when peeking
                     clipPath: (isClosed && isHovered)
                         ? 'inset(50% 0% 0% 0%)'
                         : 'inset(0% 0% 0% 0%)'
                 }}
             />
 
-            {/* The Eyelids */}
+            {/* The Eyelid Path */}
             <path
-                d={getD()}
+                d={`M2 12 Q12 ${lidPeak} 22 12 Q12 ${bottomPeak} 2 12`}
                 style={{
                     transition: 'd 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275), stroke-width 0.2s ease',
                 }}
