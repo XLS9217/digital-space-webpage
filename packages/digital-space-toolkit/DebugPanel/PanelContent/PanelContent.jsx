@@ -4,7 +4,7 @@ import { PrinterIcon, DownloadIcon, UploadIcon, PlusCircleIcon } from "../CodeSv
 import ModelList from "./ModelList";
 import LightList from "./LightList";
 import CameraControlBlock from "./CameraControlBlock";
-import webRegistry from "../../WebRegistry";
+import dataRegistry from "../../DataRegistry.js";
 import './PanelContent.css';
 
 export default function PanelContent({ sceneData, showJson }) {
@@ -38,7 +38,7 @@ export default function PanelContent({ sceneData, showJson }) {
         if (!json || !json.scene) return;
 
         try {
-            const blob = await webRegistry.download(json.scene);
+            const blob = await dataRegistry.download(json.scene);
             const url = URL.createObjectURL(blob);
             const link = document.createElement("a");
             link.href = url;
@@ -59,7 +59,7 @@ export default function PanelContent({ sceneData, showJson }) {
 
         try {
             const { scene, ...config } = json;
-            const result = await webRegistry.upload(scene, config);
+            const result = await dataRegistry.upsert(scene, config);
             console.log("Scene upserted:", result);
         } catch (error) {
             console.error('Failed to upload scene:', error);
@@ -96,18 +96,18 @@ export default function PanelContent({ sceneData, showJson }) {
                                     onClick={handlePrint}
                                 />
                             </span>
-                            <span title={webRegistry.download ? "Download Scene ZIP" : "Need to register via webRegistry"}>
+                            <span title={dataRegistry.download ? "Download Scene ZIP" : "Need to register via webRegistry"}>
                                 <DownloadIcon
                                     size={16}
-                                    className={`debug-action-icon${webRegistry.download ? '' : ' disabled'}`}
-                                    onClick={webRegistry.download ? handleDownload : undefined}
+                                    className={`debug-action-icon${dataRegistry.download ? '' : ' disabled'}`}
+                                    onClick={dataRegistry.download ? handleDownload : undefined}
                                 />
                             </span>
-                            <span title={webRegistry.upload ? "Upload Scene Config" : "Need to register via webRegistry"}>
+                            <span title={dataRegistry.upsert ? "Upload Scene Config" : "Need to register via webRegistry"}>
                                 <UploadIcon
                                     size={16}
-                                    className={`debug-action-icon${webRegistry.upload ? '' : ' disabled'}`}
-                                    onClick={webRegistry.upload ? handleUpload : undefined}
+                                    className={`debug-action-icon${dataRegistry.upsert ? '' : ' disabled'}`}
+                                    onClick={dataRegistry.upsert ? handleUpload : undefined}
                                 />
                             </span>
                         </div>
