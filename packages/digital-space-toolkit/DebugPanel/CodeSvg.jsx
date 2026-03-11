@@ -239,12 +239,26 @@ export const TrashBinIcon = ({ size = 20, color = "currentColor", ...props }) =>
     );
 };
 
-export const EyeIcon = ({ size = 20, color = "currentColor", isClosed = false, ...props }) => {
-    // Path for the OPEN eye state
-    const pathOpen = "M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8zM12 15a3 3 0 100-6 3 3 0 000 6z";
 
-    // Path for the CLOSED eye state (a line over the open shape + strikethrough)
-    const pathClosed = "M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8zM12 15a3 3 0 100-6 3 3 0 000 6z M3 3l18 18";
+
+export const EyeIcon = ({ size = 20, color = "currentColor", isClosed = false, ...props }) => {
+    const [isHovered, setIsHovered] = React.useState(false);
+
+    // VISIBLE STATE
+    const pathVisibleDefault = "M2 12 Q12 2 22 12 Q12 22 2 12";
+    const pathVisibleHover   = "M2 12 Q12 -4 22 12 Q12 28 2 12";
+
+    // CLOSED STATE
+    const pathClosedDefault  = "M2 12 Q12 12 22 12 Q12 12 2 12";
+    // Lower lid drops significantly to reveal exactly half the pupil area
+    const pathClosedHover    = "M2 12 Q12 12 22 12 Q12 22 2 12";
+
+    const getD = () => {
+        if (!isClosed) {
+            return isHovered ? pathVisibleHover : pathVisibleDefault;
+        }
+        return isHovered ? pathClosedHover : pathClosedDefault;
+    };
 
     return (
         <svg
@@ -254,29 +268,40 @@ export const EyeIcon = ({ size = 20, color = "currentColor", isClosed = false, .
             fill="none"
             xmlns="http://www.w3.org/2000/svg"
             stroke={color}
-            strokeWidth="2"
+            strokeWidth={isHovered ? "2.5" : "2"}
             strokeLinecap="round"
             strokeLinejoin="round"
-            style={{ cursor: 'pointer', ...props.style }}
+            onMouseEnter={() => setIsHovered(true)}
+            onMouseLeave={() => setIsHovered(false)}
+            style={{
+                cursor: 'pointer',
+                overflow: 'visible',
+                ...props.style
+            }}
             {...props}
         >
-            {/* The core eye shape that morphs */}
-            <path
-                d={isClosed ? pathClosed : pathOpen}
+            {/* The Pupil - Stays at 12, but we clip the top half during the peek */}
+            <circle
+                cx="12"
+                cy="12"
+                r="3"
+                fill={color}
+                stroke="none"
                 style={{
-                    transition: 'd 0.3s cubic-bezier(0.4, 0, 0.2, 1)', // Smooth path morphing
+                    transition: 'opacity 0.25s ease, clip-path 0.25s ease',
+                    opacity: isClosed ? (isHovered ? 1 : 0) : 1,
+                    // Insets the clip from the top to the middle (50%) when peeking
+                    clipPath: (isClosed && isHovered)
+                        ? 'inset(50% 0% 0% 0%)'
+                        : 'inset(0% 0% 0% 0%)'
                 }}
             />
 
-            {/* The diagonal line for the closed state - animates opacity */}
-            <line
-                x1="3"
-                y1="3"
-                x2="21"
-                y2="21"
+            {/* The Eyelids */}
+            <path
+                d={getD()}
                 style={{
-                    transition: 'opacity 0.2s ease',
-                    opacity: isClosed ? 1 : 0 // fades in/out
+                    transition: 'd 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275), stroke-width 0.2s ease',
                 }}
             />
         </svg>

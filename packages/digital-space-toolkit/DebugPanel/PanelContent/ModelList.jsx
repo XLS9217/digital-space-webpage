@@ -18,6 +18,7 @@ const sanitizeVector = (vec) => {
 
 const ModelItem = ({ model, index, onItemSerialized, onDelete }) => {
     const [localName, setLocalName] = useState(model.name || '');
+    const [visible, setVisible] = useState(true);
     const [localData, setLocalData] = useState({
         position: sanitizeVector(model.position),
         rotation: sanitizeVector(model.rotation),
@@ -65,12 +66,24 @@ const ModelItem = ({ model, index, onItemSerialized, onDelete }) => {
         }));
     }, [model.name]);
 
+    const handleVisibilityToggle = useCallback(() => {
+        const newVisible = !visible;
+        setVisible(newVisible);
+        eventChannelHub.publish(CONTROL_CHANNELS.OBJECT_UPDATE_BY_NAME, {
+            name: model.name,
+            property: 'visible',
+            value: newVisible
+        });
+    }, [model.name, visible]);
+
     return (
         <DebugBlock
             title={localName || `Model ${index}`}
             type={model.type}
             onTitleChange={(newName) => setLocalName(newName)}
             onDelete={onDelete}
+            visible={visible}
+            onVisibilityToggle={handleVisibilityToggle}
         >
             <CoordDisplayer
                 label="Pos"

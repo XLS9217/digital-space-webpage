@@ -18,6 +18,7 @@ const sanitizeVector = (vec) => {
 
 const LightItem = ({ light, index, onItemSerialized, onDelete }) => {
     const [localName, setLocalName] = useState(light.name || '');
+    const [visible, setVisible] = useState(true);
     const [localData, setLocalData] = useState({
         intensity: light.intensity || 0,
         position: light.position ? sanitizeVector(light.position) : undefined,
@@ -59,12 +60,24 @@ const LightItem = ({ light, index, onItemSerialized, onDelete }) => {
         }));
     }, [light.name]);
 
+    const handleVisibilityToggle = useCallback(() => {
+        const newVisible = !visible;
+        setVisible(newVisible);
+        eventChannelHub.publish(CONTROL_CHANNELS.OBJECT_UPDATE_BY_NAME, {
+            name: light.name,
+            property: 'visible',
+            value: newVisible
+        });
+    }, [light.name, visible]);
+
     return (
         <DebugBlock
             title={localName || `Light ${index} NO name`}
             type={light.type}
             onTitleChange={(newName) => setLocalName(newName)}
             onDelete={onDelete}
+            visible={visible}
+            onVisibilityToggle={handleVisibilityToggle}
         >
             <BarHandle
                 label="Intensity"

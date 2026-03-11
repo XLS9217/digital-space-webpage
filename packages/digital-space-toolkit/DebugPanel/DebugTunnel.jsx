@@ -36,6 +36,8 @@ export default function DebugTunnel() {
                     object.intensity = value;
                 } else if (property === 'color' && object.color) {
                     object.color.set(value);
+                } else if (property === 'visible') {
+                    object.visible = value;
                 }
 
                 console.log(`Applied update to ${name}`);
