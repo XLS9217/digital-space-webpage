@@ -1,10 +1,10 @@
 # Dev Notes
 
-## Naming: localName vs model.name
-- `localName` in ModelItem/LightItem is UI-only (editable display name)
-- `model.name` / `light.name` (from props) is the original name used for Three.js object lookup
-- Event channel publishes use the prop name, not localName
-- `scene.getObjectByName()` finds objects by original name — renaming in panel is cosmetic only
+## Naming: localName is the source of truth
+- `localName` in ModelItem/LightItem is the live name used for all event publishing
+- Renaming via DebugBlock publishes `OBJECT_UPDATE_BY_NAME` with `property: 'name'` to sync the 3D object
+- All subsequent events (position, visibility, etc.) use `localName`, not the original prop
+- `DebugTunnel` handles the `name` property by finding the object with the old name and setting `object.name = newValue`
 
 ## Add Model Flow: Upsert + SCENE_RELOAD
 - Adding a model upserts to backend then publishes `SCENE_RELOAD` (not local state update)

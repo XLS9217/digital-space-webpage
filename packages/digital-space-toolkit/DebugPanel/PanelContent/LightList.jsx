@@ -46,10 +46,19 @@ const LightItem = ({ light, index, onItemSerialized, onDelete }) => {
         }
     }, [localData, localName, index, light.type, onItemSerialized]);
 
+    const handleNameChange = useCallback((newName) => {
+        eventChannelHub.publish(CONTROL_CHANNELS.OBJECT_UPDATE_BY_NAME, {
+            name: localName,
+            property: 'name',
+            value: newName
+        });
+        setLocalName(newName);
+    }, [localName]);
+
     const handlePropertyChange = useCallback((property) => (newValue) => {
         // Publish to 3D engine
         eventChannelHub.publish(CONTROL_CHANNELS.OBJECT_UPDATE_BY_NAME, {
-            name: light.name,
+            name: localName,
             property: property,
             value: newValue
         });
@@ -58,26 +67,31 @@ const LightItem = ({ light, index, onItemSerialized, onDelete }) => {
             ...prev,
             [property]: newValue
         }));
-    }, [light.name]);
+    }, [localName]);
 
     const handleVisibilityToggle = useCallback(() => {
         const newVisible = !visible;
         setVisible(newVisible);
         eventChannelHub.publish(CONTROL_CHANNELS.OBJECT_UPDATE_BY_NAME, {
-            name: light.name,
+            name: localName,
             property: 'visible',
             value: newVisible
         });
-    }, [light.name, visible]);
+    }, [localName, visible]);
+
+    const handlePrint = useCallback(() => {
+        eventChannelHub.publish(CONTROL_CHANNELS.PRINT_OBJECT, { name: localName });
+    }, [localName]);
 
     return (
         <DebugBlock
             title={localName || `Light ${index} NO name`}
             type={light.type}
-            onTitleChange={(newName) => setLocalName(newName)}
+            onTitleChange={handleNameChange}
             onDelete={onDelete}
             visible={visible}
             onVisibilityToggle={handleVisibilityToggle}
+            onPrint={handlePrint}
         >
             <BarHandle
                 label="Intensity"
