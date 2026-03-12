@@ -9,7 +9,7 @@ import dataRegistry from "../../DataRegistry.js";
 import { eventChannelHub, CONTROL_CHANNELS } from '../../EventChannelHub';
 import './PanelContent.css';
 
-export default function PanelContent({ sceneData, showJson }) {
+export default function PanelContent({ sceneData, showJson, sceneController }) {
 
     const [controlInfo, setControlInfo] = useState(null);
     const [serializedModels, setSerializedModels] = useState([]);
@@ -148,6 +148,7 @@ export default function PanelContent({ sceneData, showJson }) {
                                 showNewItem={showNewGroup}
                                 onNewItemDone={() => setShowNewGroup(false)}
                                 onSerializedUpdate={setSerializedGroups}
+                                sceneController={sceneController}
                             />
                         </div>
                         <div className="debug-list-title">

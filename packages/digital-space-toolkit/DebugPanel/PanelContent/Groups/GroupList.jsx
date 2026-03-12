@@ -46,7 +46,7 @@ const NewGroupItem = ({ onNewItemDone, onAdd }) => {
     );
 };
 
-export default function GroupList({ groups, modelNames = [], showNewItem, onNewItemDone, onSerializedUpdate }) {
+export default function GroupList({ groups, modelNames = [], showNewItem, onNewItemDone, onSerializedUpdate, sceneController }) {
     const [localGroups, setLocalGroups] = useState([]);
     const [serializedItems, setSerializedItems] = useState({});
 
@@ -98,12 +98,16 @@ export default function GroupList({ groups, modelNames = [], showNewItem, onNewI
 
     // Recursive serialization function
     const serializeGroup = useCallback((group) => {
-        return {
+        const serialized = {
             name: group.name,
             type: group.type,
             names: group.names || [],
             groups: (group.groups || []).map(subGroup => serializeGroup(subGroup))
         };
+        if (group.metadata) {
+            serialized.metadata = group.metadata;
+        }
+        return serialized;
     }, []);
 
     const handleItemSerialized = useCallback((index, data) => {
@@ -143,6 +147,7 @@ export default function GroupList({ groups, modelNames = [], showNewItem, onNewI
                 serializeGroup={serializeGroup}
                 modelNames={modelNames}
                 onItemSerialized={handleItemSerialized}
+                sceneController={sceneController}
             />
         );
     };

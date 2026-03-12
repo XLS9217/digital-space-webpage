@@ -20,10 +20,13 @@ export default function DebugPanel() {
     const PANEL_WIDTH = size.width;
     const PANEL_HEIGHT = size.height;
 
+    const [sceneController, setSceneController] = useState(null);
+
     useEffect(() => {
-        const handleSceneData = (data) => {
+        const handleSceneData = ({ data, controller }) => {
             console.log("Scene data:", data);
             setSceneData(data);
+            setSceneController(controller);
         };
 
         eventChannelHub.subscribe(DEBUG_CHANNELS.INTERNAL_DEBUG_SCENE, handleSceneData);
@@ -93,7 +96,7 @@ export default function DebugPanel() {
                 showJson={showJson}
                 setShowJson={setShowJson}
             />
-            {!isCollapsed && <PanelContent sceneData={sceneData} showJson={showJson} />}
+            {!isCollapsed && <PanelContent sceneData={sceneData} showJson={showJson} sceneController={sceneController} />}
             {!isCollapsed && (
                 <div
                     className="resize-handle"

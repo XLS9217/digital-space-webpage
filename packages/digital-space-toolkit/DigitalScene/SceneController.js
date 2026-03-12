@@ -151,7 +151,7 @@ class SceneController {
         for (const group of groups) {
             let controller = null;
 
-            if (group.type === GROUP_TYPE.LEVEL) {
+            if (group.type == GROUP_TYPE.LEVEL) {
                 controller = new _LevelsController(group);
             }
             // Future: other group types

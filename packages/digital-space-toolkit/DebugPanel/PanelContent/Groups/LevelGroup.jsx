@@ -10,7 +10,6 @@ import DebugButton from '../../CommonComponent/DebugButton';
 import TagList from '../../CommonComponent/TagList';
 import CoordDisplayer from '../../CommonComponent/CoordDisplayer';
 import { GROUP_TYPE } from '../../../SceneTypeEnum';
-import { eventChannelHub, CONTROL_CHANNELS } from '../../../EventChannelHub';
 
 const LayerGroup = ({ group, depth = 0, onDelete, onNamesChange, modelNames, onInvestigate }) => {
     return (
@@ -37,10 +36,9 @@ const LayerGroup = ({ group, depth = 0, onDelete, onNamesChange, modelNames, onI
     );
 };
 
-const LevelGroup = ({ group, depth = 0, onDelete, serializeGroup, modelNames = [], onItemSerialized, index }) => {
+const LevelGroup = ({ group, depth = 0, onDelete, serializeGroup, modelNames = [], onItemSerialized, index, sceneController }) => {
     const [localName, setLocalName] = useState(group.name || '');
     const [layers, setLayers] = useState(group.groups || []);
-    const [liftedLayers, setLiftedLayers] = useState(new Set());
     const [liftTarget, setLiftTarget] = useState(group.metadata?.liftTarget || { x: 0, y: 50, z: 0 });
 
     useEffect(() => {
@@ -80,64 +78,22 @@ const LevelGroup = ({ group, depth = 0, onDelete, serializeGroup, modelNames = [
         setLayers(prev => prev.filter((_, i) => i !== index));
     };
 
+    // Delegate investigate to the SceneController
     const handleInvestigate = useCallback((layerIndex) => {
-        // Layers above the clicked one (lower index = higher floor) - should be lifted
-        const layersAbove = layers.slice(0, layerIndex);
-        // Layers at or below the clicked one - should be at ground level
-        const layersAtOrBelow = layers.slice(layerIndex);
+        if (sceneController) {
+            sceneController.investigateLayer(localName, layerIndex);
+        }
+    }, [sceneController, localName]);
 
-        // Find layers above that need to be lifted
-        const layersToLift = layersAbove
-            .map((layer, index) => ({ layer, index }))
-            .filter(({ index }) => !liftedLayers.has(index));
-
-        // Find layers at or below that need to be brought down
-        const layersToBringDown = layersAtOrBelow
-            .map((layer, index) => ({ layer, index: index + layerIndex }))
-            .filter(({ index }) => liftedLayers.has(index));
-
-        // Lift layers above using liftTarget
-        const namesToLift = layersToLift.flatMap(({ layer }) => layer.names || []);
-        namesToLift.forEach(name => {
-            eventChannelHub.publish(CONTROL_CHANNELS.OBJECT_ANIMATION, {
-                name,
-                property: 'position',
-                value: liftTarget,
-                relative: true,
-                duration: 1,
-                ease: "power2.out",
-                onComplete: () => {
-                    console.log("success");
-                }
-            });
-        });
-
-        // Bring down layers at or below using negative liftTarget
-        const namesToBringDown = layersToBringDown.flatMap(({ layer }) => layer.names || []);
-        namesToBringDown.forEach(name => {
-            eventChannelHub.publish(CONTROL_CHANNELS.OBJECT_ANIMATION, {
-                name,
-                property: 'position',
-                value: { x: -liftTarget.x, y: -liftTarget.y, z: -liftTarget.z },
-                relative: true,
-                duration: 1,
-                ease: "power2.out",
-                onComplete: () => {
-                    console.log("success");
-                }
-            });
-        });
-
-        // Update lifted layers state
-        setLiftedLayers(prev => {
-            const newSet = new Set(prev);
-            // Add lifted layers
-            layersToLift.forEach(({ index }) => newSet.add(index));
-            // Remove brought down layers
-            layersToBringDown.forEach(({ index }) => newSet.delete(index));
-            return newSet;
-        });
-    }, [layers, liftedLayers, liftTarget]);
+    // Sync liftTarget changes to the controller
+    useEffect(() => {
+        if (sceneController) {
+            const controller = sceneController.controllerMap.get(localName);
+            if (controller) {
+                controller.liftTarget = liftTarget;
+            }
+        }
+    }, [liftTarget, sceneController, localName]);
 
     const handlePrint = useCallback(() => {
         const currentGroup = {

@@ -1,22 +1,35 @@
 import React from 'react'//for webpack consistency,
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { eventChannelHub, DEBUG_CHANNELS, CONTROL_CHANNELS } from '../EventChannelHub';
 import dataRegistry from '../DataRegistry';
 import SceneModels from './DigitalModel/SceneModels.jsx';
 import SceneLights from "./SceneLights";
+import SceneController from './SceneController';
 
-export default function DigitalScene({ sceneName }) {
+export default function DigitalScene({ sceneName, controllerRef }) {
     const [loaded, setLoaded] = useState(false);
     const [localLights, setLocalLights] = useState([]);
     const [localModels, setLocalModels] = useState([]);
+    const controller = useRef(new SceneController()).current;
+
+    // Expose controller to parent via controllerRef
+    useEffect(() => {
+        if (controllerRef) {
+            controllerRef.current = controller;
+        }
+    }, [controllerRef, controller]);
 
     const loadScene = () => {
         if (!sceneName || !dataRegistry.load) return;
         dataRegistry.load(sceneName).then(data => {
             setLocalLights(data.lights || []);
             setLocalModels(data.models || []);
+            controller.loadGroups(data.groups || []);
             setLoaded(true);
-            eventChannelHub.publish(DEBUG_CHANNELS.INTERNAL_DEBUG_SCENE, data);
+            eventChannelHub.publish(DEBUG_CHANNELS.INTERNAL_DEBUG_SCENE, {
+                data,
+                controller
+            });
             if (data.control) {
                 eventChannelHub.publish(CONTROL_CHANNELS.CAMERA_CONTROL_UPDATE, data.control);
             }
