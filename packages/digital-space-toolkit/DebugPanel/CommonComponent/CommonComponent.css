@@ -23,6 +23,11 @@ Reusable list and item styles
     background: rgba(255, 255, 255, 0.08);
 }
 
+.debug-section-item:has(.floor-group:hover),
+.debug-section-item:has(.debug-section-item:hover) {
+    background: rgba(0, 0, 0, 0.25);
+}
+
 .debug-section-header {
     display: flex;
     justify-content: space-between;
