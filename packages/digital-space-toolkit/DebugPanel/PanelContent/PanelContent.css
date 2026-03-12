@@ -133,3 +133,50 @@
 .debug-list::-webkit-scrollbar-thumb:hover {
     background: rgba(255, 255, 255, 0.6);
 }
+
+/* FloorGroup styles */
+.floor-group {
+    padding: 4px 8px;
+    border-left: 2px solid rgba(255, 255, 255, 0.1);
+}
+
+.floor-group-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.floor-group-header-right {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.floor-group-name {
+    font-weight: 500;
+    font-size: 13px;
+    color: #fff;
+}
+
+/* Floor list and insert button */
+.floor-list {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.floor-insert-btn {
+    display: block;
+    text-align: center;
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.25);
+    cursor: pointer;
+    transition: color 0.15s ease;
+    line-height: 1;
+    padding: 2px 0;
+    user-select: none;
+}
+
+.floor-insert-btn:hover {
+    color: rgba(255, 255, 255, 0.6);
+}

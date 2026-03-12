@@ -14,5 +14,12 @@ export const MODEL_TYPE = {
 }
 
 export const GROUP_TYPE = {
-    LEVEL: "level",
+    /**
+     * For level display
+     * under the level there will be number based sub-groups, sub-group type is level-floor in str
+     * GROUP_TYPE.LEVEL and GROUP_TYPE.LEVEL.FLOOR both works
+     */
+    LEVEL: Object.assign("level", {
+        FLOOR: "level-floor",
+    })
 }

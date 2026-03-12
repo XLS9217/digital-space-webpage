@@ -3,6 +3,7 @@ import { useState } from "react";
 import { PrinterIcon, DownloadIcon, UploadIcon, PlusCircleIcon, ChevronIcon } from "../CodeSvg";
 import ModelList from "./ModelList";
 import LightList from "./LightList";
+import GroupList from "./Groups/GroupList.jsx";
 import CameraControlBlock from "./CameraControlBlock";
 import dataRegistry from "../../DataRegistry.js";
 import { eventChannelHub, CONTROL_CHANNELS } from '../../EventChannelHub';
@@ -15,8 +16,10 @@ export default function PanelContent({ sceneData, showJson }) {
     const [serializedLights, setSerializedLights] = useState([]);
     const [showNewLight, setShowNewLight] = useState(false);
     const [showNewModel, setShowNewModel] = useState(false);
+    const [showNewGroup, setShowNewGroup] = useState(false);
     const [modelsExpanded, setModelsExpanded] = useState(false);
     const [lightsExpanded, setLightsExpanded] = useState(false);
+    const [groupsExpanded, setGroupsExpanded] = useState(false);
 
     const getSerializedSceneJson = () => {
         if (!sceneData) return null;
@@ -124,6 +127,25 @@ export default function PanelContent({ sceneData, showJson }) {
                     </div>
                     <div className="debug-list">
                         <CameraControlBlock onSerializedUpdate={setControlInfo} />
+                        <div className="debug-list-title">
+                            <div className="debug-list-title-left" onClick={() => setGroupsExpanded(!groupsExpanded)}>
+                                <ChevronIcon size={14} isCollapsed={!groupsExpanded} style={{ marginRight: '4px' }} />
+                                <h3>Group List [{sceneData?.groups?.length || 0}]</h3>
+                                <PlusCircleIcon
+                                    size={20}
+                                    className="debug-action-icon"
+                                    onClick={(e) => { e.stopPropagation(); setShowNewGroup(true); }}
+                                    title="Add Group"
+                                />
+                            </div>
+                        </div>
+                        <div style={{ display: groupsExpanded ? 'block' : 'none' }}>
+                            <GroupList
+                                groups={sceneData?.groups}
+                                showNewItem={showNewGroup}
+                                onNewItemDone={() => setShowNewGroup(false)}
+                            />
+                        </div>
                         <div className="debug-list-title">
                             <div className="debug-list-title-left" onClick={() => setModelsExpanded(!modelsExpanded)}>
                                 <ChevronIcon size={14} isCollapsed={!modelsExpanded} style={{ marginRight: '4px' }} />

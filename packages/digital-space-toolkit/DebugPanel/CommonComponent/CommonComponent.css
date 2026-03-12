@@ -306,3 +306,54 @@ Reusable list and item styles
     display: block;
     margin-top: 4px;
 }
+
+/* GroupList styles */
+.group-names-list {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.group-name-entry {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 11px;
+    padding: 1px 4px;
+    border-radius: 3px;
+}
+
+.group-name-entry:hover {
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.group-name-text {
+    color: rgba(255, 255, 255, 0.7);
+    font-family: monospace;
+    font-size: 11px;
+}
+
+.group-name-remove {
+    color: rgba(255, 255, 255, 0.3);
+    cursor: pointer;
+    font-size: 14px;
+    line-height: 1;
+    transition: color 0.15s ease;
+}
+
+.group-name-remove:hover {
+    color: rgba(255, 255, 255, 0.8);
+}
+
+.group-add-child {
+    font-size: 10px;
+    color: rgba(255, 255, 255, 0.4);
+    cursor: pointer;
+    transition: color 0.15s ease;
+    margin-top: 4px;
+    display: inline-block;
+}
+
+.group-add-child:hover {
+    color: rgba(255, 255, 255, 0.8);
+}
