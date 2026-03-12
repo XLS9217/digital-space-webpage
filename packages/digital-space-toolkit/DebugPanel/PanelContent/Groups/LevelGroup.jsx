@@ -9,7 +9,7 @@ import DebugBlock from '../../CommonComponent/DebugBlock';
 import TagList from '../../CommonComponent/TagList';
 import { GROUP_TYPE } from '../../../SceneTypeEnum';
 
-const FloorGroup = ({ group, depth = 0, onDelete, onNamesChange }) => {
+const FloorGroup = ({ group, depth = 0, onDelete, onNamesChange, modelNames }) => {
     return (
         <div style={{ marginLeft: depth > 0 ? 12 : 0 }}>
             <DebugBlock
@@ -21,13 +21,15 @@ const FloorGroup = ({ group, depth = 0, onDelete, onNamesChange }) => {
                 <TagList
                     tags={group.names || []}
                     onChange={onNamesChange}
+                    recommendation={modelNames}
+                    limitation={modelNames}
                 />
             </DebugBlock>
         </div>
     );
 };
 
-const LevelGroup = ({ group, depth = 0, onDelete, serializeGroup }) => {
+const LevelGroup = ({ group, depth = 0, onDelete, serializeGroup, modelNames = [] }) => {
     const [localName, setLocalName] = useState(group.name || '');
     const [floors, setFloors] = useState(group.groups || []);
 
@@ -101,6 +103,7 @@ const LevelGroup = ({ group, depth = 0, onDelete, serializeGroup }) => {
                             group={child}
                             depth={depth + 1}
                             onDelete={() => deleteFloor(i)}
+                            modelNames={modelNames}
                             onNamesChange={(newNames) => {
                                 setFloors(prev => prev.map((f, j) =>
                                     j === i ? { ...f, names: newNames } : f

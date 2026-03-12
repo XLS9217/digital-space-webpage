@@ -53,10 +53,19 @@ const ModelItem = ({ model, index, onItemSerialized, onDelete }) => {
         }
     }, [localData, localName, index, model.type, onItemSerialized]);
 
+    const handleNameChange = useCallback((newName) => {
+        eventChannelHub.publish(CONTROL_CHANNELS.OBJECT_UPDATE_BY_NAME, {
+            name: localName,
+            property: 'name',
+            value: newName
+        });
+        setLocalName(newName);
+    }, [localName]);
+
     const handleValueChange = useCallback((property) => (newValue) => {
         // Publish to 3D engine
         eventChannelHub.publish(CONTROL_CHANNELS.OBJECT_UPDATE_BY_NAME, {
-            name: model.name,
+            name: localName,
             property: property,
             value: newValue
         });
@@ -65,27 +74,27 @@ const ModelItem = ({ model, index, onItemSerialized, onDelete }) => {
             ...prev,
             [property]: newValue
         }));
-    }, [model.name]);
+    }, [localName]);
 
     const handleVisibilityToggle = useCallback(() => {
         const newVisible = !visible;
         setVisible(newVisible);
         eventChannelHub.publish(CONTROL_CHANNELS.OBJECT_UPDATE_BY_NAME, {
-            name: model.name,
+            name: localName,
             property: 'visible',
             value: newVisible
         });
-    }, [model.name, visible]);
+    }, [localName, visible]);
 
     const handlePrint = useCallback(() => {
-        eventChannelHub.publish(CONTROL_CHANNELS.PRINT_OBJECT, { name: model.name });
-    }, [model.name]);
+        eventChannelHub.publish(CONTROL_CHANNELS.PRINT_OBJECT, { name: localName });
+    }, [localName]);
 
     return (
         <DebugBlock
             title={localName || `Model ${index}`}
             type={model.type}
-            onTitleChange={(newName) => setLocalName(newName)}
+            onTitleChange={handleNameChange}
             onDelete={onDelete}
             visible={visible}
             onVisibilityToggle={handleVisibilityToggle}

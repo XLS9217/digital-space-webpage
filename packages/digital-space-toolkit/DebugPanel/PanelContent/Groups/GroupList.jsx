@@ -46,7 +46,7 @@ const NewGroupItem = ({ onNewItemDone, onAdd }) => {
     );
 };
 
-export default function GroupList({ groups, showNewItem, onNewItemDone }) {
+export default function GroupList({ groups, modelNames = [], showNewItem, onNewItemDone }) {
     const [localGroups, setLocalGroups] = useState([]);
 
     useEffect(() => {
@@ -116,6 +116,7 @@ export default function GroupList({ groups, showNewItem, onNewItemDone }) {
                 onAddChild={addChildToGroup}
                 onDeleteChild={deleteChild}
                 serializeGroup={serializeGroup}
+                modelNames={modelNames}
             />
         );
     };

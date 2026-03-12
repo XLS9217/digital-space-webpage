@@ -142,6 +142,7 @@ export default function PanelContent({ sceneData, showJson }) {
                         <div style={{ display: groupsExpanded ? 'block' : 'none' }}>
                             <GroupList
                                 groups={sceneData?.groups}
+                                modelNames={(sceneData?.models || []).map(m => m.name)}
                                 showNewItem={showNewGroup}
                                 onNewItemDone={() => setShowNewGroup(false)}
                             />

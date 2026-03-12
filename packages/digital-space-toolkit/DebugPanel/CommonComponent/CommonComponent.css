@@ -412,3 +412,41 @@ Reusable list and item styles
 .tag-list-input::placeholder {
     color: rgba(255, 255, 255, 0.3);
 }
+
+.tag-list-input-wrapper {
+    position: relative;
+    flex: 1;
+    min-width: 80px;
+}
+
+.tag-list-suggestions {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    padding: 4px;
+    background: rgba(30, 30, 30, 0.95);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 3px;
+    z-index: 10;
+    margin-top: 2px;
+}
+
+.tag-list-suggestion {
+    font-size: 10px;
+    background: rgba(255, 255, 255, 0.1);
+    padding: 2px 6px;
+    border-radius: 3px;
+    color: rgba(255, 255, 255, 0.6);
+    cursor: pointer;
+    font-family: monospace;
+    transition: background 0.15s ease, color 0.15s ease;
+}
+
+.tag-list-suggestion:hover {
+    background: rgba(255, 255, 255, 0.25);
+    color: rgba(255, 255, 255, 1);
+}

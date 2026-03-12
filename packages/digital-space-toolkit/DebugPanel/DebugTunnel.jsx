@@ -54,6 +54,8 @@ export default function DebugTunnel() {
                     object.color.set(value);
                 } else if (property === 'visible') {
                     object.visible = value;
+                } else if (property === 'name') {
+                    object.name = value;
                 }
 
                 console.log(`Applied update to ${name}`);
