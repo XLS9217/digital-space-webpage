@@ -6,6 +6,8 @@ import PanelContent from "./PanelContent/PanelContent";
 import { ResizeSlashIcon } from "./CodeSvg";
 import './DebugPanel.css';
 
+
+//this should only control what is inside the scene using the event channel hub
 export default function DebugPanel() {
     const [position, setPosition] = useState({ x: window.innerWidth - 315, y: 15 }); // Start at top-right, accounting for panel width and margin
     const [isCollapsed, setIsCollapsed] = useState(false);

@@ -28,7 +28,7 @@ export default function DigitalSpace({
                 <DigitalSpaceControl controlType={defaultControlStyle} />
                 <axesHelper args={[10]} />
                 {children}
-                {debug && <ControlTunnel/>}
+                <ControlTunnel/>
             </Canvas>
 
             {/*Outside because it's normal html, and there is a fucking namespace thing*/}

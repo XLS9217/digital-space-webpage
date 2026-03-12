@@ -23,6 +23,7 @@ const INFO_CHANNELS = {
 }
 
 //this channel is for scene control from debug panel
+//focus on the control of the scene data
 const CONTROL_CHANNELS = {
     
     /* For camera control update
@@ -98,6 +99,8 @@ const CONTROL_CHANNELS = {
      */
     PRINT_OBJECT: "PRINT_OBJECT"
 }
+
+// const
 
 class EventChannelHub {
     constructor() {
