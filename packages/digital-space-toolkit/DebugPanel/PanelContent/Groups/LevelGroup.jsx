@@ -27,9 +27,9 @@ const LayerGroup = ({ group, depth = 0, onDelete, onNamesChange, modelNames, onE
                     limitation={modelNames}
                 />
                 <DebugButton
-                    label="Explode"
+                    label="Investigate"
                     onClick={onExplode}
-                    title="Move layers above upward by 100"
+                    title="Bring this layer to the top of the stack"
                 />
             </DebugBlock>
         </div>
@@ -39,6 +39,7 @@ const LayerGroup = ({ group, depth = 0, onDelete, onNamesChange, modelNames, onE
 const LevelGroup = ({ group, depth = 0, onDelete, serializeGroup, modelNames = [], onItemSerialized, index }) => {
     const [localName, setLocalName] = useState(group.name || '');
     const [floors, setFloors] = useState(group.groups || []);
+    const [liftedLayers, setLiftedLayers] = useState(new Set());
 
     useEffect(() => {
         setLocalName(group.name || '');
@@ -77,22 +78,64 @@ const LevelGroup = ({ group, depth = 0, onDelete, serializeGroup, modelNames = [
         setFloors(prev => prev.filter((_, i) => i !== index));
     };
 
-    const handleExplode = useCallback((layerIndex) => {
-        // All layers above the triggered one (lower index = higher floor)
+    const handleInvestigate = useCallback((layerIndex) => {
+        // Layers above the clicked one (lower index = higher floor) - should be lifted
         const layersAbove = floors.slice(0, layerIndex);
-        const namesAbove = layersAbove.flatMap(layer => layer.names || []);
+        // Layers at or below the clicked one - should be at ground level
+        const layersAtOrBelow = floors.slice(layerIndex);
 
-        namesAbove.forEach(name => {
+        // Find layers above that need to be lifted
+        const layersToLift = layersAbove
+            .map((layer, index) => ({ layer, index }))
+            .filter(({ index }) => !liftedLayers.has(index));
+
+        // Find layers at or below that need to be brought down
+        const layersToBringDown = layersAtOrBelow
+            .map((layer, index) => ({ layer, index: index + layerIndex }))
+            .filter(({ index }) => liftedLayers.has(index));
+
+        // Lift layers above
+        const namesToLift = layersToLift.flatMap(({ layer }) => layer.names || []);
+        namesToLift.forEach(name => {
             eventChannelHub.publish(CONTROL_CHANNELS.OBJECT_ANIMATION, {
                 name,
                 property: 'position',
-                value: { x: 0, y: 100, z: 0 },
+                value: { x: 0, y: 50, z: 0 },
                 relative: true,
                 duration: 1,
-                ease: "power2.out"
+                ease: "power2.out",
+                onComplete: () => {
+                    console.log("success");
+                }
             });
         });
-    }, [floors]);
+
+        // Bring down layers at or below
+        const namesToBringDown = layersToBringDown.flatMap(({ layer }) => layer.names || []);
+        namesToBringDown.forEach(name => {
+            eventChannelHub.publish(CONTROL_CHANNELS.OBJECT_ANIMATION, {
+                name,
+                property: 'position',
+                value: { x: 0, y: -50, z: 0 },
+                relative: true,
+                duration: 1,
+                ease: "power2.out",
+                onComplete: () => {
+                    console.log("success");
+                }
+            });
+        });
+
+        // Update lifted layers state
+        setLiftedLayers(prev => {
+            const newSet = new Set(prev);
+            // Add lifted layers
+            layersToLift.forEach(({ index }) => newSet.add(index));
+            // Remove brought down layers
+            layersToBringDown.forEach(({ index }) => newSet.delete(index));
+            return newSet;
+        });
+    }, [floors, liftedLayers]);
 
     const handlePrint = useCallback(() => {
         const currentGroup = {
@@ -144,7 +187,7 @@ const LevelGroup = ({ group, depth = 0, onDelete, serializeGroup, modelNames = [
                                     j === i ? { ...f, names: newNames } : f
                                 ));
                             }}
-                            onExplode={() => handleExplode(i)}
+                            onExplode={() => handleInvestigate(i)}
                         />
                     ))}
                     <span

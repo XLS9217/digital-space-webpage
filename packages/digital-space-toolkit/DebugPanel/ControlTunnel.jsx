@@ -77,7 +77,7 @@ export default function ControlTunnel() {
 
         // Subscribe to animated object updates
         const handleObjectAnimation = (animationData) => {
-            const { name, property, value, relative, duration = 1, ease = "power2.out" } = animationData;
+            const { name, property, value, relative, duration = 1, ease = "power2.out", onComplete } = animationData;
             console.log(`Received animation request for ${name}, property: ${property}, value:`, value);
 
             const object = scene.getObjectByName(name);
@@ -94,7 +94,13 @@ export default function ControlTunnel() {
                         y: targetPosition.y,
                         z: targetPosition.z,
                         duration: duration,
-                        ease: ease
+                        ease: ease,
+                        onComplete: () => {
+                            console.log(`Animation completed for ${name}`);
+                            if (onComplete) {
+                                onComplete(name);
+                            }
+                        }
                     });
                     console.log(`Started animation for ${name}`);
                 }
