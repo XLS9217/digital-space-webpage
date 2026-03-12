@@ -12,7 +12,7 @@ import CoordDisplayer from '../../CommonComponent/CoordDisplayer';
 import { GROUP_TYPE } from '../../../SceneTypeEnum';
 import { eventChannelHub, CONTROL_CHANNELS } from '../../../EventChannelHub';
 
-const LayerGroup = ({ group, depth = 0, onDelete, onNamesChange, modelNames, onExplode }) => {
+const LayerGroup = ({ group, depth = 0, onDelete, onNamesChange, modelNames, onInvestigate }) => {
     return (
         <div style={{ marginLeft: depth > 0 ? 12 : 0 }}>
             <DebugBlock
@@ -29,7 +29,7 @@ const LayerGroup = ({ group, depth = 0, onDelete, onNamesChange, modelNames, onE
                 />
                 <DebugButton
                     label="Investigate"
-                    onClick={onExplode}
+                    onClick={onInvestigate}
                     title="Bring this layer to the top of the stack"
                 />
             </DebugBlock>
@@ -39,7 +39,7 @@ const LayerGroup = ({ group, depth = 0, onDelete, onNamesChange, modelNames, onE
 
 const LevelGroup = ({ group, depth = 0, onDelete, serializeGroup, modelNames = [], onItemSerialized, index }) => {
     const [localName, setLocalName] = useState(group.name || '');
-    const [floors, setFloors] = useState(group.groups || []);
+    const [layers, setLayers] = useState(group.groups || []);
     const [liftedLayers, setLiftedLayers] = useState(new Set());
     const [liftTarget, setLiftTarget] = useState(group.metadata?.liftTarget || { x: 0, y: 50, z: 0 });
 
@@ -50,7 +50,7 @@ const LevelGroup = ({ group, depth = 0, onDelete, serializeGroup, modelNames = [
     // Initialize with default layer "1" if no layers exist
     useEffect(() => {
         if (!group.groups || group.groups.length === 0) {
-            setFloors([{
+            setLayers([{
                 name: '1',
                 type: GROUP_TYPE.LEVEL.LAYER,
                 names: [],
@@ -59,32 +59,32 @@ const LevelGroup = ({ group, depth = 0, onDelete, serializeGroup, modelNames = [
         }
     }, []);
 
-    const addFloor = (atEnd) => {
-        setFloors(prev => {
-            // Get current floor numbers
-            const floorNumbers = prev.map(f => parseInt(f.name) || 0);
-            const maxFloor = Math.max(...floorNumbers);
-            const minFloor = Math.min(...floorNumbers);
+    const addLayer = (atEnd) => {
+        setLayers(prev => {
+            // Get current layer numbers
+            const layerNumbers = prev.map(f => parseInt(f.name) || 0);
+            const maxLayer = Math.max(...layerNumbers);
+            const minLayer = Math.min(...layerNumbers);
 
-            const newFloor = {
-                name: String(atEnd ? minFloor - 1 : maxFloor + 1),
+            const newLayer = {
+                name: String(atEnd ? minLayer - 1 : maxLayer + 1),
                 type: GROUP_TYPE.LEVEL.LAYER,
                 names: [],
                 groups: []
             };
-            return atEnd ? [...prev, newFloor] : [newFloor, ...prev];
+            return atEnd ? [...prev, newLayer] : [newLayer, ...prev];
         });
     };
 
-    const deleteFloor = (index) => {
-        setFloors(prev => prev.filter((_, i) => i !== index));
+    const deleteLayer = (index) => {
+        setLayers(prev => prev.filter((_, i) => i !== index));
     };
 
     const handleInvestigate = useCallback((layerIndex) => {
         // Layers above the clicked one (lower index = higher floor) - should be lifted
-        const layersAbove = floors.slice(0, layerIndex);
+        const layersAbove = layers.slice(0, layerIndex);
         // Layers at or below the clicked one - should be at ground level
-        const layersAtOrBelow = floors.slice(layerIndex);
+        const layersAtOrBelow = layers.slice(layerIndex);
 
         // Find layers above that need to be lifted
         const layersToLift = layersAbove
@@ -137,19 +137,19 @@ const LevelGroup = ({ group, depth = 0, onDelete, serializeGroup, modelNames = [
             layersToBringDown.forEach(({ index }) => newSet.delete(index));
             return newSet;
         });
-    }, [floors, liftedLayers, liftTarget]);
+    }, [layers, liftedLayers, liftTarget]);
 
     const handlePrint = useCallback(() => {
         const currentGroup = {
             name: localName,
             type: group.type,
             names: group.names || [],
-            groups: floors,
+            groups: layers,
             metadata: { liftTarget: liftTarget }
         };
         const serialized = serializeGroup(currentGroup);
         console.log('Level Group Serialized:', serialized);
-    }, [localName, group.type, group.names, floors, liftTarget, serializeGroup]);
+    }, [localName, group.type, group.names, layers, liftTarget, serializeGroup]);
 
     // Notify parent with serialized state
     useEffect(() => {
@@ -158,11 +158,11 @@ const LevelGroup = ({ group, depth = 0, onDelete, serializeGroup, modelNames = [
                 name: localName,
                 type: group.type,
                 names: group.names || [],
-                groups: floors,
+                groups: layers,
                 metadata: { liftTarget: liftTarget }
             }));
         }
-    }, [localName, group.type, group.names, floors, liftTarget, onItemSerialized, index, serializeGroup]);
+    }, [localName, group.type, group.names, layers, liftTarget, onItemSerialized, index, serializeGroup]);
 
     return (
         <div style={{ marginLeft: depth > 0 ? 12 : 0 }}>
@@ -179,30 +179,30 @@ const LevelGroup = ({ group, depth = 0, onDelete, serializeGroup, modelNames = [
                     editable={true}
                     onValueChange={(newValue) => setLiftTarget(newValue)}
                 />
-                <div className="floor-list">
+                <div className="layer-list">
                     <span
-                        className="floor-insert-btn"
-                        onClick={() => addFloor(false)}
+                        className="layer-insert-btn"
+                        onClick={() => addLayer(false)}
                         title="Add layer to top"
                     >+</span>
-                    {floors.map((child, i) => (
+                    {layers.map((child, i) => (
                         <LayerGroup
                             key={child.name + i}
                             group={child}
                             depth={depth + 1}
-                            onDelete={() => deleteFloor(i)}
+                            onDelete={() => deleteLayer(i)}
                             modelNames={modelNames}
                             onNamesChange={(newNames) => {
-                                setFloors(prev => prev.map((f, j) =>
+                                setLayers(prev => prev.map((f, j) =>
                                     j === i ? { ...f, names: newNames } : f
                                 ));
                             }}
-                            onExplode={() => handleInvestigate(i)}
+                            onInvestigate={() => handleInvestigate(i)}
                         />
                     ))}
                     <span
-                        className="floor-insert-btn"
-                        onClick={() => addFloor(true)}
+                        className="layer-insert-btn"
+                        onClick={() => addLayer(true)}
                         title="Add layer to bottom"
                     >+</span>
                 </div>

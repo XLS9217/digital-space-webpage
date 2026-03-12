@@ -134,14 +134,14 @@
     background: rgba(255, 255, 255, 0.6);
 }
 
-/* Floor list and insert button */
-.floor-list {
+/* Layer list and insert button */
+.layer-list {
     display: flex;
     flex-direction: column;
     gap: 4px;
 }
 
-.floor-insert-btn {
+.layer-insert-btn {
     display: block;
     text-align: center;
     font-size: 12px;
@@ -153,6 +153,6 @@
     user-select: none;
 }
 
-.floor-insert-btn:hover {
+.layer-insert-btn:hover {
     color: rgba(255, 255, 255, 0.6);
 }
