@@ -6,10 +6,11 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import DebugBlock from '../../CommonComponent/DebugBlock';
+import TagList from '../../CommonComponent/TagList';
 import { TrashBinIcon } from '../../CodeSvg';
 import { GROUP_TYPE } from '../../../SceneTypeEnum';
 
-const FloorGroup = ({ group, depth = 0, onDeleteChild, onDelete }) => {
+const FloorGroup = ({ group, depth = 0, onDelete, onNamesChange }) => {
     return (
         <div style={{ marginLeft: depth > 0 ? 12 : 0 }} className="floor-group">
             <div className="floor-group-header">
@@ -21,27 +22,15 @@ const FloorGroup = ({ group, depth = 0, onDeleteChild, onDelete }) => {
                     )}
                 </div>
             </div>
-            {group.names && group.names.length > 0 && (
-                <div className="group-names-list">
-                    {group.names.map((name, i) => (
-                        <div key={name + i} className="group-name-entry">
-                            <span className="group-name-text">{name}</span>
-                            <span
-                                className="group-name-remove"
-                                onClick={() => onDeleteChild && onDeleteChild(group.name, 'name', i)}
-                                title="Remove"
-                            >
-                                &times;
-                            </span>
-                        </div>
-                    ))}
-                </div>
-            )}
+            <TagList
+                tags={group.names || []}
+                onChange={onNamesChange}
+            />
         </div>
     );
 };
 
-const LevelGroup = ({ group, depth = 0, onDelete, onDeleteChild }) => {
+const LevelGroup = ({ group, depth = 0, onDelete, serializeGroup }) => {
     const [localName, setLocalName] = useState(group.name || '');
     const [floors, setFloors] = useState(group.groups || []);
 
@@ -82,24 +71,17 @@ const LevelGroup = ({ group, depth = 0, onDelete, onDeleteChild }) => {
         setFloors(prev => prev.filter((_, i) => i !== index));
     };
 
-    const serializeGroup = useCallback(() => {
-        return {
+    const handlePrint = useCallback(() => {
+        // Build current state for serialization
+        const currentGroup = {
             name: localName,
             type: group.type,
             names: group.names || [],
-            groups: floors.map(floor => ({
-                name: floor.name,
-                type: floor.type,
-                names: floor.names || [],
-                groups: floor.groups || []
-            }))
+            groups: floors
         };
-    }, [localName, group.type, group.names, floors]);
-
-    const handlePrint = useCallback(() => {
-        const serialized = serializeGroup();
-        console.log('Level Group Serialized:', JSON.stringify(serialized, null, 2));
-    }, [serializeGroup]);
+        const serialized = serializeGroup(currentGroup);
+        console.log('Level Group Serialized:', serialized);
+    }, [localName, group.type, group.names, floors, serializeGroup]);
 
     return (
         <div style={{ marginLeft: depth > 0 ? 12 : 0 }}>
@@ -110,23 +92,6 @@ const LevelGroup = ({ group, depth = 0, onDelete, onDeleteChild }) => {
                 onDelete={onDelete}
                 onPrint={handlePrint}
             >
-                {group.names && group.names.length > 0 && (
-                    <div className="group-names-list">
-                        {group.names.map((name, i) => (
-                            <div key={name + i} className="group-name-entry">
-                                <span className="group-name-text">{name}</span>
-                                <span
-                                    className="group-name-remove"
-                                    onClick={() => onDeleteChild && onDeleteChild(group.name, 'name', i)}
-                                    title="Remove"
-                                >
-                                    &times;
-                                </span>
-                            </div>
-                        ))}
-                    </div>
-                )}
-
                 <div className="floor-list">
                     <span
                         className="floor-insert-btn"
@@ -138,8 +103,12 @@ const LevelGroup = ({ group, depth = 0, onDelete, onDeleteChild }) => {
                             key={child.name + i}
                             group={child}
                             depth={depth + 1}
-                            onDeleteChild={onDeleteChild}
                             onDelete={() => deleteFloor(i)}
+                            onNamesChange={(newNames) => {
+                                setFloors(prev => prev.map((f, j) =>
+                                    j === i ? { ...f, names: newNames } : f
+                                ));
+                            }}
                         />
                     ))}
                     <span

@@ -6,7 +6,7 @@
  * Dispatches to type-specific components (LevelGroup, etc.) based on group.type.
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import DebugBlock from '../../CommonComponent/DebugBlock';
 import EnumSelect from '../../CommonComponent/EnumSelect';
 import { GROUP_TYPE } from '../../../SceneTypeEnum';
@@ -95,6 +95,16 @@ export default function GroupList({ groups, showNewItem, onNewItemDone }) {
         setLocalGroups(prev => removeRecursive(prev));
     };
 
+    // Recursive serialization function
+    const serializeGroup = useCallback((group) => {
+        return {
+            name: group.name,
+            type: group.type,
+            names: group.names || [],
+            groups: (group.groups || []).map(subGroup => serializeGroup(subGroup))
+        };
+    }, []);
+
     const renderGroup = (group, depth, onDelete) => {
         const Component = GROUP_COMPONENTS[group.type] || LevelGroup;
         return (
@@ -105,6 +115,7 @@ export default function GroupList({ groups, showNewItem, onNewItemDone }) {
                 onDelete={onDelete}
                 onAddChild={addChildToGroup}
                 onDeleteChild={deleteChild}
+                serializeGroup={serializeGroup}
             />
         );
     };

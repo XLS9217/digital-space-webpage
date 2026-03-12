@@ -357,3 +357,56 @@ Reusable list and item styles
 .group-add-child:hover {
     color: rgba(255, 255, 255, 0.8);
 }
+
+/* TagList styles */
+.tag-list-container {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 0;
+    margin-top: 4px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    min-height: 24px;
+    cursor: text;
+}
+
+.tag-list-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 11px;
+    background: rgba(255, 255, 255, 0.15);
+    padding: 2px 6px;
+    border-radius: 3px;
+    color: rgba(255, 255, 255, 0.85);
+    font-family: monospace;
+}
+
+.tag-list-remove {
+    color: rgba(255, 255, 255, 0.5);
+    cursor: pointer;
+    font-size: 14px;
+    line-height: 1;
+    transition: color 0.15s ease;
+}
+
+.tag-list-remove:hover {
+    color: rgba(255, 255, 255, 1);
+}
+
+.tag-list-input {
+    flex: 1;
+    min-width: 80px;
+    background: transparent;
+    border: none;
+    outline: none;
+    color: #e0e0e0;
+    font-size: 11px;
+    font-family: monospace;
+    padding: 2px;
+}
+
+.tag-list-input::placeholder {
+    color: rgba(255, 255, 255, 0.3);
+}
