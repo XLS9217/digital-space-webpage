@@ -5,9 +5,9 @@
 import React from 'react'//for webpack consistency,
 import { useEffect } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
-import { eventChannelHub, DEBUG_CHANNELS, CONTROL_CHANNELS } from "../EventChannelHub";
+import { eventChannelHub, CONTROL_CHANNELS } from "../EventChannelHub";
 
-export default function DebugTunnel() {
+export default function ControlTunnel() {
     const { camera, scene } = useThree();
 
     useEffect(() => {

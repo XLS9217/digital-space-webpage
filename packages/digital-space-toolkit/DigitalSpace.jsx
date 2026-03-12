@@ -15,7 +15,7 @@ import React from 'react'//for webpack consistency,
 import { Canvas } from "@react-three/fiber";
 import DigitalSpaceControl from "./DigitalSpaceControl";
 import DebugPanel from "./DebugPanel/DebugPanel";
-import DebugTunnel from "./DebugPanel/DebugTunnel";
+import ControlTunnel from "./DebugPanel/ControlTunnel.jsx";
 
 export default function DigitalSpace({
     defaultControlStyle,
@@ -28,7 +28,7 @@ export default function DigitalSpace({
                 <DigitalSpaceControl controlType={defaultControlStyle} />
                 <axesHelper args={[10]} />
                 {children}
-                {debug && <DebugTunnel/>}
+                {debug && <ControlTunnel/>}
             </Canvas>
 
             {/*Outside because it's normal html, and there is a fucking namespace thing*/}
