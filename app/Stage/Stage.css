@@ -19,3 +19,28 @@
 .stage-tag--meeting {
     background: #ffe2c6;
 }
+
+.layer-buttons {
+    position: fixed;
+    left: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    z-index: 10;
+}
+
+.layer-buttons button {
+    padding: 8px 16px;
+    background: rgba(0, 0, 0, 0.6);
+    color: white;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.layer-buttons button:hover {
+    background: rgba(0, 0, 0, 0.8);
+}
