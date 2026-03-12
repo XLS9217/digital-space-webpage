@@ -7,25 +7,22 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import DebugBlock from '../../CommonComponent/DebugBlock';
 import TagList from '../../CommonComponent/TagList';
-import { TrashBinIcon } from '../../CodeSvg';
 import { GROUP_TYPE } from '../../../SceneTypeEnum';
 
 const FloorGroup = ({ group, depth = 0, onDelete, onNamesChange }) => {
     return (
-        <div style={{ marginLeft: depth > 0 ? 12 : 0 }} className="floor-group">
-            <div className="floor-group-header">
-                <span className="floor-group-name">{group.name || 'Unnamed Floor'}</span>
-                <div className="floor-group-header-right">
-                    <span className="debug-section-type">{group.type}</span>
-                    {onDelete && (
-                        <TrashBinIcon size={14} onClick={onDelete} title="Delete floor" />
-                    )}
-                </div>
-            </div>
-            <TagList
-                tags={group.names || []}
-                onChange={onNamesChange}
-            />
+        <div style={{ marginLeft: depth > 0 ? 12 : 0 }}>
+            <DebugBlock
+                title={group.name || 'Unnamed Floor'}
+                type={group.type}
+                alwaysExpanded
+                onDelete={onDelete}
+            >
+                <TagList
+                    tags={group.names || []}
+                    onChange={onNamesChange}
+                />
+            </DebugBlock>
         </div>
     );
 };

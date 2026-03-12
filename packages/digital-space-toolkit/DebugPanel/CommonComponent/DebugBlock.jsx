@@ -60,19 +60,22 @@ const EditableName = ({ title, onTitleChange, initialEditing = false }) => {
     );
 };
 
-const DebugBlock = ({ title, type, children, initialExpanded = false, initialEditing = false, onTitleChange, onDelete, onVisibilityToggle, visible, onPrint }) => {
-    const [isExpanded, setIsExpanded] = useState(initialExpanded);
+const DebugBlock = ({ title, type, children, initialExpanded = false, alwaysExpanded = false, initialEditing = false, onTitleChange, onDelete, onVisibilityToggle, visible, onPrint }) => {
+    const [isExpanded, setIsExpanded] = useState(initialExpanded || alwaysExpanded);
+    const expanded = alwaysExpanded || isExpanded;
 
     return (
         <div className="debug-section-item">
             <div className="debug-section-header">
                 <div className="debug-section-title">
-                    <ChevronIcon
-                        size={14}
-                        isCollapsed={!isExpanded}
-                        style={{ marginRight: '4px', cursor: 'pointer' }}
-                        onClick={() => setIsExpanded(!isExpanded)}
-                    />
+                    {!alwaysExpanded && (
+                        <ChevronIcon
+                            size={14}
+                            isCollapsed={!isExpanded}
+                            style={{ marginRight: '4px', cursor: 'pointer' }}
+                            onClick={() => setIsExpanded(!isExpanded)}
+                        />
+                    )}
                     <EditableName title={title} onTitleChange={onTitleChange} initialEditing={initialEditing} />
                 </div>
                 <div className="debug-section-header-right">
@@ -89,7 +92,7 @@ const DebugBlock = ({ title, type, children, initialExpanded = false, initialEdi
                 </div>
             </div>
 
-            {isExpanded && (
+            {expanded && (
                 <div className="debug-section-details">
                     {children}
                 </div>
