@@ -304,6 +304,23 @@ Reusable list and item styles
     color: rgba(255, 255, 255, 1);
 }
 
+/* DebugButton */
+.debug-button {
+    font-size: 10px;
+    background: rgba(255, 255, 255, 0.1);
+    padding: 2px 8px;
+    border-radius: 3px;
+    color: rgba(255, 255, 255, 0.6);
+    cursor: pointer;
+    transition: background 0.15s ease, color 0.15s ease;
+    user-select: none;
+}
+
+.debug-button:hover {
+    background: rgba(255, 255, 255, 0.25);
+    color: rgba(255, 255, 255, 1);
+}
+
 .enum-select-error {
     font-size: 10px;
     color: #ff6b6b;

@@ -1,19 +1,21 @@
 /*
  * LevelGroup — group type "level"
- * Represents a floor/level that contains model/light names and nested floor sub-groups.
- * FloorGroup is a leaf node — no further nesting allowed.
+ * Represents a level that contains named layers (sub-groups).
+ * LayerGroup is a leaf node — no further nesting allowed.
  */
 
 import React, { useState, useEffect, useCallback } from 'react';
 import DebugBlock from '../../CommonComponent/DebugBlock';
+import DebugButton from '../../CommonComponent/DebugButton';
 import TagList from '../../CommonComponent/TagList';
 import { GROUP_TYPE } from '../../../SceneTypeEnum';
+import { eventChannelHub, CONTROL_CHANNELS } from '../../../EventChannelHub';
 
-const FloorGroup = ({ group, depth = 0, onDelete, onNamesChange, modelNames }) => {
+const LayerGroup = ({ group, depth = 0, onDelete, onNamesChange, modelNames, onExplode }) => {
     return (
         <div style={{ marginLeft: depth > 0 ? 12 : 0 }}>
             <DebugBlock
-                title={group.name || 'Unnamed Floor'}
+                title={group.name || 'Unnamed Layer'}
                 type={group.type}
                 alwaysExpanded
                 onDelete={onDelete}
@@ -23,6 +25,11 @@ const FloorGroup = ({ group, depth = 0, onDelete, onNamesChange, modelNames }) =
                     onChange={onNamesChange}
                     recommendation={modelNames}
                     limitation={modelNames}
+                />
+                <DebugButton
+                    label="Explode"
+                    onClick={onExplode}
+                    title="Move layers above upward by 100"
                 />
             </DebugBlock>
         </div>
@@ -37,7 +44,7 @@ const LevelGroup = ({ group, depth = 0, onDelete, serializeGroup, modelNames = [
         setLocalName(group.name || '');
     }, [group]);
 
-    // Initialize with default floor "1" if no floors exist
+    // Initialize with default layer "1" if no layers exist
     useEffect(() => {
         if (!group.groups || group.groups.length === 0) {
             setFloors([{
@@ -70,8 +77,22 @@ const LevelGroup = ({ group, depth = 0, onDelete, serializeGroup, modelNames = [
         setFloors(prev => prev.filter((_, i) => i !== index));
     };
 
+    const handleExplode = useCallback((layerIndex) => {
+        // All layers above the triggered one (lower index = higher floor)
+        const layersAbove = floors.slice(0, layerIndex);
+        const namesAbove = layersAbove.flatMap(layer => layer.names || []);
+
+        namesAbove.forEach(name => {
+            eventChannelHub.publish(CONTROL_CHANNELS.OBJECT_UPDATE_BY_NAME, {
+                name,
+                property: 'position',
+                value: { x: 0, y: 100, z: 0 },
+                relative: true
+            });
+        });
+    }, [floors]);
+
     const handlePrint = useCallback(() => {
-        // Build current state for serialization
         const currentGroup = {
             name: localName,
             type: group.type,
@@ -95,10 +116,10 @@ const LevelGroup = ({ group, depth = 0, onDelete, serializeGroup, modelNames = [
                     <span
                         className="floor-insert-btn"
                         onClick={() => addFloor(false)}
-                        title="Add floor to top"
+                        title="Add layer to top"
                     >+</span>
                     {floors.map((child, i) => (
-                        <FloorGroup
+                        <LayerGroup
                             key={child.name + i}
                             group={child}
                             depth={depth + 1}
@@ -109,12 +130,13 @@ const LevelGroup = ({ group, depth = 0, onDelete, serializeGroup, modelNames = [
                                     j === i ? { ...f, names: newNames } : f
                                 ));
                             }}
+                            onExplode={() => handleExplode(i)}
                         />
                     ))}
                     <span
                         className="floor-insert-btn"
                         onClick={() => addFloor(true)}
-                        title="Add floor to bottom"
+                        title="Add layer to bottom"
                     >+</span>
                 </div>
             </DebugBlock>

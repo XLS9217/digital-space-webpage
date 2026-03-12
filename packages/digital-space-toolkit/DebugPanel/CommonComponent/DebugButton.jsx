@@ -1,1 +1,13 @@
-//a super simple class for a button with words inside, just fit the style as other buttons
+import React from 'react';
+
+export default function DebugButton({ label, onClick, title }) {
+    return (
+        <span
+            className="debug-button"
+            onClick={onClick}
+            title={title}
+        >
+            {label}
+        </span>
+    );
+}

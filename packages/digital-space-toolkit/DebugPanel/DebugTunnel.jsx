@@ -29,7 +29,7 @@ export default function DebugTunnel() {
 
         // Subscribe to object update requests
         const handleObjectUpdate = (updateData) => {
-            const { name, property, value } = updateData;
+            const { name, property, value, relative } = updateData;
             console.log(`Received update request for ${name}, property: ${property}, value:`, value);
 
             // Find object by name in the scene
@@ -39,7 +39,15 @@ export default function DebugTunnel() {
 
                 // Apply the update based on property
                 if (property === 'position' && object.position) {
-                    object.position.set(value.x, value.y, value.z);
+                    if (relative) {
+                        object.position.set(
+                            object.position.x + value.x,
+                            object.position.y + value.y,
+                            object.position.z + value.z
+                        );
+                    } else {
+                        object.position.set(value.x, value.y, value.z);
+                    }
                 } else if (property === 'rotation' && object.rotation) {
                     object.rotation.set(value.x, value.y, value.z);
                 } else if (property === 'scale' && object.scale) {
