@@ -42,7 +42,7 @@ const LevelGroup = ({ group, depth = 0, onDelete, serializeGroup, modelNames = [
         if (!group.groups || group.groups.length === 0) {
             setFloors([{
                 name: '1',
-                type: GROUP_TYPE.LEVEL.FLOOR,
+                type: GROUP_TYPE.LEVEL.LAYER,
                 names: [],
                 groups: []
             }]);
@@ -58,7 +58,7 @@ const LevelGroup = ({ group, depth = 0, onDelete, serializeGroup, modelNames = [
 
             const newFloor = {
                 name: String(atEnd ? minFloor - 1 : maxFloor + 1),
-                type: GROUP_TYPE.LEVEL.FLOOR,
+                type: GROUP_TYPE.LEVEL.LAYER,
                 names: [],
                 groups: []
             };
