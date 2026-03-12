@@ -83,11 +83,13 @@ const LevelGroup = ({ group, depth = 0, onDelete, serializeGroup, modelNames = [
         const namesAbove = layersAbove.flatMap(layer => layer.names || []);
 
         namesAbove.forEach(name => {
-            eventChannelHub.publish(CONTROL_CHANNELS.OBJECT_UPDATE_BY_NAME, {
+            eventChannelHub.publish(CONTROL_CHANNELS.OBJECT_ANIMATION, {
                 name,
                 property: 'position',
                 value: { x: 0, y: 100, z: 0 },
-                relative: true
+                relative: true,
+                duration: 1,
+                ease: "power2.out"
             });
         });
     }, [floors]);

@@ -50,9 +50,18 @@ const CONTROL_CHANNELS = {
      * - ./DebugPanel/PanelContent/LightList.jsx
      * - ./DebugPanel/PanelContent/ModelList.jsx
      * Subscribe by:
-     * - ./DebugPanel/DebugTunnel.jsx
+     * - ./DebugPanel/ControlTunnel.jsx
      */
     OBJECT_UPDATE_BY_NAME: "OBJECT_UPDATE_BY_NAME",
+
+    /* For animated object updates using GSAP
+     * Inside digital-space-toolkit package,
+     * Publish by:
+     * - ./DebugPanel/PanelContent/Groups/LevelGroup.jsx
+     * Subscribe by:
+     * - ./DebugPanel/ControlTunnel.jsx
+     */
+    OBJECT_ANIMATION: "OBJECT_ANIMATION",
 
     /* For model list update (add/remove)
      * Inside digital-space-toolkit package,
