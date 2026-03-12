@@ -8,6 +8,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import DebugBlock from '../../CommonComponent/DebugBlock';
 import DebugButton from '../../CommonComponent/DebugButton';
 import TagList from '../../CommonComponent/TagList';
+import CoordDisplayer from '../../CommonComponent/CoordDisplayer';
 import { GROUP_TYPE } from '../../../SceneTypeEnum';
 import { eventChannelHub, CONTROL_CHANNELS } from '../../../EventChannelHub';
 
@@ -40,6 +41,7 @@ const LevelGroup = ({ group, depth = 0, onDelete, serializeGroup, modelNames = [
     const [localName, setLocalName] = useState(group.name || '');
     const [floors, setFloors] = useState(group.groups || []);
     const [liftedLayers, setLiftedLayers] = useState(new Set());
+    const [liftTarget, setLiftTarget] = useState(group.metadata?.liftTarget || { x: 0, y: 50, z: 0 });
 
     useEffect(() => {
         setLocalName(group.name || '');
@@ -94,13 +96,13 @@ const LevelGroup = ({ group, depth = 0, onDelete, serializeGroup, modelNames = [
             .map((layer, index) => ({ layer, index: index + layerIndex }))
             .filter(({ index }) => liftedLayers.has(index));
 
-        // Lift layers above
+        // Lift layers above using liftTarget
         const namesToLift = layersToLift.flatMap(({ layer }) => layer.names || []);
         namesToLift.forEach(name => {
             eventChannelHub.publish(CONTROL_CHANNELS.OBJECT_ANIMATION, {
                 name,
                 property: 'position',
-                value: { x: 0, y: 50, z: 0 },
+                value: liftTarget,
                 relative: true,
                 duration: 1,
                 ease: "power2.out",
@@ -110,13 +112,13 @@ const LevelGroup = ({ group, depth = 0, onDelete, serializeGroup, modelNames = [
             });
         });
 
-        // Bring down layers at or below
+        // Bring down layers at or below using negative liftTarget
         const namesToBringDown = layersToBringDown.flatMap(({ layer }) => layer.names || []);
         namesToBringDown.forEach(name => {
             eventChannelHub.publish(CONTROL_CHANNELS.OBJECT_ANIMATION, {
                 name,
                 property: 'position',
-                value: { x: 0, y: -50, z: 0 },
+                value: { x: -liftTarget.x, y: -liftTarget.y, z: -liftTarget.z },
                 relative: true,
                 duration: 1,
                 ease: "power2.out",
@@ -135,18 +137,19 @@ const LevelGroup = ({ group, depth = 0, onDelete, serializeGroup, modelNames = [
             layersToBringDown.forEach(({ index }) => newSet.delete(index));
             return newSet;
         });
-    }, [floors, liftedLayers]);
+    }, [floors, liftedLayers, liftTarget]);
 
     const handlePrint = useCallback(() => {
         const currentGroup = {
             name: localName,
             type: group.type,
             names: group.names || [],
-            groups: floors
+            groups: floors,
+            metadata: { liftTarget: liftTarget }
         };
         const serialized = serializeGroup(currentGroup);
         console.log('Level Group Serialized:', serialized);
-    }, [localName, group.type, group.names, floors, serializeGroup]);
+    }, [localName, group.type, group.names, floors, liftTarget, serializeGroup]);
 
     // Notify parent with serialized state
     useEffect(() => {
@@ -155,10 +158,11 @@ const LevelGroup = ({ group, depth = 0, onDelete, serializeGroup, modelNames = [
                 name: localName,
                 type: group.type,
                 names: group.names || [],
-                groups: floors
+                groups: floors,
+                metadata: { liftTarget: liftTarget }
             }));
         }
-    }, [localName, group.type, group.names, floors, onItemSerialized, index, serializeGroup]);
+    }, [localName, group.type, group.names, floors, liftTarget, onItemSerialized, index, serializeGroup]);
 
     return (
         <div style={{ marginLeft: depth > 0 ? 12 : 0 }}>
@@ -169,6 +173,12 @@ const LevelGroup = ({ group, depth = 0, onDelete, serializeGroup, modelNames = [
                 onDelete={onDelete}
                 onPrint={handlePrint}
             >
+                <CoordDisplayer
+                    label="Lift Target"
+                    value={liftTarget}
+                    editable={true}
+                    onValueChange={(newValue) => setLiftTarget(newValue)}
+                />
                 <div className="floor-list">
                     <span
                         className="floor-insert-btn"
