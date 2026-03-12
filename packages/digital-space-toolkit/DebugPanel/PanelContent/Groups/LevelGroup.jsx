@@ -36,7 +36,7 @@ const LayerGroup = ({ group, depth = 0, onDelete, onNamesChange, modelNames, onE
     );
 };
 
-const LevelGroup = ({ group, depth = 0, onDelete, serializeGroup, modelNames = [] }) => {
+const LevelGroup = ({ group, depth = 0, onDelete, serializeGroup, modelNames = [], onItemSerialized, index }) => {
     const [localName, setLocalName] = useState(group.name || '');
     const [floors, setFloors] = useState(group.groups || []);
 
@@ -102,6 +102,18 @@ const LevelGroup = ({ group, depth = 0, onDelete, serializeGroup, modelNames = [
         const serialized = serializeGroup(currentGroup);
         console.log('Level Group Serialized:', serialized);
     }, [localName, group.type, group.names, floors, serializeGroup]);
+
+    // Notify parent with serialized state
+    useEffect(() => {
+        if (onItemSerialized) {
+            onItemSerialized(index, serializeGroup({
+                name: localName,
+                type: group.type,
+                names: group.names || [],
+                groups: floors
+            }));
+        }
+    }, [localName, group.type, group.names, floors, onItemSerialized, index, serializeGroup]);
 
     return (
         <div style={{ marginLeft: depth > 0 ? 12 : 0 }}>

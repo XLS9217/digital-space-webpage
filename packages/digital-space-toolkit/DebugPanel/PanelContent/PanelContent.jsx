@@ -14,6 +14,7 @@ export default function PanelContent({ sceneData, showJson }) {
     const [controlInfo, setControlInfo] = useState(null);
     const [serializedModels, setSerializedModels] = useState([]);
     const [serializedLights, setSerializedLights] = useState([]);
+    const [serializedGroups, setSerializedGroups] = useState([]);
     const [showNewLight, setShowNewLight] = useState(false);
     const [showNewModel, setShowNewModel] = useState(false);
     const [showNewGroup, setShowNewGroup] = useState(false);
@@ -28,7 +29,8 @@ export default function PanelContent({ sceneData, showJson }) {
             scene: sceneData.scene,
             control: controlInfo,
             lights: serializedLights,
-            models: serializedModels
+            models: serializedModels,
+            groups: serializedGroups
         };
     };
 
@@ -145,6 +147,7 @@ export default function PanelContent({ sceneData, showJson }) {
                                 modelNames={(sceneData?.models || []).map(m => m.name)}
                                 showNewItem={showNewGroup}
                                 onNewItemDone={() => setShowNewGroup(false)}
+                                onSerializedUpdate={setSerializedGroups}
                             />
                         </div>
                         <div className="debug-list-title">

@@ -1,9 +1,9 @@
 /*
- * GroupList — display-only organizer for models/lights.
+ * GroupList — organizer for models/lights.
  * Although level is the only group type we have now, later we will have more.
- * Does NOT participate in 3D logic or serialized scene JSON yet.
  *
  * Dispatches to type-specific components (LevelGroup, etc.) based on group.type.
+ * Participates in serialization — serialized groups are included in upsert.
  */
 
 import React, { useState, useEffect, useCallback } from 'react';
@@ -46,8 +46,9 @@ const NewGroupItem = ({ onNewItemDone, onAdd }) => {
     );
 };
 
-export default function GroupList({ groups, modelNames = [], showNewItem, onNewItemDone }) {
+export default function GroupList({ groups, modelNames = [], showNewItem, onNewItemDone, onSerializedUpdate }) {
     const [localGroups, setLocalGroups] = useState([]);
+    const [serializedItems, setSerializedItems] = useState({});
 
     useEffect(() => {
         setLocalGroups(groups || []);
@@ -105,18 +106,43 @@ export default function GroupList({ groups, modelNames = [], showNewItem, onNewI
         };
     }, []);
 
-    const renderGroup = (group, depth, onDelete) => {
+    const handleItemSerialized = useCallback((index, data) => {
+        setSerializedItems(prev => ({ ...prev, [index]: data }));
+    }, []);
+
+    // Notify parent with full serialized array
+    useEffect(() => {
+        if (!onSerializedUpdate) return;
+        if (localGroups.length === 0) {
+            onSerializedUpdate([]);
+            return;
+        }
+        const keys = Object.keys(serializedItems);
+        if (keys.length === localGroups.length) {
+            const arr = localGroups.map((_, i) => serializedItems[i]).filter(Boolean);
+            onSerializedUpdate(arr);
+        }
+    }, [serializedItems, localGroups, onSerializedUpdate]);
+
+    // Reset serialized items when groups prop changes externally
+    useEffect(() => {
+        setSerializedItems({});
+    }, [groups]);
+
+    const renderGroup = (group, depth, onDelete, index) => {
         const Component = GROUP_COMPONENTS[group.type] || LevelGroup;
         return (
             <Component
                 key={group.name + depth}
                 group={group}
                 depth={depth}
+                index={index}
                 onDelete={onDelete}
                 onAddChild={addChildToGroup}
                 onDeleteChild={deleteChild}
                 serializeGroup={serializeGroup}
                 modelNames={modelNames}
+                onItemSerialized={handleItemSerialized}
             />
         );
     };
@@ -131,7 +157,7 @@ export default function GroupList({ groups, modelNames = [], showNewItem, onNewI
                 <NewGroupItem onNewItemDone={onNewItemDone} onAdd={handleAddTopLevel} />
             )}
             {localGroups.map((group, index) =>
-                renderGroup(group, 0, () => handleDeleteGroup(index))
+                renderGroup(group, 0, () => handleDeleteGroup(index), index)
             )}
         </div>
     );
