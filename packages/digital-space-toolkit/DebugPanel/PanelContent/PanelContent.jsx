@@ -4,7 +4,7 @@ import { PrinterIcon, DownloadIcon, UploadIcon, PlusCircleIcon, ChevronIcon } fr
 import ModelList from "./ModelList";
 import LightList from "./LightList";
 import GroupList from "./Groups/GroupList.jsx";
-import CameraControlBlock from "./CameraControlBlock";
+import InteractionSetting from "./InteractionSetting";
 import dataRegistry from "../../DataRegistry.js";
 import { eventChannelHub, CONTROL_CHANNELS } from '../../EventChannelHub';
 import './PanelContent.css';
@@ -21,7 +21,6 @@ export default function PanelContent({ sceneData, showJson, sceneController }) {
     const [modelsExpanded, setModelsExpanded] = useState(false);
     const [lightsExpanded, setLightsExpanded] = useState(false);
     const [groupsExpanded, setGroupsExpanded] = useState(false);
-    const [interactionExpanded, setInteractionExpanded] = useState(true);
 
     const getSerializedSceneJson = () => {
         if (!sceneData) return null;
@@ -136,15 +135,7 @@ export default function PanelContent({ sceneData, showJson, sceneController }) {
                         </div>
                     </div>
                     <div className="debug-list">
-                        <div className="debug-list-title">
-                            <div className="debug-list-title-left" onClick={() => setInteractionExpanded(!interactionExpanded)}>
-                                <ChevronIcon size={14} isCollapsed={!interactionExpanded} style={{ marginRight: '4px' }} />
-                                <h3>Interaction Setting</h3>
-                            </div>
-                        </div>
-                        <div style={{ display: interactionExpanded ? 'block' : 'none' }}>
-                            <CameraControlBlock onSerializedUpdate={setControlInfo} />
-                        </div>
+                        <InteractionSetting onSerializedUpdate={setControlInfo} />
                         <div className="debug-list-title">
                             <div className="debug-list-title-left" onClick={() => setGroupsExpanded(!groupsExpanded)}>
                                 <ChevronIcon size={14} isCollapsed={!groupsExpanded} style={{ marginRight: '4px' }} />
