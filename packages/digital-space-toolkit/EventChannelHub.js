@@ -25,7 +25,7 @@ const INFO_CHANNELS = {
 //this channel is for scene control from debug panel
 //focus on the control of the scene data
 const CONTROL_CHANNELS = {
-    
+
     /* For camera control update
      * Inside digital-space-toolkit package,
      * Publish by:
@@ -34,7 +34,7 @@ const CONTROL_CHANNELS = {
      * - ./DigitalSpaceControl.jsx
      */
     CAMERA_CONTROL_UPDATE: "CAMERA_CONTROL_UPDATE",
-    
+
     /* For camera control settings update
      * Inside digital-space-toolkit package,
      * Publish by:
@@ -42,8 +42,17 @@ const CONTROL_CHANNELS = {
      * Subscribe by:
      * - ./DigitalSpaceControl.jsx
      */
-    CAMERA_CONTROL_SETTINGS_UPDATE: "CAMERA_CONTROL_SETTINGS_UPDATE", 
-    
+    CAMERA_CONTROL_SETTINGS_UPDATE: "CAMERA_CONTROL_SETTINGS_UPDATE",
+
+    /* For animated camera updates using GSAP
+     * Inside digital-space-toolkit package,
+     * Publish by:
+     * - ./DigitalScene/SceneController.js
+     * Subscribe by:
+     * - ./DebugPanel/ControlTunnel.jsx
+     */
+    CAMERA_ANIMATION: "CAMERA_ANIMATION",
+
     /* For object update by name
      * Inside digital-space-toolkit package,
      * Publish by:

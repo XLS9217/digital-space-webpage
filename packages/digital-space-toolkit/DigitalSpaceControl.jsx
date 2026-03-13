@@ -17,6 +17,7 @@ import React from 'react'//for webpack consistency,
 import { useRef, useEffect, useState } from 'react'
 import { eventChannelHub, INFO_CHANNELS, CONTROL_CHANNELS } from './EventChannelHub'
 import { CONTROL_TYPE } from './SceneTypeEnum'
+import gsap from 'gsap'
 
 export default function DigitalSpaceControl({ controlType = CONTROL_TYPE.ORBIT }) {
     const { camera } = useThree()
@@ -158,6 +159,64 @@ export default function DigitalSpaceControl({ controlType = CONTROL_TYPE.ORBIT }
 
         return () => {
             eventChannelHub.unsubscribe(CONTROL_CHANNELS.CAMERA_CONTROL_UPDATE, handleControlUpdate);
+        };
+    }, [camera]);
+
+    // Subscribe to camera animation requests
+    useEffect(() => {
+        const handleCameraAnimation = (animationData) => {
+            const { position, target, duration = 1, ease = "power2.out", onComplete } = animationData;
+            console.log('Received camera animation request:', animationData);
+
+            // Animate camera position
+            if (position) {
+                gsap.to(camera.position, {
+                    x: position.x,
+                    y: position.y,
+                    z: position.z,
+                    duration: duration,
+                    ease: ease
+                });
+            }
+
+            // Animate orbit controls target
+            if (target && orbitControlsRef.current) {
+                gsap.to(orbitControlsRef.current.target, {
+                    x: target.x,
+                    y: target.y,
+                    z: target.z,
+                    duration: duration,
+                    ease: ease,
+                    onUpdate: () => {
+                        orbitControlsRef.current.update();
+                    },
+                    onComplete: () => {
+                        console.log('Camera animation completed');
+                        if (onComplete) {
+                            onComplete();
+                        }
+                    }
+                });
+            } else if (position && onComplete) {
+                // If no target animation, attach onComplete to position animation
+                gsap.to(camera.position, {
+                    x: position.x,
+                    y: position.y,
+                    z: position.z,
+                    duration: duration,
+                    ease: ease,
+                    onComplete: () => {
+                        console.log('Camera animation completed');
+                        onComplete();
+                    }
+                });
+            }
+        };
+
+        eventChannelHub.subscribe(CONTROL_CHANNELS.CAMERA_ANIMATION, handleCameraAnimation);
+
+        return () => {
+            eventChannelHub.unsubscribe(CONTROL_CHANNELS.CAMERA_ANIMATION, handleCameraAnimation);
         };
     }, [camera]);
 

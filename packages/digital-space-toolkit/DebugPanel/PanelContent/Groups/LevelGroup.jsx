@@ -196,19 +196,26 @@ const LevelGroup = ({ group, depth = 0, onDelete, serializeGroup, modelNames = [
         console.log('Level Group Serialized:', serialized);
     }, [localName, group.type, group.names, layers, liftTarget, serializedLayers, serializeGroup]);
 
-    // Notify parent with serialized state
+    // Notify parent with serialized state and update SceneController
     useEffect(() => {
+        const layersWithSerialized = layers.map((layer, i) => serializedLayers[i] || layer);
+        const currentGroup = {
+            name: localName,
+            type: group.type,
+            names: group.names || [],
+            groups: layersWithSerialized,
+            metadata: { liftTarget: liftTarget }
+        };
+
         if (onItemSerialized) {
-            const layersWithSerialized = layers.map((layer, i) => serializedLayers[i] || layer);
-            onItemSerialized(index, serializeGroup({
-                name: localName,
-                type: group.type,
-                names: group.names || [],
-                groups: layersWithSerialized,
-                metadata: { liftTarget: liftTarget }
-            }));
+            onItemSerialized(index, serializeGroup(currentGroup));
         }
-    }, [localName, group.type, group.names, layers, liftTarget, serializedLayers, onItemSerialized, index, serializeGroup]);
+
+        // Update SceneController with the latest group data
+        if (sceneController && sceneController.updateGroup) {
+            sceneController.updateGroup(localName, currentGroup);
+        }
+    }, [localName, group.type, group.names, layers, liftTarget, serializedLayers, onItemSerialized, index, serializeGroup, sceneController]);
 
     return (
         <div style={{ marginLeft: depth > 0 ? 12 : 0 }}>

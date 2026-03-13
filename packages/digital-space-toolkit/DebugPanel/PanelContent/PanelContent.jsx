@@ -135,7 +135,10 @@ export default function PanelContent({ sceneData, showJson, sceneController }) {
                         </div>
                     </div>
                     <div className="debug-list">
-                        <InteractionSetting onSerializedUpdate={setControlInfo} />
+                        <InteractionSetting
+                            onSerializedUpdate={setControlInfo}
+                            initialControl={sceneData?.control}
+                        />
                         <div className="debug-list-title">
                             <div className="debug-list-title-left" onClick={() => setGroupsExpanded(!groupsExpanded)}>
                                 <ChevronIcon size={14} isCollapsed={!groupsExpanded} style={{ marginRight: '4px' }} />

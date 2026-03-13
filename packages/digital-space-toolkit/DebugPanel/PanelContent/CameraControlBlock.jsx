@@ -15,7 +15,7 @@ const roundVec = (v) => v ? {
     z: parseFloat(v.z.toFixed(FLOAT_PRECISION))
 } : null;
 
-export default function CameraControlBlock({ onSerializedUpdate }) {
+export default function CameraControlBlock({ onSerializedUpdate, initialControl }) {
     const [viewMode, setViewMode] = useState('saved'); // 'saved' | 'current'
     const [currentState, setCurrentState] = useState(null);
     const [savedState, setSavedState] = useState(null);
@@ -29,6 +29,25 @@ export default function CameraControlBlock({ onSerializedUpdate }) {
         enableZoom: true
     });
     const initializedRef = useRef(false);
+
+    // Sync from props when initialControl changes externally
+    useEffect(() => {
+        if (initialControl) {
+            setSavedState(initialControl);
+            setControlSettings({
+                minDistance: initialControl.zoom?.min || 1,
+                maxDistance: initialControl.zoom?.max || 100,
+                minPolarAngle: initialControl.angle?.min || 0,
+                maxPolarAngle: initialControl.angle?.max || Math.PI,
+                enablePan: initialControl.enablePan !== undefined ? initialControl.enablePan : true,
+                enableRotate: initialControl.enableRotate !== undefined ? initialControl.enableRotate : true,
+                enableZoom: initialControl.enableZoom !== undefined ? initialControl.enableZoom : true
+            });
+            if (onSerializedUpdate) {
+                onSerializedUpdate(initialControl);
+            }
+        }
+    }, [initialControl, onSerializedUpdate]);
 
     const handleZoomChange = (values) => {
         setControlSettings(prev => ({
@@ -140,31 +159,33 @@ export default function CameraControlBlock({ onSerializedUpdate }) {
                 }
             }
 
-            // First data arrival: initialize saved state
+            // First data arrival: initialize saved state only if no initialControl was provided
             if (!initializedRef.current && data) {
                 initializedRef.current = true;
-                setSavedState(data);
-                if (onSerializedUpdate) {
-                    const serialized = data ? {
-                        type: data.type,
-                        position: roundVec(data.position),
-                        ...(data.target && { target: roundVec(data.target) }),
-                        ...(data.rotation && { rotation: roundVec(data.rotation) }),
-                        ...(data.type === CONTROL_TYPE.ORBIT && data.zoom && data.angle && {
-                            zoom: {
-                                min: parseFloat(data.zoom.min.toFixed(FLOAT_PRECISION)),
-                                max: parseFloat(data.zoom.max.toFixed(FLOAT_PRECISION))
-                            },
-                            angle: {
-                                min: parseFloat(data.angle.min.toFixed(FLOAT_PRECISION)),
-                                max: parseFloat(data.angle.max.toFixed(FLOAT_PRECISION))
-                            },
-                            enablePan: data.enablePan !== undefined ? data.enablePan : true,
-                            enableRotate: data.enableRotate !== undefined ? data.enableRotate : true,
-                            enableZoom: data.enableZoom !== undefined ? data.enableZoom : true
-                        })
-                    } : null;
-                    onSerializedUpdate(serialized);
+                if (!initialControl) {
+                    setSavedState(data);
+                    if (onSerializedUpdate) {
+                        const serialized = data ? {
+                            type: data.type,
+                            position: roundVec(data.position),
+                            ...(data.target && { target: roundVec(data.target) }),
+                            ...(data.rotation && { rotation: roundVec(data.rotation) }),
+                            ...(data.type === CONTROL_TYPE.ORBIT && data.zoom && data.angle && {
+                                zoom: {
+                                    min: parseFloat(data.zoom.min.toFixed(FLOAT_PRECISION)),
+                                    max: parseFloat(data.zoom.max.toFixed(FLOAT_PRECISION))
+                                },
+                                angle: {
+                                    min: parseFloat(data.angle.min.toFixed(FLOAT_PRECISION)),
+                                    max: parseFloat(data.angle.max.toFixed(FLOAT_PRECISION))
+                                },
+                                enablePan: data.enablePan !== undefined ? data.enablePan : true,
+                                enableRotate: data.enableRotate !== undefined ? data.enableRotate : true,
+                                enableZoom: data.enableZoom !== undefined ? data.enableZoom : true
+                            })
+                        } : null;
+                        onSerializedUpdate(serialized);
+                    }
                 }
             }
         };
@@ -173,7 +194,7 @@ export default function CameraControlBlock({ onSerializedUpdate }) {
         return () => {
             eventChannelHub.unsubscribe(INFO_CHANNELS.CAMERA_CONTROL_INFO, handleControlInfo);
         };
-    }, [onSerializedUpdate]);
+    }, [onSerializedUpdate, initialControl]);
 
     const displayData = viewMode === 'saved' ? savedState : currentState;
 

@@ -15,6 +15,7 @@ class _LevelsController {
 
     /**
      * Investigate a layer - lifts layers above, brings down layers at/below
+     * If the layer has a saved control snapshot, animates camera to that view
      */
     investigateLayer(layerIndex) {
         const floors = this.group.groups || [];
@@ -23,6 +24,9 @@ class _LevelsController {
             console.warn(`Invalid layer index ${layerIndex} for group "${this.group.name}"`);
             return false;
         }
+
+        const targetLayer = floors[layerIndex];
+        const savedControl = targetLayer.metadata?.control;
 
         // Layers above the clicked one (lower index = higher floor) - should be lifted
         const layersAbove = floors.slice(0, layerIndex);
@@ -42,7 +46,6 @@ class _LevelsController {
         // Lift layers above using liftTarget, hide after animation
         const namesToLift = layersToLift.flatMap(({ layer }) => layer.names || []);
         namesToLift.forEach(name => {
-            // console.log(`Starting lift animation for: ${name}`);
             eventChannelHub.publish(CONTROL_CHANNELS.OBJECT_ANIMATION, {
                 name,
                 property: 'position',
@@ -51,7 +54,6 @@ class _LevelsController {
                 duration: 1,
                 ease: "power2.out",
                 onComplete: () => {
-                    // console.log(`Lift animation complete, hiding: ${name}`);
                     eventChannelHub.publish(CONTROL_CHANNELS.OBJECT_UPDATE_BY_NAME, {
                         name,
                         property: 'visible',
@@ -65,13 +67,11 @@ class _LevelsController {
         // Bring down layers at or below, show before animation
         const namesToBringDown = layersToBringDown.flatMap(({ layer }) => layer.names || []);
         namesToBringDown.forEach(name => {
-            // console.log(`Showing before bring-down: ${name}`);
             eventChannelHub.publish(CONTROL_CHANNELS.OBJECT_UPDATE_BY_NAME, {
                 name,
                 property: 'visible',
                 value: true
             });
-            // console.log(`Starting bring-down animation for: ${name}`);
             eventChannelHub.publish(CONTROL_CHANNELS.OBJECT_ANIMATION, {
                 name,
                 property: 'position',
@@ -89,7 +89,50 @@ class _LevelsController {
         layersToLift.forEach(({ index }) => this.liftedLayers.add(index));
         layersToBringDown.forEach(({ index }) => this.liftedLayers.delete(index));
 
-        console.log(`Investigated layer ${layerIndex} in group "${this.group.name}"`);
+        // If layer has saved control snapshot, animate camera to that view
+        if (savedControl && savedControl.position) {
+            // Disable all controls during animation
+            eventChannelHub.publish(CONTROL_CHANNELS.CAMERA_CONTROL_SETTINGS_UPDATE, {
+                enablePan: false,
+                enableRotate: false,
+                enableZoom: false
+            });
+
+            // Animate camera position and target
+            eventChannelHub.publish(CONTROL_CHANNELS.CAMERA_ANIMATION, {
+                position: savedControl.position,
+                target: savedControl.target || { x: 0, y: 0, z: 0 },
+                duration: 1,
+                ease: "power2.out",
+                onComplete: () => {
+                    // Apply saved control settings
+                    const settings = {};
+
+                    // Set min/max zoom if available
+                    if (savedControl.zoom) {
+                        settings.minDistance = savedControl.zoom.min;
+                        settings.maxDistance = savedControl.zoom.max;
+                    }
+
+                    // Set min/max angle if available
+                    if (savedControl.angle) {
+                        settings.minPolarAngle = savedControl.angle.min;
+                        settings.maxPolarAngle = savedControl.angle.max;
+                    }
+
+                    // Set enable flags from saved control
+                    settings.enablePan = savedControl.enablePan !== undefined ? savedControl.enablePan : true;
+                    settings.enableRotate = savedControl.enableRotate !== undefined ? savedControl.enableRotate : true;
+                    settings.enableZoom = savedControl.enableZoom !== undefined ? savedControl.enableZoom : true;
+
+                    eventChannelHub.publish(CONTROL_CHANNELS.CAMERA_CONTROL_SETTINGS_UPDATE, settings);
+
+                    console.log(`Camera animated to saved view for layer "${targetLayer.name}"`);
+                }
+            });
+        }
+
+        console.log(`Investigated layer "${targetLayer.name}" (index ${layerIndex}) in group "${this.group.name}"`);
         return true;
     }
 
@@ -177,6 +220,27 @@ class SceneController {
 
             if (controller) {
                 this.controllerMap.set(group.name, controller);
+            }
+        }
+    }
+
+    /**
+     * Update a specific group's data (e.g., when layer metadata changes)
+     */
+    updateGroup(groupName, updatedGroup) {
+        // Find and update the group in the groups array
+        const groupIndex = this.groups.findIndex(g => g.name === groupName);
+        if (groupIndex !== -1) {
+            this.groups[groupIndex] = updatedGroup;
+        }
+
+        // Update the controller's reference to the group
+        const controller = this.controllerMap.get(groupName);
+        if (controller && controller.group) {
+            controller.group = updatedGroup;
+            // Preserve liftTarget if it exists in metadata
+            if (updatedGroup.metadata?.liftTarget) {
+                controller.liftTarget = updatedGroup.metadata.liftTarget;
             }
         }
     }

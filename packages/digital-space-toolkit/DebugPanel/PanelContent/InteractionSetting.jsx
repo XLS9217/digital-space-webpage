@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { ChevronIcon } from '../CodeSvg';
 import CameraControlBlock from './CameraControlBlock';
 
-export default function InteractionSetting({ onSerializedUpdate }) {
+export default function InteractionSetting({ onSerializedUpdate, initialControl }) {
     const [interactionExpanded, setInteractionExpanded] = useState(true);
 
     return (
@@ -15,7 +15,10 @@ export default function InteractionSetting({ onSerializedUpdate }) {
                 </div>
             </div>
             <div style={{ display: interactionExpanded ? 'block' : 'none' }}>
-                <CameraControlBlock onSerializedUpdate={onSerializedUpdate} />
+                <CameraControlBlock
+                    onSerializedUpdate={onSerializedUpdate}
+                    initialControl={initialControl}
+                />
             </div>
         </>
     );
