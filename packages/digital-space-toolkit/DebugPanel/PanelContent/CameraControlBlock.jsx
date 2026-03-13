@@ -1,16 +1,23 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useRef } from 'react';
 import { eventChannelHub, INFO_CHANNELS, CONTROL_CHANNELS } from "../../EventChannelHub";
 import { CONTROL_TYPE } from "../../SceneTypeEnum";
 import DebugBlock from "../CommonComponent/DebugBlock";
 import CoordDisplayer from "../CommonComponent/CoordDisplayer";
 import MinMaxHandle from "../CommonComponent/MinMaxHandle";
 import CheckBox from "../CommonComponent/CheckBox";
-import { SnapshotIcon } from "../CodeSvg";
 
 const FLOAT_PRECISION = 3;
 
+const roundVec = (v) => v ? {
+    x: parseFloat(v.x.toFixed(FLOAT_PRECISION)),
+    y: parseFloat(v.y.toFixed(FLOAT_PRECISION)),
+    z: parseFloat(v.z.toFixed(FLOAT_PRECISION))
+} : null;
+
 export default function CameraControlBlock({ onSerializedUpdate }) {
-    const [controlInfo, setControlInfo] = useState(null);
+    const [viewMode, setViewMode] = useState('saved'); // 'saved' | 'current'
+    const [currentState, setCurrentState] = useState(null);
+    const [savedState, setSavedState] = useState(null);
     const [controlSettings, setControlSettings] = useState({
         minDistance: 1,
         maxDistance: 100,
@@ -20,6 +27,7 @@ export default function CameraControlBlock({ onSerializedUpdate }) {
         enableRotate: true,
         enableZoom: true
     });
+    const initializedRef = useRef(false);
 
     const handleZoomChange = (values) => {
         setControlSettings(prev => ({
@@ -28,7 +36,6 @@ export default function CameraControlBlock({ onSerializedUpdate }) {
             maxDistance: values.max
         }));
 
-        // Publish to update the controls
         eventChannelHub.publish(CONTROL_CHANNELS.CAMERA_CONTROL_SETTINGS_UPDATE, {
             minDistance: values.min,
             maxDistance: values.max
@@ -42,7 +49,6 @@ export default function CameraControlBlock({ onSerializedUpdate }) {
             maxPolarAngle: values.max
         }));
 
-        // Publish to update the controls
         eventChannelHub.publish(CONTROL_CHANNELS.CAMERA_CONTROL_SETTINGS_UPDATE, {
             minPolarAngle: values.min,
             maxPolarAngle: values.max
@@ -55,7 +61,6 @@ export default function CameraControlBlock({ onSerializedUpdate }) {
             [property]: value
         }));
 
-        // Publish to update the controls
         eventChannelHub.publish(CONTROL_CHANNELS.CAMERA_CONTROL_SETTINGS_UPDATE, {
             [property]: value
         });
@@ -65,16 +70,46 @@ export default function CameraControlBlock({ onSerializedUpdate }) {
         eventChannelHub.publish(CONTROL_CHANNELS.PRINT_CONTROL);
     }, []);
 
+    const serializeSaved = useCallback((data, settings) => {
+        if (!data || !onSerializedUpdate) return;
+        const serialized = {
+            type: data.type,
+            position: roundVec(data.position),
+            ...(data.target && { target: roundVec(data.target) }),
+            ...(data.rotation && { rotation: roundVec(data.rotation) }),
+            ...(data.type === CONTROL_TYPE.ORBIT && {
+                zoom: {
+                    min: parseFloat(settings.minDistance.toFixed(FLOAT_PRECISION)),
+                    max: parseFloat(settings.maxDistance.toFixed(FLOAT_PRECISION))
+                },
+                angle: {
+                    min: parseFloat(settings.minPolarAngle.toFixed(FLOAT_PRECISION)),
+                    max: parseFloat(settings.maxPolarAngle.toFixed(FLOAT_PRECISION))
+                },
+                enablePan: settings.enablePan,
+                enableRotate: settings.enableRotate,
+                enableZoom: settings.enableZoom
+            })
+        };
+        onSerializedUpdate(serialized);
+    }, [onSerializedUpdate]);
+
     const handleSnapshotControl = useCallback(() => {
-        // TODO: Implement snapshot functionality
-        console.log("Snapshot control settings (to be implemented)");
-    }, []);
+        if (!currentState) return;
+        const snapped = {
+            type: currentState.type,
+            position: { ...currentState.position },
+            target: currentState.target ? { ...currentState.target } : null,
+            rotation: currentState.rotation ? { ...currentState.rotation } : null
+        };
+        setSavedState(snapped);
+        serializeSaved(snapped, controlSettings);
+    }, [currentState, controlSettings, serializeSaved]);
 
     useEffect(() => {
         const handleControlInfo = (data) => {
-            setControlInfo(data);
+            setCurrentState(data);
 
-            // Load zoom and angle settings from incoming data if available
             if (data && data.type === CONTROL_TYPE.ORBIT) {
                 if (data.zoom) {
                     setControlSettings(prev => ({
@@ -90,7 +125,6 @@ export default function CameraControlBlock({ onSerializedUpdate }) {
                         maxPolarAngle: data.angle.max
                     }));
                 }
-                // Load enable settings if available
                 if (data.enablePan !== undefined) {
                     setControlSettings(prev => ({ ...prev, enablePan: data.enablePan }));
                 }
@@ -102,44 +136,32 @@ export default function CameraControlBlock({ onSerializedUpdate }) {
                 }
             }
 
-            if (onSerializedUpdate) {
-                const serialized = data ? {
-                    type: data.type,
-                    position: {
-                        x: parseFloat(data.position.x.toFixed(FLOAT_PRECISION)),
-                        y: parseFloat(data.position.y.toFixed(FLOAT_PRECISION)),
-                        z: parseFloat(data.position.z.toFixed(FLOAT_PRECISION))
-                    },
-                    ...(data.target && {
-                        target: {
-                            x: parseFloat(data.target.x.toFixed(FLOAT_PRECISION)),
-                            y: parseFloat(data.target.y.toFixed(FLOAT_PRECISION)),
-                            z: parseFloat(data.target.z.toFixed(FLOAT_PRECISION))
-                        }
-                    }),
-                    ...(data.rotation && {
-                        rotation: {
-                            x: parseFloat(data.rotation.x.toFixed(FLOAT_PRECISION)),
-                            y: parseFloat(data.rotation.y.toFixed(FLOAT_PRECISION)),
-                            z: parseFloat(data.rotation.z.toFixed(FLOAT_PRECISION))
-                        }
-                    }),
-                    // Include control settings for orbit controls
-                    ...(data.type === CONTROL_TYPE.ORBIT && data.zoom && data.angle && {
-                        zoom: {
-                            min: parseFloat(data.zoom.min.toFixed(FLOAT_PRECISION)),
-                            max: parseFloat(data.zoom.max.toFixed(FLOAT_PRECISION))
-                        },
-                        angle: {
-                            min: parseFloat(data.angle.min.toFixed(FLOAT_PRECISION)),
-                            max: parseFloat(data.angle.max.toFixed(FLOAT_PRECISION))
-                        },
-                        enablePan: data.enablePan !== undefined ? data.enablePan : true,
-                        enableRotate: data.enableRotate !== undefined ? data.enableRotate : true,
-                        enableZoom: data.enableZoom !== undefined ? data.enableZoom : true
-                    })
-                } : null;
-                onSerializedUpdate(serialized);
+            // First data arrival: initialize saved state
+            if (!initializedRef.current && data) {
+                initializedRef.current = true;
+                setSavedState(data);
+                if (onSerializedUpdate) {
+                    const serialized = data ? {
+                        type: data.type,
+                        position: roundVec(data.position),
+                        ...(data.target && { target: roundVec(data.target) }),
+                        ...(data.rotation && { rotation: roundVec(data.rotation) }),
+                        ...(data.type === CONTROL_TYPE.ORBIT && data.zoom && data.angle && {
+                            zoom: {
+                                min: parseFloat(data.zoom.min.toFixed(FLOAT_PRECISION)),
+                                max: parseFloat(data.zoom.max.toFixed(FLOAT_PRECISION))
+                            },
+                            angle: {
+                                min: parseFloat(data.angle.min.toFixed(FLOAT_PRECISION)),
+                                max: parseFloat(data.angle.max.toFixed(FLOAT_PRECISION))
+                            },
+                            enablePan: data.enablePan !== undefined ? data.enablePan : true,
+                            enableRotate: data.enableRotate !== undefined ? data.enableRotate : true,
+                            enableZoom: data.enableZoom !== undefined ? data.enableZoom : true
+                        })
+                    } : null;
+                    onSerializedUpdate(serialized);
+                }
             }
         };
 
@@ -149,22 +171,43 @@ export default function CameraControlBlock({ onSerializedUpdate }) {
         };
     }, [onSerializedUpdate]);
 
-    if (!controlInfo) return <div className="debug-item no-data">No control data</div>;
+    const displayData = viewMode === 'saved' ? savedState : currentState;
 
-    const { type, position, target, rotation } = controlInfo;
+    if (!currentState) return <div className="debug-item no-data">No control data</div>;
+
+    const { type } = currentState;
 
     return (
         <div className="debug-section-list">
             <DebugBlock
-                title="Control Info"
+                title="Control"
                 type={type}
                 initialExpanded={true}
                 onPrint={handlePrintControl}
                 onSnapshot={handleSnapshotControl}
             >
-                <CoordDisplayer label="Init Pos" value={position} />
-                {target && <CoordDisplayer label="Target" value={target} />}
-                {rotation && <CoordDisplayer label="Rot" value={rotation} />}
+                <div className="debug-view-toggle">
+                    <button
+                        className={`debug-view-toggle-btn ${viewMode === 'saved' ? 'debug-view-toggle-btn-active' : ''}`}
+                        onClick={() => setViewMode('saved')}
+                    >
+                        Saved
+                    </button>
+                    <button
+                        className={`debug-view-toggle-btn ${viewMode === 'current' ? 'debug-view-toggle-btn-active' : ''}`}
+                        onClick={() => setViewMode('current')}
+                    >
+                        Current
+                    </button>
+                </div>
+
+                {displayData && (
+                    <>
+                        <CoordDisplayer label="Init Pos" value={displayData.position} />
+                        {displayData.target && <CoordDisplayer label="Target" value={displayData.target} />}
+                        {displayData.rotation && <CoordDisplayer label="Rot" value={displayData.rotation} />}
+                    </>
+                )}
 
                 {type === CONTROL_TYPE.ORBIT && (
                     <>
@@ -178,7 +221,7 @@ export default function CameraControlBlock({ onSerializedUpdate }) {
                             editable={true}
                             onValueChange={handleZoomChange}
                             showCurrentValue={true}
-                            currentValue={controlInfo.zoom?.current || 0}
+                            currentValue={currentState.zoom?.current || 0}
                         />
                         <MinMaxHandle
                             label="Angle"
@@ -190,7 +233,7 @@ export default function CameraControlBlock({ onSerializedUpdate }) {
                             editable={true}
                             onValueChange={handleAngleChange}
                             showCurrentValue={true}
-                            currentValue={controlInfo.angle?.current || 0}
+                            currentValue={currentState.angle?.current || 0}
                         />
                         <CheckBox
                             label="Pan"
