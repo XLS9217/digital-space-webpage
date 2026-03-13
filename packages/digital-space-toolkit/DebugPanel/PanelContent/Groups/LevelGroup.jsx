@@ -14,7 +14,8 @@ import { GROUP_TYPE } from '../../../SceneTypeEnum';
 import { eventChannelHub, CONTROL_CHANNELS } from '../../../EventChannelHub';
 import { infoStoreHub, DEBUG_STORE } from '../../../InfoStoreHub';
 
-const LayerGroup = ({ group, depth = 0, onDelete, onNamesChange, modelNames, onInvestigate }) => {
+const LayerGroup = ({ group, depth = 0, onDelete, modelNames, onInvestigate, serializeGroup, onItemSerialized, index }) => {
+    const [localNames, setLocalNames] = useState(group.names || []);
     const [savedControl, setSavedControl] = useState(group.metadata?.control || null);
 
     const handleSnapshot = useCallback(() => {
@@ -55,6 +56,19 @@ const LayerGroup = ({ group, depth = 0, onDelete, onNamesChange, modelNames, onI
         setSavedControl(null);
     }, []);
 
+    // Notify parent with serialized state
+    useEffect(() => {
+        if (onItemSerialized) {
+            onItemSerialized(index, serializeGroup({
+                name: group.name,
+                type: group.type,
+                names: localNames,
+                groups: [],
+                metadata: savedControl ? { control: savedControl } : undefined
+            }));
+        }
+    }, [localNames, savedControl, onItemSerialized, index, serializeGroup, group.name, group.type]);
+
     return (
         <div style={{ marginLeft: depth > 0 ? 12 : 0 }}>
             <DebugBlock
@@ -65,8 +79,8 @@ const LayerGroup = ({ group, depth = 0, onDelete, onNamesChange, modelNames, onI
                 onSnapshot={handleSnapshot}
             >
                 <TagList
-                    tags={group.names || []}
-                    onChange={onNamesChange}
+                    tags={localNames}
+                    onChange={setLocalNames}
                     recommendation={modelNames}
                     limitation={modelNames}
                 />
@@ -85,6 +99,7 @@ const LevelGroup = ({ group, depth = 0, onDelete, serializeGroup, modelNames = [
     const [localName, setLocalName] = useState(group.name || '');
     const [layers, setLayers] = useState(group.groups || []);
     const [liftTarget, setLiftTarget] = useState(group.metadata?.liftTarget || { x: 0, y: 50, z: 0 });
+    const [serializedLayers, setSerializedLayers] = useState({});
 
     useEffect(() => {
         setLocalName(group.name || '');
@@ -137,7 +152,19 @@ const LevelGroup = ({ group, depth = 0, onDelete, serializeGroup, modelNames = [
 
     const deleteLayer = (index) => {
         setLayers(prev => prev.filter((_, i) => i !== index));
+        setSerializedLayers(prev => {
+            const { [index]: _, ...rest } = prev;
+            return rest;
+        });
     };
+
+    // Collect serialized layer data from children
+    const handleLayerSerialized = useCallback((layerIndex, serializedData) => {
+        setSerializedLayers(prev => ({
+            ...prev,
+            [layerIndex]: serializedData
+        }));
+    }, []);
 
     // Delegate investigate to the SceneController
     const handleInvestigate = useCallback((layerIndex) => {
@@ -157,29 +184,31 @@ const LevelGroup = ({ group, depth = 0, onDelete, serializeGroup, modelNames = [
     }, [liftTarget, sceneController, localName]);
 
     const handlePrint = useCallback(() => {
+        const layersWithSerialized = layers.map((layer, i) => serializedLayers[i] || layer);
         const currentGroup = {
             name: localName,
             type: group.type,
             names: group.names || [],
-            groups: layers,
+            groups: layersWithSerialized,
             metadata: { liftTarget: liftTarget }
         };
         const serialized = serializeGroup(currentGroup);
         console.log('Level Group Serialized:', serialized);
-    }, [localName, group.type, group.names, layers, liftTarget, serializeGroup]);
+    }, [localName, group.type, group.names, layers, liftTarget, serializedLayers, serializeGroup]);
 
     // Notify parent with serialized state
     useEffect(() => {
         if (onItemSerialized) {
+            const layersWithSerialized = layers.map((layer, i) => serializedLayers[i] || layer);
             onItemSerialized(index, serializeGroup({
                 name: localName,
                 type: group.type,
                 names: group.names || [],
-                groups: layers,
+                groups: layersWithSerialized,
                 metadata: { liftTarget: liftTarget }
             }));
         }
-    }, [localName, group.type, group.names, layers, liftTarget, onItemSerialized, index, serializeGroup]);
+    }, [localName, group.type, group.names, layers, liftTarget, serializedLayers, onItemSerialized, index, serializeGroup]);
 
     return (
         <div style={{ marginLeft: depth > 0 ? 12 : 0 }}>
@@ -207,14 +236,12 @@ const LevelGroup = ({ group, depth = 0, onDelete, serializeGroup, modelNames = [
                             key={child.name + i}
                             group={child}
                             depth={depth + 1}
+                            index={i}
                             onDelete={() => deleteLayer(i)}
                             modelNames={modelNames}
-                            onNamesChange={(newNames) => {
-                                setLayers(prev => prev.map((f, j) =>
-                                    j === i ? { ...f, names: newNames } : f
-                                ));
-                            }}
                             onInvestigate={() => handleInvestigate(i)}
+                            serializeGroup={serializeGroup}
+                            onItemSerialized={handleLayerSerialized}
                         />
                     ))}
                     <span
