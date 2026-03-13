@@ -25,7 +25,10 @@ export default function DigitalSpaceControl({ controlType = CONTROL_TYPE.ORBIT }
         minDistance: 1,
         maxDistance: 100,
         minPolarAngle: 0,
-        maxPolarAngle: Math.PI
+        maxPolarAngle: Math.PI,
+        enablePan: true,
+        enableRotate: true,
+        enableZoom: true
     })
 
     // Subscribe to camera control settings updates
@@ -113,6 +116,26 @@ export default function DigitalSpaceControl({ controlType = CONTROL_TYPE.ORBIT }
                     orbitControlsRef.current.maxPolarAngle = controlData.angle.max;
                 }
             }
+
+            // Load enable settings from scene data
+            if (controlData.enablePan !== undefined) {
+                setControlSettings(prev => ({ ...prev, enablePan: controlData.enablePan }));
+                if (orbitControlsRef.current) {
+                    orbitControlsRef.current.enablePan = controlData.enablePan;
+                }
+            }
+            if (controlData.enableRotate !== undefined) {
+                setControlSettings(prev => ({ ...prev, enableRotate: controlData.enableRotate }));
+                if (orbitControlsRef.current) {
+                    orbitControlsRef.current.enableRotate = controlData.enableRotate;
+                }
+            }
+            if (controlData.enableZoom !== undefined) {
+                setControlSettings(prev => ({ ...prev, enableZoom: controlData.enableZoom }));
+                if (orbitControlsRef.current) {
+                    orbitControlsRef.current.enableZoom = controlData.enableZoom;
+                }
+            }
         };
 
         eventChannelHub.subscribe(CONTROL_CHANNELS.CAMERA_CONTROL_UPDATE, handleControlUpdate);
@@ -147,7 +170,10 @@ export default function DigitalSpaceControl({ controlType = CONTROL_TYPE.ORBIT }
                 angle: {
                     min: controlSettings.minPolarAngle,
                     max: controlSettings.maxPolarAngle
-                }
+                },
+                enablePan: controlSettings.enablePan,
+                enableRotate: controlSettings.enableRotate,
+                enableZoom: controlSettings.enableZoom
             }
         } else if (controlType === CONTROL_TYPE.FIRST_PERSON) {
             // For first person: type, position (xyz), rotation (xyz)
@@ -180,6 +206,9 @@ export default function DigitalSpaceControl({ controlType = CONTROL_TYPE.ORBIT }
                     maxDistance={controlSettings.maxDistance}
                     minPolarAngle={controlSettings.minPolarAngle}
                     maxPolarAngle={controlSettings.maxPolarAngle}
+                    enablePan={controlSettings.enablePan}
+                    enableRotate={controlSettings.enableRotate}
+                    enableZoom={controlSettings.enableZoom}
                 />
             ) : (
                 <PointerLockControls />

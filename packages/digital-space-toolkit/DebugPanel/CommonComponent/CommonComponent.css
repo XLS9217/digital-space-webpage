@@ -467,3 +467,65 @@ Reusable list and item styles
     background: rgba(255, 255, 255, 0.25);
     color: rgba(255, 255, 255, 1);
 }
+
+/* CheckBox styles */
+.debug-checkbox-container {
+    display: flex;
+    align-items: center;
+    padding: 4px 0;
+}
+
+.debug-checkbox-label {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    cursor: pointer;
+    user-select: none;
+}
+
+.debug-checkbox-text {
+    font-size: 11px;
+    color: rgba(255, 255, 255, 0.7);
+    flex: 1;
+}
+
+.debug-checkbox-input {
+    appearance: none;
+    -webkit-appearance: none;
+    width: 16px;
+    height: 16px;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 3px;
+    background: rgba(0, 0, 0, 0.35);
+    cursor: pointer;
+    position: relative;
+    transition: all 0.15s ease;
+    flex-shrink: 0;
+}
+
+.debug-checkbox-input:hover {
+    border-color: rgba(255, 255, 255, 0.5);
+}
+
+.debug-checkbox-input:checked {
+    background: #fff;
+    border-color: #fff;
+}
+
+.debug-checkbox-input:checked::after {
+    content: '';
+    position: absolute;
+    left: 4px;
+    top: 1px;
+    width: 5px;
+    height: 9px;
+    border: solid #000;
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg);
+}
+
+.debug-checkbox-input:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}

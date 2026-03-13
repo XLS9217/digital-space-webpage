@@ -4,6 +4,7 @@ import { CONTROL_TYPE } from "../../SceneTypeEnum";
 import DebugBlock from "../CommonComponent/DebugBlock";
 import CoordDisplayer from "../CommonComponent/CoordDisplayer";
 import MinMaxHandle from "../CommonComponent/MinMaxHandle";
+import CheckBox from "../CommonComponent/CheckBox";
 
 const FLOAT_PRECISION = 3;
 
@@ -13,7 +14,10 @@ export default function CameraControlBlock({ onSerializedUpdate }) {
         minDistance: 1,
         maxDistance: 100,
         minPolarAngle: 0,
-        maxPolarAngle: Math.PI
+        maxPolarAngle: Math.PI,
+        enablePan: true,
+        enableRotate: true,
+        enableZoom: true
     });
 
     const handleZoomChange = (values) => {
@@ -44,6 +48,18 @@ export default function CameraControlBlock({ onSerializedUpdate }) {
         });
     };
 
+    const handleEnableChange = (property, value) => {
+        setControlSettings(prev => ({
+            ...prev,
+            [property]: value
+        }));
+
+        // Publish to update the controls
+        eventChannelHub.publish(CONTROL_CHANNELS.CAMERA_CONTROL_SETTINGS_UPDATE, {
+            [property]: value
+        });
+    };
+
     useEffect(() => {
         const handleControlInfo = (data) => {
             setControlInfo(data);
@@ -63,6 +79,16 @@ export default function CameraControlBlock({ onSerializedUpdate }) {
                         minPolarAngle: data.angle.min,
                         maxPolarAngle: data.angle.max
                     }));
+                }
+                // Load enable settings if available
+                if (data.enablePan !== undefined) {
+                    setControlSettings(prev => ({ ...prev, enablePan: data.enablePan }));
+                }
+                if (data.enableRotate !== undefined) {
+                    setControlSettings(prev => ({ ...prev, enableRotate: data.enableRotate }));
+                }
+                if (data.enableZoom !== undefined) {
+                    setControlSettings(prev => ({ ...prev, enableZoom: data.enableZoom }));
                 }
             }
 
@@ -97,7 +123,10 @@ export default function CameraControlBlock({ onSerializedUpdate }) {
                         angle: {
                             min: parseFloat(data.angle.min.toFixed(FLOAT_PRECISION)),
                             max: parseFloat(data.angle.max.toFixed(FLOAT_PRECISION))
-                        }
+                        },
+                        enablePan: data.enablePan !== undefined ? data.enablePan : true,
+                        enableRotate: data.enableRotate !== undefined ? data.enableRotate : true,
+                        enableZoom: data.enableZoom !== undefined ? data.enableZoom : true
                     })
                 } : null;
                 onSerializedUpdate(serialized);
@@ -141,6 +170,21 @@ export default function CameraControlBlock({ onSerializedUpdate }) {
                         step={0.01}
                         editable={true}
                         onValueChange={handleAngleChange}
+                    />
+                    <CheckBox
+                        label="Pan"
+                        checked={controlSettings.enablePan}
+                        onChange={(value) => handleEnableChange('enablePan', value)}
+                    />
+                    <CheckBox
+                        label="Rotate"
+                        checked={controlSettings.enableRotate}
+                        onChange={(value) => handleEnableChange('enableRotate', value)}
+                    />
+                    <CheckBox
+                        label="Zoom"
+                        checked={controlSettings.enableZoom}
+                        onChange={(value) => handleEnableChange('enableZoom', value)}
                     />
                 </>
             )}
