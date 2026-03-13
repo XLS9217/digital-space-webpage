@@ -8,7 +8,9 @@ const MinMaxHandle = ({
     rangeMax = 10,
     step = 0.1,
     editable = false,
-    onValueChange
+    onValueChange,
+    showCurrentValue = false,
+    currentValue = null
 }) => {
     const [isDragging, setIsDragging] = useState(null); // 'min' or 'max' or null
     const [localMin, setLocalMin] = useState(minValue);
@@ -17,6 +19,11 @@ const MinMaxHandle = ({
 
     const minPercentage = ((localMin - rangeMin) / (rangeMax - rangeMin)) * 100;
     const maxPercentage = ((localMax - rangeMin) / (rangeMax - rangeMin)) * 100;
+
+    // Calculate current value percentage if showCurrentValue is enabled
+    const currentPercentage = showCurrentValue && currentValue !== null
+        ? ((currentValue - rangeMin) / (rangeMax - rangeMin)) * 100
+        : null;
 
     const handleMouseDown = (handle) => (e) => {
         if (!editable || !onValueChange) return;
@@ -93,6 +100,16 @@ const MinMaxHandle = ({
                         width: `${Math.abs(maxPercentage - minPercentage)}%`
                     }}
                 />
+                {showCurrentValue && currentPercentage !== null && (
+                    <div
+                        className="minmax-current-indicator"
+                        style={{ left: `${currentPercentage}%` }}
+                        title={`Current: ${currentValue.toFixed(2)}`}
+                    >
+                        <div className="minmax-current-triangle" />
+                        <div className="minmax-current-value">{currentValue.toFixed(2)}</div>
+                    </div>
+                )}
                 <div
                     className="bar-handle-circle"
                     style={{ left: `${minPercentage}%` }}

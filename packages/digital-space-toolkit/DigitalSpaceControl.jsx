@@ -167,6 +167,11 @@ export default function DigitalSpaceControl({ controlType = CONTROL_TYPE.ORBIT }
         if (controlType === CONTROL_TYPE.ORBIT) {
             // For orbit controls: type, position (xyz), target (xyz), zoom, angle
             const target = orbitControlsRef.current?.target || { x: 0, y: 0, z: 0 }
+
+            // Get current distance and polar angle from OrbitControls
+            const currentDistance = orbitControlsRef.current?.getDistance?.() || 0;
+            const currentPolarAngle = orbitControlsRef.current?.getPolarAngle?.() || 0;
+
             controlInfo = {
                 type: CONTROL_TYPE.ORBIT,
                 position: {
@@ -181,11 +186,13 @@ export default function DigitalSpaceControl({ controlType = CONTROL_TYPE.ORBIT }
                 },
                 zoom: {
                     min: controlSettings.minDistance,
-                    max: controlSettings.maxDistance
+                    max: controlSettings.maxDistance,
+                    current: currentDistance
                 },
                 angle: {
                     min: controlSettings.minPolarAngle,
-                    max: controlSettings.maxPolarAngle
+                    max: controlSettings.maxPolarAngle,
+                    current: currentPolarAngle
                 },
                 enablePan: controlSettings.enablePan,
                 enableRotate: controlSettings.enableRotate,

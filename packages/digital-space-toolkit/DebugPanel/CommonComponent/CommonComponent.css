@@ -264,6 +264,36 @@ Reusable list and item styles
     transition: left 0.05s ease, width 0.05s ease;
 }
 
+/* MinMaxHandle current value indicator */
+.minmax-current-indicator {
+    position: absolute;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    pointer-events: none;
+    z-index: 5;
+    margin-top: 3px;
+}
+
+.minmax-current-triangle {
+    width: 0;
+    height: 0;
+    border-left: 4px solid transparent;
+    border-right: 4px solid transparent;
+    border-top: 6px solid rgba(255, 255, 255, 0.9);
+    margin-bottom: 2px;
+}
+
+.minmax-current-value {
+    font-size: 9px;
+    color: rgba(255, 255, 255, 0.9);
+    font-family: monospace;
+    margin-top: 2px;
+    white-space: nowrap;
+}
+
 /* NewItem select dropdown */
 .debug-new-item-select {
     width: 100%;

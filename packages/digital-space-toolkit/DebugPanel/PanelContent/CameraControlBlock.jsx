@@ -5,7 +5,7 @@ import DebugBlock from "../CommonComponent/DebugBlock";
 import CoordDisplayer from "../CommonComponent/CoordDisplayer";
 import MinMaxHandle from "../CommonComponent/MinMaxHandle";
 import CheckBox from "../CommonComponent/CheckBox";
-import { CameraJoystickIcon } from "../CodeSvg";
+import { SnapshotIcon } from "../CodeSvg";
 
 const FLOAT_PRECISION = 3;
 
@@ -177,6 +177,8 @@ export default function CameraControlBlock({ onSerializedUpdate }) {
                             step={0.1}
                             editable={true}
                             onValueChange={handleZoomChange}
+                            showCurrentValue={true}
+                            currentValue={controlInfo.zoom?.current || 0}
                         />
                         <MinMaxHandle
                             label="Angle"
@@ -187,6 +189,8 @@ export default function CameraControlBlock({ onSerializedUpdate }) {
                             step={0.01}
                             editable={true}
                             onValueChange={handleAngleChange}
+                            showCurrentValue={true}
+                            currentValue={controlInfo.angle?.current || 0}
                         />
                         <CheckBox
                             label="Pan"
