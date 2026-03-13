@@ -199,6 +199,17 @@ export default function ModelList({ models, onSerializedUpdate, showNewItem, onN
         setLocalData(models || []);
     }, [models]);
 
+    const handleAddModel = async (newModel) => {
+        try {
+            // Call parent's onAddModel to get file URL and publish event
+            const modelWithUrl = await onAddModel(newModel);
+            // Update local state with the new model
+            setLocalData(prev => [...prev, modelWithUrl]);
+        } catch (err) {
+            throw err; // Re-throw so NewModelItem can handle the error
+        }
+    };
+
     const handleDeleteModel = (index) => {
         const model = localData[index];
         const updated = localData.filter((_, i) => i !== index);
@@ -251,7 +262,7 @@ export default function ModelList({ models, onSerializedUpdate, showNewItem, onN
     return (
         <div className="debug-section-list">
             {showNewItem && (
-                <NewModelItem onNewItemDone={onNewItemDone} onAddModel={onAddModel} />
+                <NewModelItem onNewItemDone={onNewItemDone} onAddModel={handleAddModel} />
             )}
             {localData.map((model, index) => (
                 <ModelItem

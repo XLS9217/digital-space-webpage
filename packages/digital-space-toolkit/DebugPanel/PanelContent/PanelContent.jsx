@@ -73,13 +73,20 @@ export default function PanelContent({ sceneData, showJson, sceneController }) {
     };
 
     const handleAddModel = async (newModel) => {
-        const json = getSerializedSceneJson();
-        if (!json || !json.scene) throw new Error('No scene data');
+        // Get file URL from backend
+        const url = await dataRegistry.getFileUrl(newModel.file_location);
 
-        const { scene, ...config } = json;
-        config.models = [...(config.models || []), newModel];
-        await dataRegistry.upsert(scene, config);
-        eventChannelHub.publish(CONTROL_CHANNELS.SCENE_RELOAD);
+        // Add URL to the model
+        const modelWithUrl = { ...newModel, url };
+
+        // Publish event to add model to scene dynamically (no reload)
+        eventChannelHub.publish(CONTROL_CHANNELS.MODEL_LIST_UPDATE, {
+            action: 'add',
+            model: modelWithUrl
+        });
+
+        // Return the model with URL so ModelList can update its local state
+        return modelWithUrl;
     };
 
     return (

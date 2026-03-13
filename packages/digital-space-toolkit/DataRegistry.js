@@ -3,6 +3,7 @@ class DataRegistry {
         this.upsert = null;
         this.download = null;
         this.load = null;
+        this.getFileUrl = null;
     }
 
     registerLoad(fn) {
@@ -35,6 +36,17 @@ class DataRegistry {
             throw new Error('DataRegistry.registerDownload: argument must be a function.');
         }
         this.download = fn;
+        return this;
+    }
+
+    registerGetFileUrl(fn) {
+        if (this.getFileUrl !== null) {
+            throw new Error('DataRegistry.registerGetFileUrl: getFileUrl function is already registered.');
+        }
+        if (typeof fn !== 'function') {
+            throw new Error('DataRegistry.registerGetFileUrl: argument must be a function.');
+        }
+        this.getFileUrl = fn;
         return this;
     }
 }

@@ -34,6 +34,23 @@ export async function downloadSceneZip(name) {
 }
 
 /**
+ * Get file URL by file location
+ * @param {string} fileLocation - The file location path
+ * @returns {Promise<string>} - The file URL
+ */
+export async function getFileUrl(fileLocation) {
+    try {
+        const response = await request.get(`/file-url`, {
+            params: { file_location: fileLocation }
+        });
+        return response.data.url;
+    } catch (error) {
+        console.error('Error getting file URL:', error);
+        throw error;
+    }
+}
+
+/**
  * Upsert scene config
  * @param {string} name - The scene name
  * @param {Object} sceneJson - The scene config (control, models, lights - no urls)

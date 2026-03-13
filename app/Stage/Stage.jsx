@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react'
 import { DigitalSpace, DigitalScene, tagRegistry, dataRegistry } from 'digital-space-toolkit'
-import { getSceneByName, downloadSceneZip, upsertScene } from "../API/gateway.js";
+import { getSceneByName, downloadSceneZip, upsertScene, getFileUrl } from "../API/gateway.js";
 import {ClassroomTag, MeetingTag} from './TagWithStyle.jsx'
 import './Stage.css'
 
@@ -18,6 +18,7 @@ export default function Stage()
             .registerLoad(getSceneByName)
             .registerUpsert(upsertScene)
             .registerDownload(downloadSceneZip)
+            .registerGetFileUrl(getFileUrl)
 
         return () => {
             tagRegistry
