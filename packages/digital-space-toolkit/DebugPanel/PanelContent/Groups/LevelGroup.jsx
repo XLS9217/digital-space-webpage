@@ -10,6 +10,7 @@ import DebugButton from '../../CommonComponent/DebugButton';
 import TagList from '../../CommonComponent/TagList';
 import CoordDisplayer from '../../CommonComponent/CoordDisplayer';
 import { GROUP_TYPE } from '../../../SceneTypeEnum';
+import { eventChannelHub, CONTROL_CHANNELS } from '../../../EventChannelHub';
 
 const LayerGroup = ({ group, depth = 0, onDelete, onNamesChange, modelNames, onInvestigate }) => {
     return (
@@ -55,6 +56,22 @@ const LevelGroup = ({ group, depth = 0, onDelete, serializeGroup, modelNames = [
                 groups: []
             }]);
         }
+    }, []);
+
+    // Subscribe to model name changes and update layer references
+    useEffect(() => {
+        const handleObjectUpdate = ({ name: oldName, property, value: newName }) => {
+            if (property !== 'name') return;
+            setLayers(prev => prev.map(layer => {
+                if (!layer.names || !layer.names.includes(oldName)) return layer;
+                return {
+                    ...layer,
+                    names: layer.names.map(n => n === oldName ? newName : n)
+                };
+            }));
+        };
+        eventChannelHub.subscribe(CONTROL_CHANNELS.OBJECT_UPDATE_BY_NAME, handleObjectUpdate);
+        return () => eventChannelHub.unsubscribe(CONTROL_CHANNELS.OBJECT_UPDATE_BY_NAME, handleObjectUpdate);
     }, []);
 
     const addLayer = (atEnd) => {

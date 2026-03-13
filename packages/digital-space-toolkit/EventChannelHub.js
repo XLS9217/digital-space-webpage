@@ -51,6 +51,7 @@ const CONTROL_CHANNELS = {
      * - ./DebugPanel/PanelContent/ModelList.jsx
      * Subscribe by:
      * - ./DebugPanel/ControlTunnel.jsx
+     * - ./DebugPanel/PanelContent/Groups/LevelGroup.jsx (for model name changes)
      */
     OBJECT_UPDATE_BY_NAME: "OBJECT_UPDATE_BY_NAME",
 
