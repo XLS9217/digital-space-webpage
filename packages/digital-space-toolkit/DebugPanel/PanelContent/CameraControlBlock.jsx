@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useCallback, useRef } from 'react';
 import { eventChannelHub, INFO_CHANNELS, CONTROL_CHANNELS } from "../../EventChannelHub";
+import { infoStoreHub, DEBUG_STORE } from "../../InfoStoreHub";
 import { CONTROL_TYPE } from "../../SceneTypeEnum";
 import DebugBlock from "../CommonComponent/DebugBlock";
 import CoordDisplayer from "../CommonComponent/CoordDisplayer";
@@ -109,6 +110,9 @@ export default function CameraControlBlock({ onSerializedUpdate }) {
     useEffect(() => {
         const handleControlInfo = (data) => {
             setCurrentState(data);
+
+            // Store current control data in InfoStoreHub
+            infoStoreHub.store(DEBUG_STORE.CURRENT_CONTROL, data);
 
             if (data && data.type === CONTROL_TYPE.ORBIT) {
                 if (data.zoom) {

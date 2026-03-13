@@ -9,10 +9,52 @@ import DebugBlock from '../../CommonComponent/DebugBlock';
 import DebugButton from '../../CommonComponent/DebugButton';
 import TagList from '../../CommonComponent/TagList';
 import CoordDisplayer from '../../CommonComponent/CoordDisplayer';
+import CameraControlSnapshot from '../CameraControlSnapshot';
 import { GROUP_TYPE } from '../../../SceneTypeEnum';
 import { eventChannelHub, CONTROL_CHANNELS } from '../../../EventChannelHub';
+import { infoStoreHub, DEBUG_STORE } from '../../../InfoStoreHub';
 
 const LayerGroup = ({ group, depth = 0, onDelete, onNamesChange, modelNames, onInvestigate }) => {
+    const [savedControl, setSavedControl] = useState(group.metadata?.control || null);
+
+    const handleSnapshot = useCallback(() => {
+        // Get current control data from InfoStoreHub
+        const controlData = infoStoreHub.get(DEBUG_STORE.CURRENT_CONTROL);
+
+        if (controlData) {
+            const snapshot = {
+                type: controlData.type,
+                position: { ...controlData.position },
+                target: controlData.target ? { ...controlData.target } : null,
+                rotation: controlData.rotation ? { ...controlData.rotation } : null,
+                // Include zoom and angle settings for orbit controls
+                ...(controlData.zoom && {
+                    zoom: {
+                        min: controlData.zoom.min,
+                        max: controlData.zoom.max,
+                        current: controlData.zoom.current
+                    }
+                }),
+                ...(controlData.angle && {
+                    angle: {
+                        min: controlData.angle.min,
+                        max: controlData.angle.max,
+                        current: controlData.angle.current
+                    }
+                }),
+                // Include enable settings
+                enablePan: controlData.enablePan,
+                enableRotate: controlData.enableRotate,
+                enableZoom: controlData.enableZoom
+            };
+            setSavedControl(snapshot);
+        }
+    }, []);
+
+    const handleDeleteControl = useCallback(() => {
+        setSavedControl(null);
+    }, []);
+
     return (
         <div style={{ marginLeft: depth > 0 ? 12 : 0 }}>
             <DebugBlock
@@ -20,6 +62,7 @@ const LayerGroup = ({ group, depth = 0, onDelete, onNamesChange, modelNames, onI
                 type={group.type}
                 alwaysExpanded
                 onDelete={onDelete}
+                onSnapshot={handleSnapshot}
             >
                 <TagList
                     tags={group.names || []}
@@ -27,6 +70,7 @@ const LayerGroup = ({ group, depth = 0, onDelete, onNamesChange, modelNames, onI
                     recommendation={modelNames}
                     limitation={modelNames}
                 />
+                <CameraControlSnapshot savedControl={savedControl} onDelete={handleDeleteControl} />
                 <DebugButton
                     label="Investigate"
                     onClick={onInvestigate}
