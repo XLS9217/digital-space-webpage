@@ -311,3 +311,67 @@ export const EyeIcon = ({ size = 20, color = "currentColor", isClosed = false, .
         </svg>
     );
 };
+
+
+
+export const SnapshotIcon = ({ size = 20, color = "currentColor", ...props }) => {
+    const [isHovered, setIsHovered] = React.useState(false);
+
+    // High-tech tilt effect
+    const transform = isHovered
+        ? 'translateY(-1px) rotate(-3deg) scale(1.05)'
+        : 'translateY(0px) rotate(0deg) scale(1)';
+
+    return (
+        <svg
+            width={size}
+            height={size}
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke={color}
+            strokeWidth={isHovered ? "2.5" : "2"}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            onMouseEnter={() => setIsHovered(true)}
+            onMouseLeave={() => setIsHovered(false)}
+            style={{
+                cursor: 'pointer',
+                overflow: 'visible',
+                transition: 'all 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
+                transform,
+                ...props.style
+            }}
+            {...props}
+        >
+            {/* Main Camera Body - Rounded Square */}
+            <rect x="3" y="3" width="18" height="18" rx="5" />
+
+            {/* Lens - Large Center Circle */}
+            <circle cx="12" cy="12" r="5" />
+
+            {/* Flash/Viewfinder - Small top-right circle */}
+            <circle
+                cx="17.5"
+                cy="6.5"
+                r="1.2"
+                fill={isHovered ? color : "none"}
+                stroke="none"
+                style={{ transition: 'fill 0.2s ease' }}
+            />
+
+            {/* Internal Lens Detail - Aperture Dot */}
+            <circle
+                cx="12"
+                cy="12"
+                r="1.5"
+                fill={isHovered ? color : "none"}
+                stroke="none"
+                style={{
+                    transition: 'all 0.2s ease',
+                    transform: isHovered ? 'scale(1.2)' : 'scale(1)',
+                    transformOrigin: '12px 12px'
+                }}
+            />
+        </svg>
+    );
+};

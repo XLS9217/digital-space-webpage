@@ -107,7 +107,16 @@ const CONTROL_CHANNELS = {
      * Subscribe by:
      * - ./DebugPanel/DebugTunnel.jsx
      */
-    PRINT_OBJECT: "PRINT_OBJECT"
+    PRINT_OBJECT: "PRINT_OBJECT",
+
+    /* For printing the Three.js control object to console
+     * Inside digital-space-toolkit package,
+     * Publish by:
+     * - ./DebugPanel/PanelContent/CameraControlBlock.jsx
+     * Subscribe by:
+     * - ./DebugPanel/DebugTunnel.jsx
+     */
+    PRINT_CONTROL: "PRINT_CONTROL"
 }
 
 // const

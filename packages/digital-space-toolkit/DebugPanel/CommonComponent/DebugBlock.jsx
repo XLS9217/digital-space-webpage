@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { ChevronIcon, TrashBinIcon, EyeIcon, PrinterIcon } from '../CodeSvg';
+import { ChevronIcon, TrashBinIcon, EyeIcon, PrinterIcon, SnapshotIcon } from '../CodeSvg';
 
 const EditableName = ({ title, onTitleChange, initialEditing = false }) => {
     const [isEditing, setIsEditing] = useState(initialEditing);
@@ -60,7 +60,20 @@ const EditableName = ({ title, onTitleChange, initialEditing = false }) => {
     );
 };
 
-const DebugBlock = ({ title, type, children, initialExpanded = false, alwaysExpanded = false, initialEditing = false, onTitleChange, onDelete, onVisibilityToggle, visible, onPrint }) => {
+const DebugBlock = ({
+    title,
+    type,
+    children,
+    initialExpanded = false,
+    alwaysExpanded = false,
+    initialEditing = false,
+    onTitleChange,
+    onDelete,
+    onVisibilityToggle,
+    visible,
+    onPrint,
+    onSnapshot
+}) => {
     const [isExpanded, setIsExpanded] = useState(initialExpanded || alwaysExpanded);
     const expanded = alwaysExpanded || isExpanded;
 
@@ -80,6 +93,9 @@ const DebugBlock = ({ title, type, children, initialExpanded = false, alwaysExpa
                 </div>
                 <div className="debug-section-header-right">
                     {type && <span className="debug-section-type">{type}</span>}
+                    {onSnapshot && (
+                        <SnapshotIcon size={14} onClick={onSnapshot} title="Take snapshot" />
+                    )}
                     {onPrint && (
                         <PrinterIcon size={14} onClick={onPrint} title="Print to console" />
                     )}

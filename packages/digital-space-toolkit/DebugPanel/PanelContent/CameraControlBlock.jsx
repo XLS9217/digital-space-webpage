@@ -1,10 +1,11 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { eventChannelHub, INFO_CHANNELS, CONTROL_CHANNELS } from "../../EventChannelHub";
 import { CONTROL_TYPE } from "../../SceneTypeEnum";
 import DebugBlock from "../CommonComponent/DebugBlock";
 import CoordDisplayer from "../CommonComponent/CoordDisplayer";
 import MinMaxHandle from "../CommonComponent/MinMaxHandle";
 import CheckBox from "../CommonComponent/CheckBox";
+import { CameraJoystickIcon } from "../CodeSvg";
 
 const FLOAT_PRECISION = 3;
 
@@ -59,6 +60,15 @@ export default function CameraControlBlock({ onSerializedUpdate }) {
             [property]: value
         });
     };
+
+    const handlePrintControl = useCallback(() => {
+        eventChannelHub.publish(CONTROL_CHANNELS.PRINT_CONTROL);
+    }, []);
+
+    const handleSnapshotControl = useCallback(() => {
+        // TODO: Implement snapshot functionality
+        console.log("Snapshot control settings (to be implemented)");
+    }, []);
 
     useEffect(() => {
         const handleControlInfo = (data) => {
@@ -139,55 +149,63 @@ export default function CameraControlBlock({ onSerializedUpdate }) {
         };
     }, [onSerializedUpdate]);
 
-    if (!controlInfo) return <span>No data</span>;
+    if (!controlInfo) return <div className="debug-item no-data">No control data</div>;
 
     const { type, position, target, rotation } = controlInfo;
 
     return (
-        <DebugBlock title="Control Info" type={type} initialExpanded={true}>
-            <CoordDisplayer label="Init Pos" value={position} />
-            {target && <CoordDisplayer label="Target" value={target} />}
-            {rotation && <CoordDisplayer label="Rot" value={rotation} />}
+        <div className="debug-section-list">
+            <DebugBlock
+                title="Control Info"
+                type={type}
+                initialExpanded={true}
+                onPrint={handlePrintControl}
+                onSnapshot={handleSnapshotControl}
+            >
+                <CoordDisplayer label="Init Pos" value={position} />
+                {target && <CoordDisplayer label="Target" value={target} />}
+                {rotation && <CoordDisplayer label="Rot" value={rotation} />}
 
-            {type === CONTROL_TYPE.ORBIT && (
-                <>
-                    <MinMaxHandle
-                        label="Zoom"
-                        minValue={controlSettings.minDistance}
-                        maxValue={controlSettings.maxDistance}
-                        rangeMin={0.1}
-                        rangeMax={200}
-                        step={0.1}
-                        editable={true}
-                        onValueChange={handleZoomChange}
-                    />
-                    <MinMaxHandle
-                        label="Angle"
-                        minValue={controlSettings.minPolarAngle}
-                        maxValue={controlSettings.maxPolarAngle}
-                        rangeMin={0}
-                        rangeMax={Math.PI}
-                        step={0.01}
-                        editable={true}
-                        onValueChange={handleAngleChange}
-                    />
-                    <CheckBox
-                        label="Pan"
-                        checked={controlSettings.enablePan}
-                        onChange={(value) => handleEnableChange('enablePan', value)}
-                    />
-                    <CheckBox
-                        label="Rotate"
-                        checked={controlSettings.enableRotate}
-                        onChange={(value) => handleEnableChange('enableRotate', value)}
-                    />
-                    <CheckBox
-                        label="Zoom"
-                        checked={controlSettings.enableZoom}
-                        onChange={(value) => handleEnableChange('enableZoom', value)}
-                    />
-                </>
-            )}
-        </DebugBlock>
+                {type === CONTROL_TYPE.ORBIT && (
+                    <>
+                        <MinMaxHandle
+                            label="Zoom"
+                            minValue={controlSettings.minDistance}
+                            maxValue={controlSettings.maxDistance}
+                            rangeMin={0.1}
+                            rangeMax={200}
+                            step={0.1}
+                            editable={true}
+                            onValueChange={handleZoomChange}
+                        />
+                        <MinMaxHandle
+                            label="Angle"
+                            minValue={controlSettings.minPolarAngle}
+                            maxValue={controlSettings.maxPolarAngle}
+                            rangeMin={0}
+                            rangeMax={Math.PI}
+                            step={0.01}
+                            editable={true}
+                            onValueChange={handleAngleChange}
+                        />
+                        <CheckBox
+                            label="Pan"
+                            checked={controlSettings.enablePan}
+                            onChange={(value) => handleEnableChange('enablePan', value)}
+                        />
+                        <CheckBox
+                            label="Rotate"
+                            checked={controlSettings.enableRotate}
+                            onChange={(value) => handleEnableChange('enableRotate', value)}
+                        />
+                        <CheckBox
+                            label="Zoom"
+                            checked={controlSettings.enableZoom}
+                            onChange={(value) => handleEnableChange('enableZoom', value)}
+                        />
+                    </>
+                )}
+            </DebugBlock>
+        </div>
     );
 }

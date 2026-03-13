@@ -44,15 +44,31 @@ export default function DigitalSpaceControl({ controlType = CONTROL_TYPE.ORBIT }
             }
         };
 
+        const handlePrintControl = () => {
+            if (orbitControlsRef.current) {
+                console.log("Three.js OrbitControls:", orbitControlsRef.current);
+            } else {
+                console.warn("OrbitControls not available");
+            }
+        };
+
         eventChannelHub.subscribe(
             CONTROL_CHANNELS.CAMERA_CONTROL_SETTINGS_UPDATE,
             handleSettingsUpdate
+        );
+        eventChannelHub.subscribe(
+            CONTROL_CHANNELS.PRINT_CONTROL,
+            handlePrintControl
         );
 
         return () => {
             eventChannelHub.unsubscribe(
                 CONTROL_CHANNELS.CAMERA_CONTROL_SETTINGS_UPDATE,
                 handleSettingsUpdate
+            );
+            eventChannelHub.unsubscribe(
+                CONTROL_CHANNELS.PRINT_CONTROL,
+                handlePrintControl
             );
         };
     }, []);
