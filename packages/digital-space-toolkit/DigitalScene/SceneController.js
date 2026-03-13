@@ -39,9 +39,10 @@ class _LevelsController {
             .map((layer, index) => ({ layer, index: index + layerIndex }))
             .filter(({ index }) => this.liftedLayers.has(index));
 
-        // Lift layers above using liftTarget
+        // Lift layers above using liftTarget, hide after animation
         const namesToLift = layersToLift.flatMap(({ layer }) => layer.names || []);
         namesToLift.forEach(name => {
+            // console.log(`Starting lift animation for: ${name}`);
             eventChannelHub.publish(CONTROL_CHANNELS.OBJECT_ANIMATION, {
                 name,
                 property: 'position',
@@ -50,14 +51,27 @@ class _LevelsController {
                 duration: 1,
                 ease: "power2.out",
                 onComplete: () => {
+                    // console.log(`Lift animation complete, hiding: ${name}`);
+                    eventChannelHub.publish(CONTROL_CHANNELS.OBJECT_UPDATE_BY_NAME, {
+                        name,
+                        property: 'visible',
+                        value: false
+                    });
                     console.log(`Lifted object: ${name}`);
                 }
             });
         });
 
-        // Bring down layers at or below using negative liftTarget
+        // Bring down layers at or below, show before animation
         const namesToBringDown = layersToBringDown.flatMap(({ layer }) => layer.names || []);
         namesToBringDown.forEach(name => {
+            // console.log(`Showing before bring-down: ${name}`);
+            eventChannelHub.publish(CONTROL_CHANNELS.OBJECT_UPDATE_BY_NAME, {
+                name,
+                property: 'visible',
+                value: true
+            });
+            // console.log(`Starting bring-down animation for: ${name}`);
             eventChannelHub.publish(CONTROL_CHANNELS.OBJECT_ANIMATION, {
                 name,
                 property: 'position',
@@ -107,6 +121,11 @@ class _LevelsController {
             if (this.liftedLayers.has(index)) {
                 const names = layer.names || [];
                 names.forEach(name => {
+                    eventChannelHub.publish(CONTROL_CHANNELS.OBJECT_UPDATE_BY_NAME, {
+                        name,
+                        property: 'visible',
+                        value: true
+                    });
                     eventChannelHub.publish(CONTROL_CHANNELS.OBJECT_ANIMATION, {
                         name,
                         property: 'position',
