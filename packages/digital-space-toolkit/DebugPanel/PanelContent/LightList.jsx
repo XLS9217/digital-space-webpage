@@ -20,18 +20,32 @@ const sanitizeVector = (vec) => {
 const LightItem = ({ light, index, onItemSerialized, onDelete }) => {
     const [localName, setLocalName] = useState(light.name || '');
     const [visible, setVisible] = useState(true);
+
+    const isDirectional = light.type === LIGHT_TYPE.DIRECTIONAL;
+
     const [localData, setLocalData] = useState({
         intensity: light.intensity || 0,
-        position: light.position ? sanitizeVector(light.position) : undefined,
+        position: isDirectional
+            ? (light.position ? sanitizeVector(light.position) : { x: 10, y: 10, z: 10 })
+            : (light.position ? sanitizeVector(light.position) : undefined),
+        target: isDirectional
+            ? (light.target ? sanitizeVector(light.target) : { x: 0, y: 0, z: 0 })
+            : undefined,
         color: light.color || '#ffffff'
     });
 
     // Sync from props when light changes externally
     useEffect(() => {
         setLocalName(light.name || '');
+        const isDirectional = light.type === LIGHT_TYPE.DIRECTIONAL;
         setLocalData({
             intensity: light.intensity || 0,
-            position: light.position ? sanitizeVector(light.position) : undefined,
+            position: isDirectional
+                ? (light.position ? sanitizeVector(light.position) : { x: 10, y: 10, z: 10 })
+                : (light.position ? sanitizeVector(light.position) : undefined),
+            target: isDirectional
+                ? (light.target ? sanitizeVector(light.target) : { x: 0, y: 0, z: 0 })
+                : undefined,
             color: light.color || '#ffffff'
         });
     }, [light]);
@@ -103,13 +117,21 @@ const LightItem = ({ light, index, onItemSerialized, onDelete }) => {
                 editable={true}
                 onValueChange={handlePropertyChange('intensity')}
             />
-            {localData.position && (
-                <CoordDisplayer
-                    label="Pos"
-                    value={localData.position}
-                    editable={true}
-                    onValueChange={handlePropertyChange('position')}
-                />
+            {isDirectional && (
+                <>
+                    <CoordDisplayer
+                        label="Pos"
+                        value={localData.position}
+                        editable={true}
+                        onValueChange={handlePropertyChange('position')}
+                    />
+                    <CoordDisplayer
+                        label="Target"
+                        value={localData.target}
+                        editable={true}
+                        onValueChange={handlePropertyChange('target')}
+                    />
+                </>
             )}
             <ColorPicker
                 label="Color"
@@ -126,7 +148,14 @@ const createDefaultLight = (type, name) => {
         case LIGHT_TYPE.AMBIENT:
             return { name, type, intensity: 1, color: '#ffffff' };
         case LIGHT_TYPE.DIRECTIONAL:
-            return { name, type, intensity: 1, color: '#ffffff', position: { x: 0, y: 5, z: 0 } };
+            return {
+                name,
+                type,
+                intensity: 1,
+                color: '#ffffff',
+                position: { x: 10, y: 10, z: 10 },
+                target: { x: 0, y: 0, z: 0 }
+            };
         default:
             return { name, type, intensity: 1, color: '#ffffff' };
     }
