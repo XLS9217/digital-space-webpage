@@ -183,6 +183,13 @@ const LevelGroup = ({ group, depth = 0, onDelete, serializeGroup, modelNames = [
         }
     }, [liftTarget, sceneController, localName]);
 
+    // Handle name changes
+    useEffect(() => {
+        if (sceneController && group.name && localName !== group.name) {
+            sceneController.renameGroup(group.name, localName);
+        }
+    }, [localName, sceneController, group.name]);
+
     const handlePrint = useCallback(() => {
         const layersWithSerialized = layers.map((layer, i) => serializedLayers[i] || layer);
         const currentGroup = {

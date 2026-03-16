@@ -211,23 +211,102 @@ class SceneController {
 
         // Initialize controllers for top-level groups
         for (const group of groups) {
-            let controller = null;
-
-            if (group.type == GROUP_TYPE.LEVEL) {
-                controller = new _LevelsController(group);
-            }
-            // Future: other group types
-
-            if (controller) {
-                this.controllerMap.set(group.name, controller);
-            }
+            this._createController(group);
         }
+    }
+
+    /**
+     * Create a controller for a group
+     * @private
+     */
+    _createController(group) {
+        let controller = null;
+
+        if (group.type == GROUP_TYPE.LEVEL) {
+            controller = new _LevelsController(group);
+        }
+        // Future: other group types
+
+        if (controller) {
+            this.controllerMap.set(group.name, controller);
+        }
+        return controller;
+    }
+
+    /**
+     * Add a new group and create its controller
+     */
+    addGroup(group) {
+        // Check if group with this name already exists
+        if (this.controllerMap.has(group.name)) {
+            console.warn(`Group "${group.name}" already exists`);
+            return false;
+        }
+
+        this.groups.push(group);
+        this._createController(group);
+        return true;
+    }
+
+    /**
+     * Remove a group and its controller
+     */
+    removeGroup(groupName) {
+        const groupIndex = this.groups.findIndex(g => g.name === groupName);
+        if (groupIndex !== -1) {
+            this.groups.splice(groupIndex, 1);
+        }
+
+        this.controllerMap.delete(groupName);
+        return true;
+    }
+
+    /**
+     * Rename a group - updates the controllerMap key
+     */
+    renameGroup(oldName, newName) {
+        const controller = this.controllerMap.get(oldName);
+        if (!controller) {
+            console.warn(`Cannot rename group "${oldName}" - not found`);
+            return false;
+        }
+
+        // Check if new name already exists
+        if (oldName !== newName && this.controllerMap.has(newName)) {
+            console.warn(`Cannot rename to "${newName}" - name already exists`);
+            return false;
+        }
+
+        // Update the group in the groups array
+        const groupIndex = this.groups.findIndex(g => g.name === oldName);
+        if (groupIndex !== -1) {
+            this.groups[groupIndex].name = newName;
+        }
+
+        // Update controller's group reference
+        if (controller.group) {
+            controller.group.name = newName;
+        }
+
+        // Update the map key
+        if (oldName !== newName) {
+            this.controllerMap.delete(oldName);
+            this.controllerMap.set(newName, controller);
+        }
+
+        return true;
     }
 
     /**
      * Update a specific group's data (e.g., when layer metadata changes)
      */
     updateGroup(groupName, updatedGroup) {
+        const controller = this.controllerMap.get(groupName);
+        if (!controller) {
+            console.warn(`Cannot update group "${groupName}" - not found`);
+            return false;
+        }
+
         // Find and update the group in the groups array
         const groupIndex = this.groups.findIndex(g => g.name === groupName);
         if (groupIndex !== -1) {
@@ -235,14 +314,15 @@ class SceneController {
         }
 
         // Update the controller's reference to the group
-        const controller = this.controllerMap.get(groupName);
-        if (controller && controller.group) {
+        if (controller.group) {
             controller.group = updatedGroup;
             // Preserve liftTarget if it exists in metadata
             if (updatedGroup.metadata?.liftTarget) {
                 controller.liftTarget = updatedGroup.metadata.liftTarget;
             }
         }
+
+        return true;
     }
 
     /**

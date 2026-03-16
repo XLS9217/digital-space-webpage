@@ -56,11 +56,20 @@ export default function GroupList({ groups, modelNames = [], showNewItem, onNewI
 
     const handleAddTopLevel = (newGroup) => {
         setLocalGroups(prev => [...prev, newGroup]);
+        // Add to SceneController
+        if (sceneController) {
+            sceneController.addGroup(newGroup);
+        }
         onNewItemDone && onNewItemDone();
     };
 
     const handleDeleteGroup = (index) => {
+        const groupToDelete = localGroups[index];
         setLocalGroups(prev => prev.filter((_, i) => i !== index));
+        // Remove from SceneController
+        if (sceneController && groupToDelete) {
+            sceneController.removeGroup(groupToDelete.name);
+        }
     };
 
     const addChildToGroup = (parentName, newChild) => {
