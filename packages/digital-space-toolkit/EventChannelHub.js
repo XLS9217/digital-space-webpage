@@ -134,7 +134,38 @@ const CONTROL_CHANNELS = {
      * Subscribe by:
      * - ./DebugPanel/ControlTunnel.jsx
      */
-    SCENE_BACKGROUND_UPDATE: "SCENE_BACKGROUND_UPDATE"
+    SCENE_BACKGROUND_UPDATE: "SCENE_BACKGROUND_UPDATE",
+
+    /* For light helper toggle (camera helper for directional lights)
+     * Inside digital-space-toolkit package,
+     * Publish by:
+     * - ./DebugPanel/PanelContent/LightList.jsx
+     * Subscribe by:
+     * - ./DebugScene/DebugScene.jsx
+     */
+    LIGHT_HELPER_TOGGLE: "LIGHT_HELPER_TOGGLE"
+}
+
+//this channel is for debug scene visualization and interaction
+const DEBUG_SCENE_CHANNELS = {
+
+    /* For light property feedback (reverse update from 3D gizmo to panel UI)
+     * Inside digital-space-toolkit package,
+     * Publish by:
+     * - ./DebugScene/GizmoHelper.jsx
+     * Subscribe by:
+     * - ./DebugPanel/PanelContent/LightList.jsx
+     */
+    LIGHT_PROPERTY_FEEDBACK: "LIGHT_PROPERTY_FEEDBACK",
+
+    /* For temporarily disabling orbit controls during gizmo drag
+     * Inside digital-space-toolkit package,
+     * Publish by:
+     * - ./DebugScene/GizmoHelper.jsx
+     * Subscribe by:
+     * - ./DigitalSpaceControl.jsx
+     */
+    CONTROLS_ENABLE: "CONTROLS_ENABLE"
 }
 
 // const
@@ -196,4 +227,4 @@ class EventChannelHub {
     }
 }
 export const eventChannelHub = new EventChannelHub();
-export { DEBUG_CHANNELS, INFO_CHANNELS, CONTROL_CHANNELS };
+export { DEBUG_CHANNELS, INFO_CHANNELS, CONTROL_CHANNELS, DEBUG_SCENE_CHANNELS };

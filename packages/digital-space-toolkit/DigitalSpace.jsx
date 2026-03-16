@@ -16,6 +16,7 @@ import { Canvas } from "@react-three/fiber";
 import DigitalSpaceControl from "./DigitalSpaceControl";
 import DebugPanel from "./DebugPanel/DebugPanel";
 import ControlTunnel from "./DebugPanel/ControlTunnel.jsx";
+import DebugScene from "./DebugScene/DebugScene.jsx";
 
 export default function DigitalSpace({
     defaultControlStyle,
@@ -29,6 +30,7 @@ export default function DigitalSpace({
                 <axesHelper args={[10]} />
                 {children}
                 <ControlTunnel/>
+                {debug && <DebugScene/>}
             </Canvas>
 
             {/*Outside because it's normal html, and there is a fucking namespace thing*/}

@@ -3,8 +3,9 @@ import DebugBlock from '../CommonComponent/DebugBlock';
 import CoordDisplayer from '../CommonComponent/CoordDisplayer';
 import BarHandle from '../CommonComponent/BarHandle';
 import ColorPicker from '../CommonComponent/ColorPicker';
+import CheckBox from '../CommonComponent/CheckBox';
 import EnumSelect from '../CommonComponent/EnumSelect';
-import { eventChannelHub, CONTROL_CHANNELS } from '../../EventChannelHub';
+import { eventChannelHub, CONTROL_CHANNELS, DEBUG_SCENE_CHANNELS } from '../../EventChannelHub';
 import { LIGHT_TYPE } from '../../SceneTypeEnum';
 
 const sanitizeVector = (vec) => {
@@ -20,6 +21,7 @@ const sanitizeVector = (vec) => {
 const LightItem = ({ light, index, onItemSerialized, onDelete }) => {
     const [localName, setLocalName] = useState(light.name || '');
     const [visible, setVisible] = useState(true);
+    const [showHelper, setShowHelper] = useState(false);
 
     const isDirectional = light.type === LIGHT_TYPE.DIRECTIONAL;
 
@@ -98,6 +100,31 @@ const LightItem = ({ light, index, onItemSerialized, onDelete }) => {
         eventChannelHub.publish(CONTROL_CHANNELS.PRINT_OBJECT, { name: localName });
     }, [localName]);
 
+    const handleHelperToggle = useCallback((checked) => {
+        setShowHelper(checked);
+        eventChannelHub.publish(CONTROL_CHANNELS.LIGHT_HELPER_TOGGLE, {
+            name: localName,
+            showHelper: checked
+        });
+    }, [localName]);
+
+    // Subscribe to feedback from 3D gizmo
+    useEffect(() => {
+        const handleFeedback = ({ name, property, value }) => {
+            if (name === localName && (property === 'position' || property === 'target')) {
+                setLocalData(prev => ({
+                    ...prev,
+                    [property]: value
+                }));
+            }
+        };
+
+        eventChannelHub.subscribe(DEBUG_SCENE_CHANNELS.LIGHT_PROPERTY_FEEDBACK, handleFeedback);
+        return () => {
+            eventChannelHub.unsubscribe(DEBUG_SCENE_CHANNELS.LIGHT_PROPERTY_FEEDBACK, handleFeedback);
+        };
+    }, [localName]);
+
     return (
         <DebugBlock
             title={localName || `Light ${index} NO name`}
@@ -130,6 +157,11 @@ const LightItem = ({ light, index, onItemSerialized, onDelete }) => {
                         value={localData.target}
                         editable={true}
                         onValueChange={handlePropertyChange('target')}
+                    />
+                    <CheckBox
+                        label="Camera Helper"
+                        checked={showHelper}
+                        onChange={handleHelperToggle}
                     />
                 </>
             )}

@@ -50,6 +50,9 @@ export default function ControlTunnel() {
                     } else {
                         object.position.set(value.x, value.y, value.z);
                     }
+                } else if (property === 'target' && object.target) {
+                    // Handle directional light target
+                    object.target.position.set(value.x, value.y, value.z);
                 } else if (property === 'rotation' && object.rotation) {
                     object.rotation.set(value.x, value.y, value.z);
                 } else if (property === 'scale' && object.scale) {

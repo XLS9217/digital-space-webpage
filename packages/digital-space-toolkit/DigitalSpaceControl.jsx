@@ -15,7 +15,7 @@ import { OrbitControls, PointerLockControls } from '@react-three/drei'
 import { useFrame, useThree } from '@react-three/fiber'
 import React from 'react'//for webpack consistency,
 import { useRef, useEffect, useState } from 'react'
-import { eventChannelHub, INFO_CHANNELS, CONTROL_CHANNELS } from './EventChannelHub'
+import { eventChannelHub, INFO_CHANNELS, CONTROL_CHANNELS, DEBUG_SCENE_CHANNELS } from './EventChannelHub'
 import { CONTROL_TYPE } from './SceneTypeEnum'
 import gsap from 'gsap'
 
@@ -219,6 +219,21 @@ export default function DigitalSpaceControl({ controlType = CONTROL_TYPE.ORBIT }
             eventChannelHub.unsubscribe(CONTROL_CHANNELS.CAMERA_ANIMATION, handleCameraAnimation);
         };
     }, [camera]);
+
+    // Subscribe to controls enable/disable from debug scene
+    useEffect(() => {
+        const handleControlsEnable = ({ enabled }) => {
+            if (orbitControlsRef.current) {
+                orbitControlsRef.current.enabled = enabled;
+            }
+        };
+
+        eventChannelHub.subscribe(DEBUG_SCENE_CHANNELS.CONTROLS_ENABLE, handleControlsEnable);
+
+        return () => {
+            eventChannelHub.unsubscribe(DEBUG_SCENE_CHANNELS.CONTROLS_ENABLE, handleControlsEnable);
+        };
+    }, []);
 
     useFrame(() => {
         let controlInfo
