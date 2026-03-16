@@ -6,6 +6,7 @@ import React from 'react'//for webpack consistency,
 import { useEffect } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
 import { eventChannelHub, CONTROL_CHANNELS } from "../EventChannelHub";
+import * as THREE from "three";
 import gsap from "gsap";
 
 export default function ControlTunnel() {
@@ -111,11 +112,28 @@ export default function ControlTunnel() {
 
         eventChannelHub.subscribe(CONTROL_CHANNELS.OBJECT_ANIMATION, handleObjectAnimation);
 
+        // Subscribe to scene background updates
+        const handleBackgroundUpdate = ({ color, enabled }) => {
+            //console.log(`Updating scene background to: ${color}, enabled: ${enabled}`);
+            if (enabled) {
+                if (!scene.background) {
+                    scene.background = new THREE.Color(color);
+                } else {
+                    scene.background.set(color);
+                }
+            } else {
+                scene.background = null;
+            }
+        };
+
+        eventChannelHub.subscribe(CONTROL_CHANNELS.SCENE_BACKGROUND_UPDATE, handleBackgroundUpdate);
+
         return () => {
             eventChannelHub.unsubscribe(CONTROL_CHANNELS.PRINT_SCENE, handlePrintScene);
             eventChannelHub.unsubscribe(CONTROL_CHANNELS.PRINT_OBJECT, handlePrintObject);
             eventChannelHub.unsubscribe(CONTROL_CHANNELS.OBJECT_UPDATE_BY_NAME, handleObjectUpdate);
             eventChannelHub.unsubscribe(CONTROL_CHANNELS.OBJECT_ANIMATION, handleObjectAnimation);
+            eventChannelHub.unsubscribe(CONTROL_CHANNELS.SCENE_BACKGROUND_UPDATE, handleBackgroundUpdate);
         };
     }, [scene]);
 

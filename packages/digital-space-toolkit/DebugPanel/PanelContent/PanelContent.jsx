@@ -4,6 +4,7 @@ import { PrinterIcon, DownloadIcon, UploadIcon, PlusCircleIcon, ChevronIcon } fr
 import ModelList from "./ModelList";
 import LightList from "./LightList";
 import GroupList from "./Groups/GroupList.jsx";
+import GeneralSetting from "./GeneralSetting/GeneralSetting.jsx";
 import InteractionSetting from "./InteractionSetting";
 import dataRegistry from "../../DataRegistry.js";
 import { eventChannelHub, CONTROL_CHANNELS } from '../../EventChannelHub';
@@ -12,6 +13,7 @@ import './PanelContent.css';
 export default function PanelContent({ sceneData, showJson, sceneController }) {
 
     const [controlInfo, setControlInfo] = useState(null);
+    const [generalInfo, setGeneralInfo] = useState(null);
     const [serializedModels, setSerializedModels] = useState([]);
     const [serializedLights, setSerializedLights] = useState([]);
     const [serializedGroups, setSerializedGroups] = useState([]);
@@ -27,6 +29,7 @@ export default function PanelContent({ sceneData, showJson, sceneController }) {
 
         return {
             scene: sceneData.scene,
+            general: generalInfo,
             control: controlInfo,
             lights: serializedLights,
             models: serializedModels,
@@ -135,6 +138,10 @@ export default function PanelContent({ sceneData, showJson, sceneController }) {
                         </div>
                     </div>
                     <div className="debug-list">
+                        <GeneralSetting
+                            onSerializedUpdate={setGeneralInfo}
+                            initialGeneral={sceneData?.general}
+                        />
                         <InteractionSetting
                             onSerializedUpdate={setControlInfo}
                             initialControl={sceneData?.control}

@@ -125,7 +125,16 @@ const CONTROL_CHANNELS = {
      * Subscribe by:
      * - ./DebugPanel/DebugTunnel.jsx
      */
-    PRINT_CONTROL: "PRINT_CONTROL"
+    PRINT_CONTROL: "PRINT_CONTROL",
+
+    /* For scene background color update
+     * Inside digital-space-toolkit package,
+     * Publish by:
+     * - ./DebugPanel/PanelContent/GeneralSetting/BackgroundSetting.jsx
+     * Subscribe by:
+     * - ./DebugPanel/ControlTunnel.jsx
+     */
+    SCENE_BACKGROUND_UPDATE: "SCENE_BACKGROUND_UPDATE"
 }
 
 // const
