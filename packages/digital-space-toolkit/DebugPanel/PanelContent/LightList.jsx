@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import DebugBlock from '../CommonComponent/DebugBlock';
 import CoordDisplayer from '../CommonComponent/CoordDisplayer';
 import BarHandle from '../CommonComponent/BarHandle';
+import ColorPicker from '../CommonComponent/ColorPicker';
 import EnumSelect from '../CommonComponent/EnumSelect';
 import { eventChannelHub, CONTROL_CHANNELS } from '../../EventChannelHub';
 import { LIGHT_TYPE } from '../../SceneTypeEnum';
@@ -22,7 +23,7 @@ const LightItem = ({ light, index, onItemSerialized, onDelete }) => {
     const [localData, setLocalData] = useState({
         intensity: light.intensity || 0,
         position: light.position ? sanitizeVector(light.position) : undefined,
-        color: light.color
+        color: light.color || '#ffffff'
     });
 
     // Sync from props when light changes externally
@@ -31,7 +32,7 @@ const LightItem = ({ light, index, onItemSerialized, onDelete }) => {
         setLocalData({
             intensity: light.intensity || 0,
             position: light.position ? sanitizeVector(light.position) : undefined,
-            color: light.color
+            color: light.color || '#ffffff'
         });
     }, [light]);
 
@@ -110,14 +111,12 @@ const LightItem = ({ light, index, onItemSerialized, onDelete }) => {
                     onValueChange={handlePropertyChange('position')}
                 />
             )}
-            {localData.color && (
-                <div className="debug-detail-row">
-                    <span className="debug-detail-label">Color:</span>
-                    <span className="debug-detail-values">
-                        {localData.color}
-                    </span>
-                </div>
-            )}
+            <ColorPicker
+                label="Color"
+                value={localData.color}
+                editable={true}
+                onValueChange={handlePropertyChange('color')}
+            />
         </DebugBlock>
     );
 };
