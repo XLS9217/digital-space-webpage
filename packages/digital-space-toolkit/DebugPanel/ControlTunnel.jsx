@@ -6,6 +6,7 @@ import React from 'react'//for webpack consistency,
 import { useEffect } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
 import { eventChannelHub, CONTROL_CHANNELS } from "../EventChannelHub";
+import sceneObjectRegistry from "../DigitalScene/SceneObjectRegistry";
 import * as THREE from "three";
 import gsap from "gsap";
 
@@ -17,107 +18,91 @@ export default function ControlTunnel() {
             console.log("Three.js Scene:", scene);
         };
 
-        const handlePrintObject = ({ name }) => {
-            const object = scene.getObjectByName(name);
-            if (object) {
-                console.log(`Three.js Object [${name}]:`, object);
+        const handlePrintObject = ({ uuid }) => {
+            const obj = sceneObjectRegistry.getThreeObject(uuid);
+            if (obj) {
+                console.log(`Three.js Object [${uuid}]:`, obj);
             } else {
-                console.warn(`Object with name "${name}" not found in scene`);
+                console.warn(`Object with uuid "${uuid}" not found in registry`);
             }
         };
 
         eventChannelHub.subscribe(CONTROL_CHANNELS.PRINT_SCENE, handlePrintScene);
         eventChannelHub.subscribe(CONTROL_CHANNELS.PRINT_OBJECT, handlePrintObject);
 
-        // Subscribe to object update requests
-        const handleObjectUpdate = (updateData) => {
-            const { name, property, value, relative } = updateData;
-            console.log(`Received update request for ${name}, property: ${property}, value:`, value);
+        // UUID-based object updates
+        const handleObjectUpdate = ({ uuid, property, value, relative }) => {
+            const object = sceneObjectRegistry.getThreeObject(uuid);
+            if (!object) {
+                console.warn(`Object with uuid "${uuid}" not found in registry`);
+                return;
+            }
 
-            // Find object by name in the scene
-            const object = scene.getObjectByName(name);
-            if (object) {
-                console.log(`Found object ${name}:`, object);
-
-                // Apply the update based on property
-                if (property === 'position' && object.position) {
-                    if (relative) {
-                        object.position.set(
-                            object.position.x + value.x,
-                            object.position.y + value.y,
-                            object.position.z + value.z
-                        );
-                    } else {
-                        object.position.set(value.x, value.y, value.z);
-                    }
-                } else if (property === 'target' && object.target) {
-                    // Handle directional light target
-                    object.target.position.set(value.x, value.y, value.z);
-                } else if (property === 'rotation' && object.rotation) {
-                    object.rotation.set(value.x, value.y, value.z);
-                } else if (property === 'scale' && object.scale) {
-                    if (typeof value === 'number') {
-                        object.scale.set(value, value, value);
-                    } else {
-                        object.scale.set(value.x, value.y, value.z);
-                    }
-                } else if (property === 'intensity' && 'intensity' in object) {
-                    object.intensity = value;
-                } else if (property === 'color' && object.color) {
-                    object.color.set(value);
-                } else if (property === 'visible') {
-                    object.visible = value;
-                } else if (property === 'name') {
-                    object.name = value;
+            if (property === 'position' && object.position) {
+                if (relative) {
+                    object.position.set(
+                        object.position.x + value.x,
+                        object.position.y + value.y,
+                        object.position.z + value.z
+                    );
+                } else {
+                    object.position.set(value.x, value.y, value.z);
                 }
-
-                console.log(`Applied update to ${name}`);
-            } else {
-                console.warn(`Object with name "${name}" not found in scene`);
+            } else if (property === 'target' && object.target) {
+                object.target.position.set(value.x, value.y, value.z);
+            } else if (property === 'rotation' && object.rotation) {
+                object.rotation.set(value.x, value.y, value.z);
+            } else if (property === 'scale' && object.scale) {
+                if (typeof value === 'number') {
+                    object.scale.set(value, value, value);
+                } else {
+                    object.scale.set(value.x, value.y, value.z);
+                }
+            } else if (property === 'intensity' && 'intensity' in object) {
+                object.intensity = value;
+            } else if (property === 'color' && object.color) {
+                object.color.set(value);
+            } else if (property === 'visible') {
+                object.visible = value;
+            } else if (property === 'name') {
+                object.name = value;
             }
         };
 
-        eventChannelHub.subscribe(CONTROL_CHANNELS.OBJECT_UPDATE_BY_NAME, handleObjectUpdate);
+        eventChannelHub.subscribe(CONTROL_CHANNELS.OBJECT_UPDATE, handleObjectUpdate);
 
-        // Subscribe to animated object updates
-        const handleObjectAnimation = (animationData) => {
-            const { name, property, value, relative, duration = 1, ease = "power2.out", onComplete } = animationData;
-            console.log(`Received animation request for ${name}, property: ${property}, value:`, value);
+        // UUID-based animated updates
+        const handleObjectAnimation = ({ uuid, property, value, relative, duration = 1, ease = "power2.out", onComplete }) => {
+            const object = sceneObjectRegistry.getThreeObject(uuid);
+            if (!object) {
+                console.warn(`Object with uuid "${uuid}" not found for animation`);
+                return;
+            }
 
-            const object = scene.getObjectByName(name);
-            if (object) {
-                if (property === 'position' && object.position) {
-                    const targetPosition = relative ? {
-                        x: object.position.x + value.x,
-                        y: object.position.y + value.y,
-                        z: object.position.z + value.z
-                    } : value;
+            if (property === 'position' && object.position) {
+                const targetPosition = relative ? {
+                    x: object.position.x + value.x,
+                    y: object.position.y + value.y,
+                    z: object.position.z + value.z
+                } : value;
 
-                    gsap.to(object.position, {
-                        x: targetPosition.x,
-                        y: targetPosition.y,
-                        z: targetPosition.z,
-                        duration: duration,
-                        ease: ease,
-                        onComplete: () => {
-                            console.log(`Animation completed for ${name}`);
-                            if (onComplete) {
-                                onComplete(name);
-                            }
-                        }
-                    });
-                    console.log(`Started animation for ${name}`);
-                }
-            } else {
-                console.warn(`Object with name "${name}" not found in scene`);
+                gsap.to(object.position, {
+                    x: targetPosition.x,
+                    y: targetPosition.y,
+                    z: targetPosition.z,
+                    duration,
+                    ease,
+                    onComplete: () => {
+                        if (onComplete) onComplete(uuid);
+                    }
+                });
             }
         };
 
         eventChannelHub.subscribe(CONTROL_CHANNELS.OBJECT_ANIMATION, handleObjectAnimation);
 
-        // Subscribe to scene background updates
+        // Scene background updates
         const handleBackgroundUpdate = ({ color, enabled }) => {
-            //console.log(`Updating scene background to: ${color}, enabled: ${enabled}`);
             if (enabled) {
                 if (!scene.background) {
                     scene.background = new THREE.Color(color);
@@ -134,7 +119,7 @@ export default function ControlTunnel() {
         return () => {
             eventChannelHub.unsubscribe(CONTROL_CHANNELS.PRINT_SCENE, handlePrintScene);
             eventChannelHub.unsubscribe(CONTROL_CHANNELS.PRINT_OBJECT, handlePrintObject);
-            eventChannelHub.unsubscribe(CONTROL_CHANNELS.OBJECT_UPDATE_BY_NAME, handleObjectUpdate);
+            eventChannelHub.unsubscribe(CONTROL_CHANNELS.OBJECT_UPDATE, handleObjectUpdate);
             eventChannelHub.unsubscribe(CONTROL_CHANNELS.OBJECT_ANIMATION, handleObjectAnimation);
             eventChannelHub.unsubscribe(CONTROL_CHANNELS.SCENE_BACKGROUND_UPDATE, handleBackgroundUpdate);
         };

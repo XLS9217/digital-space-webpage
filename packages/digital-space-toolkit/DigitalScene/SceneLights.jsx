@@ -1,8 +1,9 @@
 import React, { useRef, useEffect } from 'react'//for webpack consistency,
 import { useThree } from '@react-three/fiber';
 import { LIGHT_TYPE } from '../SceneTypeEnum';
+import sceneObjectRegistry from './SceneObjectRegistry';
 
-function DirectionalLightWrapper({ name, position, target, intensity, color }) {
+function DirectionalLightWrapper({ name, position, target, intensity, color, lightData }) {
     const lightRef = useRef();
     const { scene } = useThree();
 
@@ -12,8 +13,14 @@ function DirectionalLightWrapper({ name, position, target, intensity, color }) {
                 lightRef.current.target.position.set(target[0], target[1], target[2]);
             }
             scene.add(lightRef.current.target);
+
+            // Register in registry
+            const uuid = lightRef.current.uuid;
+            sceneObjectRegistry.register(uuid, 'light', lightData, lightRef.current);
+
             return () => {
                 scene.remove(lightRef.current.target);
+                sceneObjectRegistry.unregister(uuid);
             };
         }
     }, [target, scene]);
@@ -28,6 +35,20 @@ function DirectionalLightWrapper({ name, position, target, intensity, color }) {
             castShadow
         />
     );
+}
+
+function AmbientLightWrapper({ name, intensity, color, lightData }) {
+    const lightRef = useRef();
+
+    useEffect(() => {
+        if (lightRef.current) {
+            const uuid = lightRef.current.uuid;
+            sceneObjectRegistry.register(uuid, 'light', lightData, lightRef.current);
+            return () => sceneObjectRegistry.unregister(uuid);
+        }
+    }, []);
+
+    return <ambientLight ref={lightRef} name={name} intensity={intensity} color={color} />;
 }
 
 export default function SceneLights({ lights = [] }) {
@@ -53,7 +74,7 @@ export default function SceneLights({ lights = [] }) {
 
                 switch (light.type) {
                     case LIGHT_TYPE.AMBIENT:
-                        return <ambientLight key={key} name={light.name} intensity={light.intensity} color={light.color} />;
+                        return <AmbientLightWrapper key={key} name={light.name} intensity={light.intensity} color={light.color} lightData={light} />;
                     case LIGHT_TYPE.DIRECTIONAL:
                         return (
                             <DirectionalLightWrapper
@@ -63,6 +84,7 @@ export default function SceneLights({ lights = [] }) {
                                 target={target}
                                 intensity={light.intensity}
                                 color={light.color}
+                                lightData={light}
                             />
                         );
                     default:

@@ -1,22 +1,30 @@
 import { eventChannelHub, CONTROL_CHANNELS } from '../EventChannelHub';
 import { GROUP_TYPE } from '../SceneTypeEnum';
+import sceneObjectRegistry from './SceneObjectRegistry';
 
-/**
- * Controller for a single level group
- * Manages layer lifting state and animations
- */
+// Resolve uuids for a layer — uses uuids[] if present, falls back to names[] via registry
+function resolveLayerUuids(layer) {
+    if (layer.uuids && layer.uuids.length > 0) return layer.uuids;
+    if (layer.names && layer.names.length > 0) {
+        return layer.names.map(name => {
+            const entry = sceneObjectRegistry.findByName(name);
+            return entry?.uuid;
+        }).filter(Boolean);
+    }
+    return [];
+}
+
+// Controller for a single level group.
+// Layers reference objects by uuid via SceneObjectRegistry.
 class _LevelsController {
 
     constructor(group) {
         this.group = group;
-        this.liftedLayers = new Set(); // Track which layer indices are lifted
+        this.liftedLayers = new Set();
         this.liftTarget = group.metadata?.liftTarget || { x: 0, y: 50, z: 0 };
     }
 
-    /**
-     * Investigate a layer - lifts layers above, brings down layers at/below
-     * If the layer has a saved control snapshot, animates camera to that view
-     */
+    // Investigate a layer — lifts layers above, brings down layers at/below
     investigateLayer(layerIndex) {
         const floors = this.group.groups || [];
 
@@ -28,60 +36,52 @@ class _LevelsController {
         const targetLayer = floors[layerIndex];
         const savedControl = targetLayer.metadata?.control;
 
-        // Layers above the clicked one (lower index = higher floor) - should be lifted
         const layersAbove = floors.slice(0, layerIndex);
-        // Layers at or below the clicked one - should be at ground level
         const layersAtOrBelow = floors.slice(layerIndex);
 
-        // Find layers above that need to be lifted
         const layersToLift = layersAbove
             .map((layer, index) => ({ layer, index }))
             .filter(({ index }) => !this.liftedLayers.has(index));
 
-        // Find layers at or below that need to be brought down
         const layersToBringDown = layersAtOrBelow
             .map((layer, index) => ({ layer, index: index + layerIndex }))
             .filter(({ index }) => this.liftedLayers.has(index));
 
-        // Lift layers above using liftTarget, hide after animation
-        const namesToLift = layersToLift.flatMap(({ layer }) => layer.names || []);
-        namesToLift.forEach(name => {
+        // Lift layers above, hide after animation
+        const uuidsToLift = layersToLift.flatMap(({ layer }) => resolveLayerUuids(layer));
+        uuidsToLift.forEach(uuid => {
             eventChannelHub.publish(CONTROL_CHANNELS.OBJECT_ANIMATION, {
-                name,
+                uuid,
                 property: 'position',
                 value: this.liftTarget,
                 relative: true,
                 duration: 1,
                 ease: "power2.out",
                 onComplete: () => {
-                    eventChannelHub.publish(CONTROL_CHANNELS.OBJECT_UPDATE_BY_NAME, {
-                        name,
+                    eventChannelHub.publish(CONTROL_CHANNELS.OBJECT_UPDATE, {
+                        uuid,
                         property: 'visible',
                         value: false
                     });
-                    console.log(`Lifted object: ${name}`);
                 }
             });
         });
 
         // Bring down layers at or below, show before animation
-        const namesToBringDown = layersToBringDown.flatMap(({ layer }) => layer.names || []);
-        namesToBringDown.forEach(name => {
-            eventChannelHub.publish(CONTROL_CHANNELS.OBJECT_UPDATE_BY_NAME, {
-                name,
+        const uuidsToBringDown = layersToBringDown.flatMap(({ layer }) => resolveLayerUuids(layer));
+        uuidsToBringDown.forEach(uuid => {
+            eventChannelHub.publish(CONTROL_CHANNELS.OBJECT_UPDATE, {
+                uuid,
                 property: 'visible',
                 value: true
             });
             eventChannelHub.publish(CONTROL_CHANNELS.OBJECT_ANIMATION, {
-                name,
+                uuid,
                 property: 'position',
                 value: { x: -this.liftTarget.x, y: -this.liftTarget.y, z: -this.liftTarget.z },
                 relative: true,
                 duration: 1,
-                ease: "power2.out",
-                onComplete: () => {
-                    console.log(`Brought down object: ${name}`);
-                }
+                ease: "power2.out"
             });
         });
 
@@ -89,88 +89,64 @@ class _LevelsController {
         layersToLift.forEach(({ index }) => this.liftedLayers.add(index));
         layersToBringDown.forEach(({ index }) => this.liftedLayers.delete(index));
 
-        // If layer has saved control snapshot, animate camera to that view
+        // If layer has saved control snapshot, animate camera
         if (savedControl && savedControl.position) {
-            // Disable all controls during animation
             eventChannelHub.publish(CONTROL_CHANNELS.CAMERA_CONTROL_SETTINGS_UPDATE, {
                 enablePan: false,
                 enableRotate: false,
                 enableZoom: false
             });
 
-            // Animate camera position and target
             eventChannelHub.publish(CONTROL_CHANNELS.CAMERA_ANIMATION, {
                 position: savedControl.position,
                 target: savedControl.target || { x: 0, y: 0, z: 0 },
                 duration: 1,
                 ease: "power2.out",
                 onComplete: () => {
-                    // Apply saved control settings
                     const settings = {};
-
-                    // Set min/max zoom if available
                     if (savedControl.zoom) {
                         settings.minDistance = savedControl.zoom.min;
                         settings.maxDistance = savedControl.zoom.max;
                     }
-
-                    // Set min/max angle if available
                     if (savedControl.angle) {
                         settings.minPolarAngle = savedControl.angle.min;
                         settings.maxPolarAngle = savedControl.angle.max;
                     }
-
-                    // Set enable flags from saved control
                     settings.enablePan = savedControl.enablePan !== undefined ? savedControl.enablePan : true;
                     settings.enableRotate = savedControl.enableRotate !== undefined ? savedControl.enableRotate : true;
                     settings.enableZoom = savedControl.enableZoom !== undefined ? savedControl.enableZoom : true;
-
                     eventChannelHub.publish(CONTROL_CHANNELS.CAMERA_CONTROL_SETTINGS_UPDATE, settings);
-
-                    console.log(`Camera animated to saved view for layer "${targetLayer.name}"`);
                 }
             });
         }
 
-        console.log(`Investigated layer "${targetLayer.name}" (index ${layerIndex}) in group "${this.group.name}"`);
         return true;
     }
 
-    /**
-     * Get all object names in a specific layer
-     */
     getLayerObjects(layerIndex) {
         const floors = this.group.groups || [];
-        if (layerIndex < 0 || layerIndex >= floors.length) {
-            return [];
-        }
-        return floors[layerIndex].names || [];
+        if (layerIndex < 0 || layerIndex >= floors.length) return [];
+        return resolveLayerUuids(floors[layerIndex]);
     }
 
-    /**
-     * Check if a layer is currently lifted
-     */
     isLayerLifted(layerIndex) {
         return this.liftedLayers.has(layerIndex);
     }
 
-    /**
-     * Reset all lifted layers (bring everything back to ground level)
-     */
     resetAllLayers() {
         const floors = this.group.groups || [];
 
         floors.forEach((layer, index) => {
             if (this.liftedLayers.has(index)) {
-                const names = layer.names || [];
-                names.forEach(name => {
-                    eventChannelHub.publish(CONTROL_CHANNELS.OBJECT_UPDATE_BY_NAME, {
-                        name,
+                const uuids = resolveLayerUuids(layer);
+                uuids.forEach(uuid => {
+                    eventChannelHub.publish(CONTROL_CHANNELS.OBJECT_UPDATE, {
+                        uuid,
                         property: 'visible',
                         value: true
                     });
                     eventChannelHub.publish(CONTROL_CHANNELS.OBJECT_ANIMATION, {
-                        name,
+                        uuid,
                         property: 'position',
                         value: { x: -this.liftTarget.x, y: -this.liftTarget.y, z: -this.liftTarget.z },
                         relative: true,
@@ -185,121 +161,77 @@ class _LevelsController {
     }
 }
 
-/**
- * SceneController - Main controller for scene groups
- * Simple API exposure, delegates to specific group controllers
- *
- * Usage:
- *   const controllerRef = useRef();
- *   <DigitalScene sceneName="myScene" controllerRef={controllerRef} />
- *
- *   controllerRef.current.investigateLayer('levelGroupName', layerIndex);
- */
+// Main controller for scene groups
 class SceneController {
 
     constructor() {
         this.groups = [];
-        this.controllerMap = new Map(); // Map<groupName, Controller>
+        this.controllerMap = new Map();
     }
 
-    /**
-     * Load groups data from scene and initialize controllers
-     */
     loadGroups(groups) {
         this.groups = groups || [];
         this.controllerMap.clear();
-
-        // Initialize controllers for top-level groups
         for (const group of groups) {
             this._createController(group);
         }
     }
 
-    /**
-     * Create a controller for a group
-     * @private
-     */
     _createController(group) {
         let controller = null;
-
         if (group.type == GROUP_TYPE.LEVEL) {
             controller = new _LevelsController(group);
         }
-        // Future: other group types
-
         if (controller) {
             this.controllerMap.set(group.name, controller);
         }
         return controller;
     }
 
-    /**
-     * Add a new group and create its controller
-     */
     addGroup(group) {
-        // Check if group with this name already exists
         if (this.controllerMap.has(group.name)) {
             console.warn(`Group "${group.name}" already exists`);
             return false;
         }
-
         this.groups.push(group);
         this._createController(group);
         return true;
     }
 
-    /**
-     * Remove a group and its controller
-     */
     removeGroup(groupName) {
         const groupIndex = this.groups.findIndex(g => g.name === groupName);
         if (groupIndex !== -1) {
             this.groups.splice(groupIndex, 1);
         }
-
         this.controllerMap.delete(groupName);
         return true;
     }
 
-    /**
-     * Rename a group - updates the controllerMap key
-     */
     renameGroup(oldName, newName) {
         const controller = this.controllerMap.get(oldName);
         if (!controller) {
             console.warn(`Cannot rename group "${oldName}" - not found`);
             return false;
         }
-
-        // Check if new name already exists
         if (oldName !== newName && this.controllerMap.has(newName)) {
             console.warn(`Cannot rename to "${newName}" - name already exists`);
             return false;
         }
 
-        // Update the group in the groups array
         const groupIndex = this.groups.findIndex(g => g.name === oldName);
         if (groupIndex !== -1) {
             this.groups[groupIndex].name = newName;
         }
-
-        // Update controller's group reference
         if (controller.group) {
             controller.group.name = newName;
         }
-
-        // Update the map key
         if (oldName !== newName) {
             this.controllerMap.delete(oldName);
             this.controllerMap.set(newName, controller);
         }
-
         return true;
     }
 
-    /**
-     * Update a specific group's data (e.g., when layer metadata changes)
-     */
     updateGroup(groupName, updatedGroup) {
         const controller = this.controllerMap.get(groupName);
         if (!controller) {
@@ -307,27 +239,19 @@ class SceneController {
             return false;
         }
 
-        // Find and update the group in the groups array
         const groupIndex = this.groups.findIndex(g => g.name === groupName);
         if (groupIndex !== -1) {
             this.groups[groupIndex] = updatedGroup;
         }
-
-        // Update the controller's reference to the group
         if (controller.group) {
             controller.group = updatedGroup;
-            // Preserve liftTarget if it exists in metadata
             if (updatedGroup.metadata?.liftTarget) {
                 controller.liftTarget = updatedGroup.metadata.liftTarget;
             }
         }
-
         return true;
     }
 
-    /**
-     * Investigate a layer - delegates to the group's controller
-     */
     investigateLayer(groupName, layerIndex) {
         const controller = this.controllerMap.get(groupName);
         if (!controller || !controller.investigateLayer) {

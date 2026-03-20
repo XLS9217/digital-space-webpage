@@ -12,12 +12,14 @@ export default function SceneModels({ models = [] }) {
                     name: model.name,
                     scale: model.scale,
                     position: model.position,
-                    rotation: model.rotation
+                    rotation: model.rotation,
+                    modelData: model
                 };
+                const key = model.url || model.name || index;
                 if (model.type === MODEL_TYPE.FRAME) {
-                    return <FrameModel key={index} {...modelProps} />
+                    return <FrameModel key={key} {...modelProps} />
                 } else {
-                    return <BaseModel key={index} {...modelProps} />
+                    return <BaseModel key={key} {...modelProps} />
                 }
             })}
         </>

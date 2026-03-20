@@ -1,15 +1,14 @@
 /*
  * GroupList — organizer for models/lights.
- * Although level is the only group type we have now, later we will have more.
- *
- * Dispatches to type-specific components (LevelGroup, etc.) based on group.type.
- * Participates in serialization — serialized groups are included in upsert.
+ * Groups store uuids[] internally. On serialization for upsert,
+ * uuids are resolved back to names via SceneObjectRegistry.
  */
 
 import React, { useState, useEffect, useCallback } from 'react';
 import DebugBlock from '../../CommonComponent/DebugBlock';
 import EnumSelect from '../../CommonComponent/EnumSelect';
 import { GROUP_TYPE } from '../../../SceneTypeEnum';
+import sceneObjectRegistry from '../../../DigitalScene/SceneObjectRegistry';
 import LevelGroup from './LevelGroup';
 
 const GROUP_COMPONENTS = {
@@ -38,7 +37,7 @@ const NewGroupItem = ({ onNewItemDone, onAdd }) => {
                         setError('name should not be empty');
                         return;
                     }
-                    onAdd({ name: newName.trim(), type, names: [], groups: [] });
+                    onAdd({ name: newName.trim(), type, uuids: [], groups: [] });
                 }}
             />
             {error && <span className="enum-select-error">{error}</span>}
@@ -46,17 +45,31 @@ const NewGroupItem = ({ onNewItemDone, onAdd }) => {
     );
 };
 
-export default function GroupList({ groups, modelNames = [], showNewItem, onNewItemDone, onSerializedUpdate, sceneController }) {
+export default function GroupList({ groups, modelEntries = [], showNewItem, onNewItemDone, onSerializedUpdate, sceneController }) {
     const [localGroups, setLocalGroups] = useState([]);
     const [serializedItems, setSerializedItems] = useState({});
 
+    // Migrate backend names[] → uuids[] when groups load
     useEffect(() => {
-        setLocalGroups(groups || []);
+        const migrateGroup = (g) => {
+            const migrated = { ...g };
+            // Convert names[] to uuids[] if present
+            if (g.names && g.names.length > 0 && (!g.uuids || g.uuids.length === 0)) {
+                migrated.uuids = g.names.map(name => {
+                    const entry = sceneObjectRegistry.findByName(name);
+                    return entry?.uuid || name; // keep name as fallback if not yet registered
+                });
+            }
+            if (g.groups) {
+                migrated.groups = g.groups.map(sub => migrateGroup(sub));
+            }
+            return migrated;
+        };
+        setLocalGroups((groups || []).map(migrateGroup));
     }, [groups]);
 
     const handleAddTopLevel = (newGroup) => {
         setLocalGroups(prev => [...prev, newGroup]);
-        // Add to SceneController
         if (sceneController) {
             sceneController.addGroup(newGroup);
         }
@@ -66,51 +79,29 @@ export default function GroupList({ groups, modelNames = [], showNewItem, onNewI
     const handleDeleteGroup = (index) => {
         const groupToDelete = localGroups[index];
         setLocalGroups(prev => prev.filter((_, i) => i !== index));
-        // Remove from SceneController
         if (sceneController && groupToDelete) {
             sceneController.removeGroup(groupToDelete.name);
         }
     };
 
-    const addChildToGroup = (parentName, newChild) => {
-        const addRecursive = (list) =>
-            list.map(g => {
-                if (g.name === parentName) {
-                    return { ...g, groups: [...(g.groups || []), newChild] };
-                }
-                if (g.groups && g.groups.length > 0) {
-                    return { ...g, groups: addRecursive(g.groups) };
-                }
-                return g;
-            });
-        setLocalGroups(prev => addRecursive(prev));
-    };
-
-    const deleteChild = (parentName, childType, childIndex) => {
-        const removeRecursive = (list) =>
-            list.map(g => {
-                if (g.name === parentName) {
-                    if (childType === 'name') {
-                        return { ...g, names: g.names.filter((_, i) => i !== childIndex) };
-                    }
-                    if (childType === 'group') {
-                        return { ...g, groups: g.groups.filter((_, i) => i !== childIndex) };
-                    }
-                }
-                if (g.groups && g.groups.length > 0) {
-                    return { ...g, groups: removeRecursive(g.groups) };
-                }
-                return g;
-            });
-        setLocalGroups(prev => removeRecursive(prev));
-    };
-
-    // Recursive serialization function
+    // Recursive serialization — converts uuids[] → names[] for backend.
+    // If group already has names[] (already serialized child), preserves them.
     const serializeGroup = useCallback((group) => {
+        const uuids = group.uuids || [];
+        let names;
+        if (uuids.length > 0) {
+            names = uuids.map(uuid => {
+                const data = sceneObjectRegistry.getData(uuid);
+                return data?.name || uuid;
+            });
+        } else {
+            names = group.names || [];
+        }
+
         const serialized = {
             name: group.name,
             type: group.type,
-            names: group.names || [],
+            names,
             groups: (group.groups || []).map(subGroup => serializeGroup(subGroup))
         };
         if (group.metadata) {
@@ -137,7 +128,6 @@ export default function GroupList({ groups, modelNames = [], showNewItem, onNewI
         }
     }, [serializedItems, localGroups, onSerializedUpdate]);
 
-    // Reset serialized items when groups prop changes externally
     useEffect(() => {
         setSerializedItems({});
     }, [groups]);
@@ -151,10 +141,8 @@ export default function GroupList({ groups, modelNames = [], showNewItem, onNewI
                 depth={depth}
                 index={index}
                 onDelete={onDelete}
-                onAddChild={addChildToGroup}
-                onDeleteChild={deleteChild}
                 serializeGroup={serializeGroup}
-                modelNames={modelNames}
+                modelEntries={modelEntries}
                 onItemSerialized={handleItemSerialized}
                 sceneController={sceneController}
             />

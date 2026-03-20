@@ -3,9 +3,9 @@ import DebugBlock from '../CommonComponent/DebugBlock';
 import CoordDisplayer from '../CommonComponent/CoordDisplayer';
 import TextInputBox from '../CommonComponent/TextInputBox';
 import EnumSelect from '../CommonComponent/EnumSelect';
-import { PrinterIcon } from '../CodeSvg';
 import { eventChannelHub, CONTROL_CHANNELS } from '../../EventChannelHub';
 import { MODEL_TYPE } from '../../SceneTypeEnum';
+import sceneObjectRegistry from '../../DigitalScene/SceneObjectRegistry';
 
 const sanitizeVector = (vec) => {
     if (!vec) return { x: 0, y: 0, z: 0 };
@@ -19,6 +19,7 @@ const sanitizeVector = (vec) => {
 
 const ModelItem = ({ model, index, onItemSerialized, onDelete }) => {
     const [localName, setLocalName] = useState(model.name || '');
+    const [uuid, setUuid] = useState(null);
     const [visible, setVisible] = useState(true);
     const [localData, setLocalData] = useState({
         position: sanitizeVector(model.position),
@@ -28,6 +29,25 @@ const ModelItem = ({ model, index, onItemSerialized, onDelete }) => {
             : sanitizeVector(model.scale),
         file_location: model.file_location || ''
     });
+
+    // Resolve uuid from registry by name (runs once on mount, retries briefly)
+    useEffect(() => {
+        const resolve = () => {
+            const entry = sceneObjectRegistry.findByName(model.name);
+            if (entry) {
+                setUuid(entry.uuid);
+                return true;
+            }
+            return false;
+        };
+        if (resolve()) return;
+        // Retry for a short window while Three.js objects mount
+        const interval = setInterval(() => {
+            if (resolve()) clearInterval(interval);
+        }, 200);
+        const timeout = setTimeout(() => clearInterval(interval), 3000);
+        return () => { clearInterval(interval); clearTimeout(timeout); };
+    }, [model.name]);
 
     // Sync from props when model changes externally
     useEffect(() => {
@@ -53,42 +73,32 @@ const ModelItem = ({ model, index, onItemSerialized, onDelete }) => {
         }
     }, [localData, localName, index, model.type, onItemSerialized]);
 
+    const publish = useCallback((property, value) => {
+        if (!uuid) return;
+        eventChannelHub.publish(CONTROL_CHANNELS.OBJECT_UPDATE, { uuid, property, value });
+    }, [uuid]);
+
     const handleNameChange = useCallback((newName) => {
-        eventChannelHub.publish(CONTROL_CHANNELS.OBJECT_UPDATE_BY_NAME, {
-            name: localName,
-            property: 'name',
-            value: newName
-        });
+        publish('name', newName);
+        // Update registry data so findByName stays consistent
+        if (uuid) sceneObjectRegistry.updateData(uuid, { ...sceneObjectRegistry.getData(uuid), name: newName });
         setLocalName(newName);
-    }, [localName]);
+    }, [publish, uuid]);
 
     const handleValueChange = useCallback((property) => (newValue) => {
-        // Publish to 3D engine
-        eventChannelHub.publish(CONTROL_CHANNELS.OBJECT_UPDATE_BY_NAME, {
-            name: localName,
-            property: property,
-            value: newValue
-        });
-        // Update local state
-        setLocalData(prev => ({
-            ...prev,
-            [property]: newValue
-        }));
-    }, [localName]);
+        publish(property, newValue);
+        setLocalData(prev => ({ ...prev, [property]: newValue }));
+    }, [publish]);
 
     const handleVisibilityToggle = useCallback(() => {
         const newVisible = !visible;
         setVisible(newVisible);
-        eventChannelHub.publish(CONTROL_CHANNELS.OBJECT_UPDATE_BY_NAME, {
-            name: localName,
-            property: 'visible',
-            value: newVisible
-        });
-    }, [localName, visible]);
+        publish('visible', newVisible);
+    }, [visible, publish]);
 
     const handlePrint = useCallback(() => {
-        eventChannelHub.publish(CONTROL_CHANNELS.PRINT_OBJECT, { name: localName });
-    }, [localName]);
+        if (uuid) eventChannelHub.publish(CONTROL_CHANNELS.PRINT_OBJECT, { uuid });
+    }, [uuid]);
 
     return (
         <DebugBlock
@@ -201,12 +211,10 @@ export default function ModelList({ models, onSerializedUpdate, showNewItem, onN
 
     const handleAddModel = async (newModel) => {
         try {
-            // Call parent's onAddModel to get file URL and publish event
             const modelWithUrl = await onAddModel(newModel);
-            // Update local state with the new model
             setLocalData(prev => [...prev, modelWithUrl]);
         } catch (err) {
-            throw err; // Re-throw so NewModelItem can handle the error
+            throw err;
         }
     };
 
@@ -214,7 +222,6 @@ export default function ModelList({ models, onSerializedUpdate, showNewItem, onN
         const model = localData[index];
         const updated = localData.filter((_, i) => i !== index);
         setLocalData(updated);
-        // Re-index serialized items to match new array
         const newSerialized = {};
         updated.forEach((_, i) => {
             const oldIndex = i >= index ? i + 1 : i;
@@ -223,9 +230,14 @@ export default function ModelList({ models, onSerializedUpdate, showNewItem, onN
             }
         });
         setSerializedItems(newSerialized);
+
+        // TODO: clean up group layers that reference the deleted model's uuid
+        // Find uuid for the deleted model and publish with it
+        const entry = sceneObjectRegistry.findByName(model.name);
         eventChannelHub.publish(CONTROL_CHANNELS.MODEL_LIST_UPDATE, {
             action: 'remove',
-            name: model.name
+            name: model.name,
+            uuid: entry?.uuid
         });
     };
 
@@ -236,7 +248,6 @@ export default function ModelList({ models, onSerializedUpdate, showNewItem, onN
         });
     }, []);
 
-    // When serialized items change, notify parent with the full array
     useEffect(() => {
         if (!onSerializedUpdate) return;
         if (localData.length === 0) {
@@ -250,7 +261,6 @@ export default function ModelList({ models, onSerializedUpdate, showNewItem, onN
         }
     }, [serializedItems, localData, onSerializedUpdate]);
 
-    // Reset serialized items when models prop changes externally
     useEffect(() => {
         setSerializedItems({});
     }, [models]);

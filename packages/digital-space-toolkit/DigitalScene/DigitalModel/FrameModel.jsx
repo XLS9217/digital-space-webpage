@@ -2,6 +2,7 @@ import { useGLTF, Html } from '@react-three/drei'
 import React from 'react'//for webpack consistency,
 import { useEffect, useState } from 'react';
 import tagRegistry from '../../TagRegistry.js'
+import sceneObjectRegistry from '../SceneObjectRegistry'
 
 function DefaultTag({ name }) {
     return <span>{name}</span>
@@ -28,18 +29,21 @@ function parseTagName(rawName) {
     Assumption
     the prefix is separated by _ at front, processed in parseTagName
  */
-export default function FrameModel({ url, name, scale = 1, position = {x:0, y:0, z:0}, rotation = {x:0, y:0, z:0} }) {
+export default function FrameModel({ url, name, scale = 1, position = {x:0, y:0, z:0}, rotation = {x:0, y:0, z:0}, modelData }) {
     const { scene } = useGLTF(url)
-    // Get child models from the root group's children
     const children = scene.children[0]?.children || []
     const [hoveredIndex, setHoveredIndex] = useState(null)
 
-    //console.log(name)
-
-    // Assign name to the scene object
     if (name) {
         scene.name = name
     }
+
+    // Register in registry once scene is available
+    useEffect(() => {
+        const uuid = scene.uuid;
+        sceneObjectRegistry.register(uuid, 'model', modelData || { name, url, scale, position, rotation }, scene);
+        return () => sceneObjectRegistry.unregister(uuid);
+    }, [scene]);
 
     const posArr = [position.x || 0, position.y || 0, position.z || 0];
     const rotArr = [rotation.x || 0, rotation.y || 0, rotation.z || 0];

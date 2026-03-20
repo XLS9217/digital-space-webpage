@@ -1,7 +1,7 @@
 /*
  * LevelGroup — group type "level"
- * Represents a level that contains named layers (sub-groups).
- * LayerGroup is a leaf node — no further nesting allowed.
+ * Layers store uuids[] referencing scene objects via SceneObjectRegistry.
+ * On upsert serialization, uuids are converted back to names.
  */
 
 import React, { useState, useEffect, useCallback } from 'react';
@@ -11,24 +11,25 @@ import TagList from '../../CommonComponent/TagList';
 import CoordDisplayer from '../../CommonComponent/CoordDisplayer';
 import CameraControlSnapshot from '../CameraControlSnapshot';
 import { GROUP_TYPE } from '../../../SceneTypeEnum';
-import { eventChannelHub, CONTROL_CHANNELS } from '../../../EventChannelHub';
 import { infoStoreHub, DEBUG_STORE } from '../../../InfoStoreHub';
+import sceneObjectRegistry from '../../../DigitalScene/SceneObjectRegistry';
 
-const LayerGroup = ({ group, depth = 0, onDelete, modelNames, onInvestigate, serializeGroup, onItemSerialized, index }) => {
-    const [localNames, setLocalNames] = useState(group.names || []);
+// Build display labels for TagList: show name, backed by uuid
+const buildTagOptions = (modelEntries) =>
+    modelEntries.map(e => ({ value: e.uuid, label: e.data?.name || e.uuid }));
+
+const LayerGroup = ({ group, depth = 0, onDelete, modelEntries, onInvestigate, serializeGroup, onItemSerialized, index }) => {
+    const [localUuids, setLocalUuids] = useState(group.uuids || []);
     const [savedControl, setSavedControl] = useState(group.metadata?.control || null);
 
     const handleSnapshot = useCallback(() => {
-        // Get current control data from InfoStoreHub
         const controlData = infoStoreHub.get(DEBUG_STORE.CURRENT_CONTROL);
-
         if (controlData) {
             const snapshot = {
                 type: controlData.type,
                 position: { ...controlData.position },
                 target: controlData.target ? { ...controlData.target } : null,
                 rotation: controlData.rotation ? { ...controlData.rotation } : null,
-                // Include zoom and angle settings for orbit controls
                 ...(controlData.zoom && {
                     zoom: {
                         min: controlData.zoom.min,
@@ -43,7 +44,6 @@ const LayerGroup = ({ group, depth = 0, onDelete, modelNames, onInvestigate, ser
                         current: controlData.angle.current
                     }
                 }),
-                // Include enable settings
                 enablePan: controlData.enablePan,
                 enableRotate: controlData.enableRotate,
                 enableZoom: controlData.enableZoom
@@ -62,12 +62,20 @@ const LayerGroup = ({ group, depth = 0, onDelete, modelNames, onInvestigate, ser
             onItemSerialized(index, serializeGroup({
                 name: group.name,
                 type: group.type,
-                names: localNames,
+                uuids: localUuids,
                 groups: [],
                 metadata: savedControl ? { control: savedControl } : undefined
             }));
         }
-    }, [localNames, savedControl, onItemSerialized, index, serializeGroup, group.name, group.type]);
+    }, [localUuids, savedControl, onItemSerialized, index, serializeGroup, group.name, group.type]);
+
+    // Tag options: all model entries as { value: uuid, label: name }
+    const tagOptions = buildTagOptions(modelEntries);
+    // Display tags: resolve uuid → name for display
+    const displayTags = localUuids.map(uuid => {
+        const data = sceneObjectRegistry.getData(uuid);
+        return data?.name || uuid;
+    });
 
     return (
         <div style={{ marginLeft: depth > 0 ? 12 : 0 }}>
@@ -79,10 +87,20 @@ const LayerGroup = ({ group, depth = 0, onDelete, modelNames, onInvestigate, ser
                 onSnapshot={handleSnapshot}
             >
                 <TagList
-                    tags={localNames}
-                    onChange={setLocalNames}
-                    recommendation={modelNames}
-                    limitation={modelNames}
+                    tags={displayTags}
+                    onChange={(newDisplayTags) => {
+                        // Map display names back to uuids
+                        const newUuids = newDisplayTags.map(tag => {
+                            // If tag is already a uuid in our list, keep it
+                            if (localUuids.includes(tag)) return tag;
+                            // Otherwise find uuid by name
+                            const entry = sceneObjectRegistry.findByName(tag);
+                            return entry?.uuid || tag;
+                        });
+                        setLocalUuids(newUuids);
+                    }}
+                    recommendation={tagOptions.map(o => o.label)}
+                    limitation={tagOptions.map(o => o.label)}
                 />
                 <CameraControlSnapshot savedControl={savedControl} onDelete={handleDeleteControl} />
                 <DebugButton
@@ -95,7 +113,7 @@ const LayerGroup = ({ group, depth = 0, onDelete, modelNames, onInvestigate, ser
     );
 };
 
-const LevelGroup = ({ group, depth = 0, onDelete, serializeGroup, modelNames = [], onItemSerialized, index, sceneController }) => {
+const LevelGroup = ({ group, depth = 0, onDelete, serializeGroup, modelEntries = [], onItemSerialized, index, sceneController }) => {
     const [localName, setLocalName] = useState(group.name || '');
     const [layers, setLayers] = useState(group.groups || []);
     const [liftTarget, setLiftTarget] = useState(group.metadata?.liftTarget || { x: 0, y: 50, z: 0 });
@@ -111,31 +129,14 @@ const LevelGroup = ({ group, depth = 0, onDelete, serializeGroup, modelNames = [
             setLayers([{
                 name: '1',
                 type: GROUP_TYPE.LEVEL.LAYER,
-                names: [],
+                uuids: [],
                 groups: []
             }]);
         }
     }, []);
 
-    // Subscribe to model name changes and update layer references
-    useEffect(() => {
-        const handleObjectUpdate = ({ name: oldName, property, value: newName }) => {
-            if (property !== 'name') return;
-            setLayers(prev => prev.map(layer => {
-                if (!layer.names || !layer.names.includes(oldName)) return layer;
-                return {
-                    ...layer,
-                    names: layer.names.map(n => n === oldName ? newName : n)
-                };
-            }));
-        };
-        eventChannelHub.subscribe(CONTROL_CHANNELS.OBJECT_UPDATE_BY_NAME, handleObjectUpdate);
-        return () => eventChannelHub.unsubscribe(CONTROL_CHANNELS.OBJECT_UPDATE_BY_NAME, handleObjectUpdate);
-    }, []);
-
     const addLayer = (atEnd) => {
         setLayers(prev => {
-            // Get current layer numbers
             const layerNumbers = prev.map(f => parseInt(f.name) || 0);
             const maxLayer = Math.max(...layerNumbers);
             const minLayer = Math.min(...layerNumbers);
@@ -143,7 +144,7 @@ const LevelGroup = ({ group, depth = 0, onDelete, serializeGroup, modelNames = [
             const newLayer = {
                 name: String(atEnd ? minLayer - 1 : maxLayer + 1),
                 type: GROUP_TYPE.LEVEL.LAYER,
-                names: [],
+                uuids: [],
                 groups: []
             };
             return atEnd ? [...prev, newLayer] : [newLayer, ...prev];
@@ -158,7 +159,6 @@ const LevelGroup = ({ group, depth = 0, onDelete, serializeGroup, modelNames = [
         });
     };
 
-    // Collect serialized layer data from children
     const handleLayerSerialized = useCallback((layerIndex, serializedData) => {
         setSerializedLayers(prev => ({
             ...prev,
@@ -166,7 +166,6 @@ const LevelGroup = ({ group, depth = 0, onDelete, serializeGroup, modelNames = [
         }));
     }, []);
 
-    // Delegate investigate to the SceneController
     const handleInvestigate = useCallback((layerIndex) => {
         if (sceneController) {
             sceneController.investigateLayer(localName, layerIndex);
@@ -195,13 +194,13 @@ const LevelGroup = ({ group, depth = 0, onDelete, serializeGroup, modelNames = [
         const currentGroup = {
             name: localName,
             type: group.type,
-            names: group.names || [],
+            uuids: group.uuids || [],
             groups: layersWithSerialized,
             metadata: { liftTarget: liftTarget }
         };
         const serialized = serializeGroup(currentGroup);
         console.log('Level Group Serialized:', serialized);
-    }, [localName, group.type, group.names, layers, liftTarget, serializedLayers, serializeGroup]);
+    }, [localName, group.type, group.uuids, layers, liftTarget, serializedLayers, serializeGroup]);
 
     // Notify parent with serialized state and update SceneController
     useEffect(() => {
@@ -209,7 +208,7 @@ const LevelGroup = ({ group, depth = 0, onDelete, serializeGroup, modelNames = [
         const currentGroup = {
             name: localName,
             type: group.type,
-            names: group.names || [],
+            uuids: group.uuids || [],
             groups: layersWithSerialized,
             metadata: { liftTarget: liftTarget }
         };
@@ -218,11 +217,10 @@ const LevelGroup = ({ group, depth = 0, onDelete, serializeGroup, modelNames = [
             onItemSerialized(index, serializeGroup(currentGroup));
         }
 
-        // Update SceneController with the latest group data
         if (sceneController && sceneController.updateGroup) {
             sceneController.updateGroup(localName, currentGroup);
         }
-    }, [localName, group.type, group.names, layers, liftTarget, serializedLayers, onItemSerialized, index, serializeGroup, sceneController]);
+    }, [localName, group.type, group.uuids, layers, liftTarget, serializedLayers, onItemSerialized, index, serializeGroup, sceneController]);
 
     return (
         <div style={{ marginLeft: depth > 0 ? 12 : 0 }}>
@@ -252,7 +250,7 @@ const LevelGroup = ({ group, depth = 0, onDelete, serializeGroup, modelNames = [
                             depth={depth + 1}
                             index={i}
                             onDelete={() => deleteLayer(i)}
-                            modelNames={modelNames}
+                            modelEntries={modelEntries}
                             onInvestigate={() => handleInvestigate(i)}
                             serializeGroup={serializeGroup}
                             onItemSerialized={handleLayerSerialized}

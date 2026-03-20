@@ -4,7 +4,7 @@ import * as THREE from 'three';
 import GizmoHelper from './GizmoHelper';
 import { eventChannelHub, CONTROL_CHANNELS, DEBUG_SCENE_CHANNELS } from '../EventChannelHub';
 
-export default function DirectionalLightHelper({ light, lightName }) {
+export default function DirectionalLightHelper({ light, uuid }) {
     const [lightPos, setLightPos] = useState(() => ({
         x: light.position.x,
         y: light.position.y,
@@ -21,31 +21,31 @@ export default function DirectionalLightHelper({ light, lightName }) {
 
     const handleLightPositionChange = useCallback((newPos) => {
         setLightPos(newPos);
-        eventChannelHub.publish(CONTROL_CHANNELS.OBJECT_UPDATE_BY_NAME, {
-            name: lightName,
+        eventChannelHub.publish(CONTROL_CHANNELS.OBJECT_UPDATE, {
+            uuid,
             property: 'position',
             value: newPos
         });
         eventChannelHub.publish(DEBUG_SCENE_CHANNELS.LIGHT_PROPERTY_FEEDBACK, {
-            name: lightName,
+            uuid,
             property: 'position',
             value: newPos
         });
-    }, [lightName]);
+    }, [uuid]);
 
     const handleTargetPositionChange = useCallback((newPos) => {
         setTargetPos(newPos);
-        eventChannelHub.publish(CONTROL_CHANNELS.OBJECT_UPDATE_BY_NAME, {
-            name: lightName,
+        eventChannelHub.publish(CONTROL_CHANNELS.OBJECT_UPDATE, {
+            uuid,
             property: 'target',
             value: newPos
         });
         eventChannelHub.publish(DEBUG_SCENE_CHANNELS.LIGHT_PROPERTY_FEEDBACK, {
-            name: lightName,
+            uuid,
             property: 'target',
             value: newPos
         });
-    }, [lightName]);
+    }, [uuid]);
 
     // Update line geometry imperatively when positions change
     useFrame(() => {

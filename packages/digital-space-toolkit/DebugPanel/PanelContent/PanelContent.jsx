@@ -8,6 +8,7 @@ import GeneralSetting from "./GeneralSetting/GeneralSetting.jsx";
 import InteractionSetting from "./InteractionSetting";
 import dataRegistry from "../../DataRegistry.js";
 import { eventChannelHub, CONTROL_CHANNELS } from '../../EventChannelHub';
+import sceneObjectRegistry from '../../DigitalScene/SceneObjectRegistry';
 import './PanelContent.css';
 
 export default function PanelContent({ sceneData, showJson, sceneController }) {
@@ -67,6 +68,7 @@ export default function PanelContent({ sceneData, showJson, sceneController }) {
 
         try {
             const { scene, ...config } = json;
+            console.log("Upsert payload:", JSON.stringify(config, null, 2));
             const result = await dataRegistry.upsert(scene, config);
             console.log("Scene upserted:", result);
         } catch (error) {
@@ -161,7 +163,7 @@ export default function PanelContent({ sceneData, showJson, sceneController }) {
                         <div style={{ display: groupsExpanded ? 'block' : 'none' }}>
                             <GroupList
                                 groups={sceneData?.groups}
-                                modelNames={(sceneData?.models || []).map(m => m.name)}
+                                modelEntries={[...sceneObjectRegistry.all('model')]}
                                 showNewItem={showNewGroup}
                                 onNewItemDone={() => setShowNewGroup(false)}
                                 onSerializedUpdate={setSerializedGroups}

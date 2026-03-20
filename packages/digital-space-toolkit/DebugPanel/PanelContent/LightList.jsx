@@ -7,6 +7,7 @@ import CheckBox from '../CommonComponent/CheckBox';
 import EnumSelect from '../CommonComponent/EnumSelect';
 import { eventChannelHub, CONTROL_CHANNELS, DEBUG_SCENE_CHANNELS } from '../../EventChannelHub';
 import { LIGHT_TYPE } from '../../SceneTypeEnum';
+import sceneObjectRegistry from '../../DigitalScene/SceneObjectRegistry';
 
 const sanitizeVector = (vec) => {
     if (!vec) return { x: 0, y: 0, z: 0 };
@@ -20,6 +21,7 @@ const sanitizeVector = (vec) => {
 
 const LightItem = ({ light, index, onItemSerialized, onDelete }) => {
     const [localName, setLocalName] = useState(light.name || '');
+    const [uuid, setUuid] = useState(null);
     const [visible, setVisible] = useState(true);
     const [showHelper, setShowHelper] = useState(false);
 
@@ -36,16 +38,34 @@ const LightItem = ({ light, index, onItemSerialized, onDelete }) => {
         color: light.color || '#ffffff'
     });
 
+    // Resolve uuid from registry
+    useEffect(() => {
+        const resolve = () => {
+            const entry = sceneObjectRegistry.findByName(light.name);
+            if (entry) {
+                setUuid(entry.uuid);
+                return true;
+            }
+            return false;
+        };
+        if (resolve()) return;
+        const interval = setInterval(() => {
+            if (resolve()) clearInterval(interval);
+        }, 200);
+        const timeout = setTimeout(() => clearInterval(interval), 3000);
+        return () => { clearInterval(interval); clearTimeout(timeout); };
+    }, [light.name]);
+
     // Sync from props when light changes externally
     useEffect(() => {
         setLocalName(light.name || '');
-        const isDirectional = light.type === LIGHT_TYPE.DIRECTIONAL;
+        const isDir = light.type === LIGHT_TYPE.DIRECTIONAL;
         setLocalData({
             intensity: light.intensity || 0,
-            position: isDirectional
+            position: isDir
                 ? (light.position ? sanitizeVector(light.position) : { x: 10, y: 10, z: 10 })
                 : (light.position ? sanitizeVector(light.position) : undefined),
-            target: isDirectional
+            target: isDir
                 ? (light.target ? sanitizeVector(light.target) : { x: 0, y: 0, z: 0 })
                 : undefined,
             color: light.color || '#ffffff'
@@ -63,59 +83,47 @@ const LightItem = ({ light, index, onItemSerialized, onDelete }) => {
         }
     }, [localData, localName, index, light.type, onItemSerialized]);
 
+    const publish = useCallback((property, value) => {
+        if (!uuid) return;
+        eventChannelHub.publish(CONTROL_CHANNELS.OBJECT_UPDATE, { uuid, property, value });
+    }, [uuid]);
+
     const handleNameChange = useCallback((newName) => {
-        eventChannelHub.publish(CONTROL_CHANNELS.OBJECT_UPDATE_BY_NAME, {
-            name: localName,
-            property: 'name',
-            value: newName
-        });
+        publish('name', newName);
+        if (uuid) sceneObjectRegistry.updateData(uuid, { ...sceneObjectRegistry.getData(uuid), name: newName });
         setLocalName(newName);
-    }, [localName]);
+    }, [publish, uuid]);
 
     const handlePropertyChange = useCallback((property) => (newValue) => {
-        // Publish to 3D engine
-        eventChannelHub.publish(CONTROL_CHANNELS.OBJECT_UPDATE_BY_NAME, {
-            name: localName,
-            property: property,
-            value: newValue
-        });
-        // Update local state
-        setLocalData(prev => ({
-            ...prev,
-            [property]: newValue
-        }));
-    }, [localName]);
+        publish(property, newValue);
+        setLocalData(prev => ({ ...prev, [property]: newValue }));
+    }, [publish]);
 
     const handleVisibilityToggle = useCallback(() => {
         const newVisible = !visible;
         setVisible(newVisible);
-        eventChannelHub.publish(CONTROL_CHANNELS.OBJECT_UPDATE_BY_NAME, {
-            name: localName,
-            property: 'visible',
-            value: newVisible
-        });
-    }, [localName, visible]);
+        publish('visible', newVisible);
+    }, [visible, publish]);
 
     const handlePrint = useCallback(() => {
-        eventChannelHub.publish(CONTROL_CHANNELS.PRINT_OBJECT, { name: localName });
-    }, [localName]);
+        if (uuid) eventChannelHub.publish(CONTROL_CHANNELS.PRINT_OBJECT, { uuid });
+    }, [uuid]);
 
     const handleHelperToggle = useCallback((checked) => {
         setShowHelper(checked);
-        eventChannelHub.publish(CONTROL_CHANNELS.LIGHT_HELPER_TOGGLE, {
-            name: localName,
-            showHelper: checked
-        });
-    }, [localName]);
+        if (uuid) {
+            eventChannelHub.publish(CONTROL_CHANNELS.LIGHT_HELPER_TOGGLE, {
+                uuid,
+                showHelper: checked
+            });
+        }
+    }, [uuid]);
 
-    // Subscribe to feedback from 3D gizmo
+    // Subscribe to feedback from 3D gizmo (matched by uuid)
     useEffect(() => {
-        const handleFeedback = ({ name, property, value }) => {
-            if (name === localName && (property === 'position' || property === 'target')) {
-                setLocalData(prev => ({
-                    ...prev,
-                    [property]: value
-                }));
+        const handleFeedback = ({ uuid: feedbackUuid, property, value }) => {
+            if (feedbackUuid === uuid && (property === 'position' || property === 'target')) {
+                setLocalData(prev => ({ ...prev, [property]: value }));
             }
         };
 
@@ -123,7 +131,7 @@ const LightItem = ({ light, index, onItemSerialized, onDelete }) => {
         return () => {
             eventChannelHub.unsubscribe(DEBUG_SCENE_CHANNELS.LIGHT_PROPERTY_FEEDBACK, handleFeedback);
         };
-    }, [localName]);
+    }, [uuid]);
 
     return (
         <DebugBlock
@@ -228,7 +236,6 @@ export default function LightList({ lights, onSerializedUpdate, showNewItem, onN
     const [localLights, setLocalLights] = useState([]);
     const [serializedItems, setSerializedItems] = useState({});
 
-    // Sync from props when lights change externally
     useEffect(() => {
         setLocalLights(lights || []);
     }, [lights]);
@@ -245,7 +252,6 @@ export default function LightList({ lights, onSerializedUpdate, showNewItem, onN
     const handleDeleteLight = (index) => {
         const updated = localLights.filter((_, i) => i !== index);
         setLocalLights(updated);
-        // Re-index serialized items to match new array
         const newSerialized = {};
         updated.forEach((_, i) => {
             const oldIndex = i >= index ? i + 1 : i;
@@ -267,7 +273,6 @@ export default function LightList({ lights, onSerializedUpdate, showNewItem, onN
         });
     }, []);
 
-    // When serialized items change, notify parent with the full array
     useEffect(() => {
         if (!onSerializedUpdate) return;
         if (localLights.length === 0) {
@@ -281,7 +286,6 @@ export default function LightList({ lights, onSerializedUpdate, showNewItem, onN
         }
     }, [serializedItems, localLights, onSerializedUpdate]);
 
-    // Reset serialized items when lights prop changes externally
     useEffect(() => {
         setSerializedItems({});
     }, [lights]);

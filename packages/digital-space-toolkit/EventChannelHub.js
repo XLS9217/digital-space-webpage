@@ -53,23 +53,17 @@ const CONTROL_CHANNELS = {
      */
     CAMERA_ANIMATION: "CAMERA_ANIMATION",
 
-    /* For object update by name
-     * Inside digital-space-toolkit package,
-     * Publish by:
-     * - ./DebugPanel/PanelContent/LightList.jsx
-     * - ./DebugPanel/PanelContent/ModelList.jsx
-     * Subscribe by:
-     * - ./DebugPanel/ControlTunnel.jsx
-     * - ./DebugPanel/PanelContent/Groups/LevelGroup.jsx (for model name changes)
+    /* For object update by uuid (primary channel)
+     * Publish by: ModelList, LightList, DirectionalLightHelper, SceneController
+     * Subscribe by: ControlTunnel
+     * Payload: { uuid, property, value, relative? }
      */
-    OBJECT_UPDATE_BY_NAME: "OBJECT_UPDATE_BY_NAME",
+    OBJECT_UPDATE: "OBJECT_UPDATE",
 
-    /* For animated object updates using GSAP
-     * Inside digital-space-toolkit package,
-     * Publish by:
-     * - ./DebugPanel/PanelContent/Groups/LevelGroup.jsx
-     * Subscribe by:
-     * - ./DebugPanel/ControlTunnel.jsx
+    /* For animated object updates by uuid
+     * Publish by: SceneController
+     * Subscribe by: ControlTunnel
+     * Payload: { uuid, property, value, relative?, duration?, ease?, onComplete? }
      */
     OBJECT_ANIMATION: "OBJECT_ANIMATION",
 
@@ -109,12 +103,10 @@ const CONTROL_CHANNELS = {
      */
     PRINT_SCENE: "PRINT_SCENE",
 
-    /* For printing a Three.js object by name to console
-     * Inside digital-space-toolkit package,
-     * Publish by:
-     * - ./DebugPanel/PanelContent/ModelList.jsx
-     * Subscribe by:
-     * - ./DebugPanel/DebugTunnel.jsx
+    /* For printing a Three.js object by uuid to console
+     * Publish by: ModelList, LightList
+     * Subscribe by: ControlTunnel
+     * Payload: { uuid }
      */
     PRINT_OBJECT: "PRINT_OBJECT",
 
@@ -136,12 +128,10 @@ const CONTROL_CHANNELS = {
      */
     SCENE_BACKGROUND_UPDATE: "SCENE_BACKGROUND_UPDATE",
 
-    /* For light helper toggle (camera helper for directional lights)
-     * Inside digital-space-toolkit package,
-     * Publish by:
-     * - ./DebugPanel/PanelContent/LightList.jsx
-     * Subscribe by:
-     * - ./DebugScene/DebugScene.jsx
+    /* For light helper toggle
+     * Publish by: LightList
+     * Subscribe by: DebugScene
+     * Payload: { uuid, showHelper }
      */
     LIGHT_HELPER_TOGGLE: "LIGHT_HELPER_TOGGLE"
 }
@@ -150,11 +140,9 @@ const CONTROL_CHANNELS = {
 const DEBUG_SCENE_CHANNELS = {
 
     /* For light property feedback (reverse update from 3D gizmo to panel UI)
-     * Inside digital-space-toolkit package,
-     * Publish by:
-     * - ./DebugScene/GizmoHelper.jsx
-     * Subscribe by:
-     * - ./DebugPanel/PanelContent/LightList.jsx
+     * Publish by: DirectionalLightHelper / GizmoHelper
+     * Subscribe by: LightList
+     * Payload: { uuid, property, value }
      */
     LIGHT_PROPERTY_FEEDBACK: "LIGHT_PROPERTY_FEEDBACK",
 

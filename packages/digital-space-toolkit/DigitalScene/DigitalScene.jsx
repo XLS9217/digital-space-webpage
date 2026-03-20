@@ -5,6 +5,7 @@ import dataRegistry from '../DataRegistry';
 import SceneModels from './DigitalModel/SceneModels.jsx';
 import SceneLights from "./SceneLights";
 import SceneController from './SceneController';
+import sceneObjectRegistry from './SceneObjectRegistry';
 
 export default function DigitalScene({ sceneName, controllerRef }) {
     const [loaded, setLoaded] = useState(false);
@@ -44,11 +45,18 @@ export default function DigitalScene({ sceneName, controllerRef }) {
     }, [sceneName]);
 
     useEffect(() => {
-        const handleModelListUpdate = ({ action, name, model }) => {
+        const handleModelListUpdate = ({ action, name, uuid, model }) => {
             if (action === 'add') {
                 setLocalModels(prev => [...prev, model]);
             } else if (action === 'remove') {
-                setLocalModels(prev => prev.filter(m => m.name !== name));
+                // Prefer uuid match, fall back to name
+                setLocalModels(prev => prev.filter(m => {
+                    if (uuid) {
+                        const entry = sceneObjectRegistry.findByName(m.name);
+                        return entry?.uuid !== uuid;
+                    }
+                    return m.name !== name;
+                }));
             }
         };
         const handleLightListUpdate = ({ action, light, index }) => {
