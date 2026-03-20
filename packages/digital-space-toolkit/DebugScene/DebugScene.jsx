@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useThree } from '@react-three/fiber';
 import { eventChannelHub, CONTROL_CHANNELS } from '../EventChannelHub';
 import DirectionalLightHelper from './DirectionalLightHelper';
