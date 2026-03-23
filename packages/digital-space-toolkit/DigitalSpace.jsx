@@ -21,11 +21,12 @@ import DebugScene from "./DebugScene/DebugScene.jsx";
 export default function DigitalSpace({
     defaultControlStyle,
     debug = false,
+    debugDockConfig = null,
     children
 }) {
     return (
         <>
-            <Canvas style={{ width: "100vw", height: "100vh" }}>
+            <Canvas style={{ width: "100%", height: "100%" }}>
                 <DigitalSpaceControl controlType={defaultControlStyle} />
                 <axesHelper args={[10]} />
                 {children}
@@ -34,7 +35,7 @@ export default function DigitalSpace({
             </Canvas>
 
             {/*Outside because it's normal html, and there is a fucking namespace thing*/}
-            {debug && <DebugPanel/>}
+            {debug && <DebugPanel dockConfig={debugDockConfig}/>}
         </>
 
     )

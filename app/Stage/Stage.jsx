@@ -5,7 +5,7 @@ import {ClassroomTag, MeetingTag} from './TagWithStyle.jsx'
 import './Stage.css'
 
 
-export default function Stage()
+export default function Stage({ sceneName = "beijing_white" })
 {
     const sceneController = useRef();
 
@@ -37,7 +37,7 @@ export default function Stage()
             </div>
 
             <DigitalSpace debug={true}>
-                <DigitalScene sceneName="beijing_white" controllerRef={sceneController} />
+                <DigitalScene sceneName={sceneName} controllerRef={sceneController} />
             </DigitalSpace>
         </>
     )
