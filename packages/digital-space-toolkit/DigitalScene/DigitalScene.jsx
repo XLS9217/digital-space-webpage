@@ -4,7 +4,7 @@ import { eventChannelHub, DEBUG_CHANNELS, CONTROL_CHANNELS, INFO_CHANNELS } from
 import dataRegistry from '../DataRegistry';
 import SceneModels from './DigitalModel/SceneModels.jsx';
 import SceneLights from "./SceneLights";
-import SceneController from './SceneController';
+import SceneController from './SceneControl/SceneController.js';
 import sceneObjectRegistry from './SceneObjectRegistry';
 
 export default function DigitalScene({ sceneName, controllerRef }) {

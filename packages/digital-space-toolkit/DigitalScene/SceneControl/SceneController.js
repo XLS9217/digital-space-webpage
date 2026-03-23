@@ -1,6 +1,6 @@
-import { eventChannelHub, CONTROL_CHANNELS, INFO_CHANNELS } from '../EventChannelHub';
-import { GROUP_TYPE } from '../SceneTypeEnum';
-import sceneObjectRegistry from './SceneObjectRegistry';
+import { eventChannelHub, CONTROL_CHANNELS, INFO_CHANNELS } from '../../EventChannelHub.js';
+import { GROUP_TYPE } from '../../SceneTypeEnum.js';
+import sceneObjectRegistry from '../SceneObjectRegistry.js';
 
 
 export const STATE_TYPE = {
