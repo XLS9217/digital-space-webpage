@@ -29,12 +29,12 @@ export default function Stage({ sceneName = "beijing_white" })
 
     return (
         <>
-            <div className="layer-buttons">
-                <button onClick={() => sceneController.current?.investigateLayer('LevelDisplay', 0)}>Layer 4</button>
-                <button onClick={() => sceneController.current?.investigateLayer('LevelDisplay', 1)}>Layer 3</button>
-                <button onClick={() => sceneController.current?.investigateLayer('LevelDisplay', 2)}>Layer 2</button>
-                <button onClick={() => sceneController.current?.investigateLayer('LevelDisplay', 3)}>Layer 1</button>
-            </div>
+            {/*<div className="layer-buttons">*/}
+            {/*    <button onClick={() => sceneController.current?.investigateLayer('LevelDisplay', 0)}>Layer 4</button>*/}
+            {/*    <button onClick={() => sceneController.current?.investigateLayer('LevelDisplay', 1)}>Layer 3</button>*/}
+            {/*    <button onClick={() => sceneController.current?.investigateLayer('LevelDisplay', 2)}>Layer 2</button>*/}
+            {/*    <button onClick={() => sceneController.current?.investigateLayer('LevelDisplay', 3)}>Layer 1</button>*/}
+            {/*</div>*/}
 
             <DigitalSpace debug={true}>
                 <DigitalScene sceneName={sceneName} controllerRef={sceneController} />
