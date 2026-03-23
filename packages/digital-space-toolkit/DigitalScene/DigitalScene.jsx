@@ -1,6 +1,6 @@
 import React from 'react'//for webpack consistency,
 import { useEffect, useState, useRef } from 'react';
-import { eventChannelHub, DEBUG_CHANNELS, CONTROL_CHANNELS } from '../EventChannelHub';
+import { eventChannelHub, DEBUG_CHANNELS, CONTROL_CHANNELS, INFO_CHANNELS } from '../EventChannelHub';
 import dataRegistry from '../DataRegistry';
 import SceneModels from './DigitalModel/SceneModels.jsx';
 import SceneLights from "./SceneLights";
@@ -32,6 +32,8 @@ export default function DigitalScene({ sceneName, controllerRef }) {
                 controller
             });
             if (data.control) {
+                // Capture initial Big View state from scene data
+                controller.captureBigViewState(data.control);
                 eventChannelHub.publish(CONTROL_CHANNELS.CAMERA_CONTROL_UPDATE, data.control);
             }
         }).catch(err => {

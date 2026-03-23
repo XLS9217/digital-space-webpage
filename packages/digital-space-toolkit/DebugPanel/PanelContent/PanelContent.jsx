@@ -1,13 +1,14 @@
 import React from 'react'//for webpack consistency,
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { PrinterIcon, DownloadIcon, UploadIcon, PlusCircleIcon, ChevronIcon } from "../CodeSvg";
 import ModelList from "./ModelList";
 import LightList from "./LightList";
 import GroupList from "./Groups/GroupList.jsx";
 import GeneralSetting from "./GeneralSetting/GeneralSetting.jsx";
 import InteractionSetting from "./InteractionSetting";
+import DebugButton from "../CommonComponent/DebugButton";
 import dataRegistry from "../../DataRegistry.js";
-import { eventChannelHub, CONTROL_CHANNELS } from '../../EventChannelHub';
+import { eventChannelHub, CONTROL_CHANNELS, INFO_CHANNELS } from '../../EventChannelHub';
 import sceneObjectRegistry from '../../DigitalScene/SceneObjectRegistry';
 import './PanelContent.css';
 
@@ -24,6 +25,20 @@ export default function PanelContent({ sceneData, showJson, sceneController }) {
     const [modelsExpanded, setModelsExpanded] = useState(false);
     const [lightsExpanded, setLightsExpanded] = useState(false);
     const [groupsExpanded, setGroupsExpanded] = useState(false);
+    const [currentState, setCurrentState] = useState('big-view');
+
+    // Listen for state changes
+    useEffect(() => {
+        const handleStateChange = ({ stateType }) => {
+            setCurrentState(stateType);
+        };
+
+        eventChannelHub.subscribe(INFO_CHANNELS.SCENE_STATE_CHANGE, handleStateChange);
+
+        return () => {
+            eventChannelHub.unsubscribe(INFO_CHANNELS.SCENE_STATE_CHANGE, handleStateChange);
+        };
+    }, []);
 
     const getSerializedSceneJson = () => {
         if (!sceneData) return null;
@@ -140,6 +155,21 @@ export default function PanelContent({ sceneData, showJson, sceneController }) {
                         </div>
                     </div>
                     <div className="debug-list">
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 0', marginBottom: '8px' }}>
+                            <span style={{ color: '#ccc', fontSize: '13px' }}>
+                                State: <strong>{currentState}</strong>
+                            </span>
+                            {currentState === 'level-view' && (
+                                <DebugButton
+                                    label="← Back"
+                                    onClick={() => {
+                                        sceneController?.goBack();
+                                        setCurrentState('big-view');
+                                    }}
+                                    title="Go back to Big View"
+                                />
+                            )}
+                        </div>
                         <GeneralSetting
                             onSerializedUpdate={setGeneralInfo}
                             initialGeneral={sceneData?.general}

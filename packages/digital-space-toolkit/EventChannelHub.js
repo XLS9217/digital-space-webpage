@@ -11,7 +11,7 @@ const DEBUG_CHANNELS = {
 }
 
 const INFO_CHANNELS = {
-    
+
     /* For camera control info
      * Inside digital-space-toolkit package,
      * Publish by:
@@ -20,6 +20,14 @@ const INFO_CHANNELS = {
      * - ./DebugPanel/PanelContent/CameraControlBlock.jsx
      */
     CAMERA_CONTROL_INFO: "CAMERA_CONTROL_INFO",
+
+    /* For scene state changes (BIG_VIEW / LEVEL_VIEW)
+     * Publish by:
+     * - ./DigitalScene/SceneController.js
+     * Subscribe by:
+     * - ./DebugPanel/PanelContent/PanelContent.jsx
+     */
+    SCENE_STATE_CHANGE: "SCENE_STATE_CHANGE",
 }
 
 //this channel is for scene control from debug panel
