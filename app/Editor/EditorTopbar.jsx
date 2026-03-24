@@ -1,7 +1,7 @@
 import EditorTextbox from './CommonComponent/EditorTextbox'
 import EditorButton from './CommonComponent/EditorButton'
 
-export default function EditorTopbar({ sceneNameInput, onSceneNameChange, onGo }) {
+export default function EditorTopbar({ sceneNameInput, onSceneNameChange, onGo, onNew }) {
   const handleKeyDown = (event) => {
     if (event.key === 'Enter') {
       onGo()
@@ -19,6 +19,7 @@ export default function EditorTopbar({ sceneNameInput, onSceneNameChange, onGo }
           placeholder="Scene name"
         />
         <EditorButton onClick={onGo}>GO</EditorButton>
+        <EditorButton onClick={onNew}>NEW</EditorButton>
       </div>
     </div>
   )

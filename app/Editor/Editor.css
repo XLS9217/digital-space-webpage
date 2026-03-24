@@ -36,10 +36,11 @@
 
 .editor-textbox {
   height: 28px;
-  padding: 0 10px;
-  border-radius: 6px;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  background: rgba(255, 255, 255, 0.12);
+  padding: 0 4px;
+  border-radius: 0;
+  border: none;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.9);
+  background: transparent;
   color: #ffffff;
   font-size: 13px;
   font-family: monospace;
@@ -52,18 +53,17 @@
 }
 
 .editor-textbox:focus {
-  border-color: rgba(255, 255, 255, 0.45);
-  background: rgba(255, 255, 255, 0.18);
+  border-bottom-color: #ffffff;
 }
 
 .editor-button {
-  height: 28px;
-  padding: 0 12px;
-  border-radius: 6px;
-  border: 1px solid rgba(255, 255, 255, 0.25);
-  background: rgba(255, 255, 255, 0.18);
-  color: #ffffff;
-  font-size: 12px;
+  height: 32px;
+  padding: 0 10px;
+  border-radius: 0;
+  border: none;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 14px;
   font-weight: 600;
   letter-spacing: 0.4px;
   font-family: monospace;
@@ -71,7 +71,11 @@
 }
 
 .editor-button:hover {
-  background: rgba(255, 255, 255, 0.28);
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.editor-button:active {
+  color: #ffffff;
 }
 
 .editor-stage {
