@@ -1,0 +1,49 @@
+.scene-menu {
+  flex: 1 1 auto;
+  min-height: 0;
+  padding: 24px;
+  color: #ffffff;
+  font-family: monospace;
+}
+
+.scene-menu__header {
+  font-size: 14px;
+  letter-spacing: 0.6px;
+  margin-bottom: 12px;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.scene-menu__controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.scene-menu__message {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.scene-menu__tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.scene-menu__tag {
+  border: none;
+  background: rgba(255, 255, 255, 0.15);
+  color: rgba(255, 255, 255, 0.85);
+  padding: 4px 8px;
+  border-radius: 3px;
+  font-size: 11px;
+  cursor: pointer;
+  font-family: monospace;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.scene-menu__tag:hover {
+  background: rgba(255, 255, 255, 0.25);
+  color: rgba(255, 255, 255, 1);
+}

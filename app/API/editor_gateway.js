@@ -51,3 +51,32 @@ export async function createScene(name) {
     throw error
   }
 }
+
+/**
+ * List editor scenes
+ * @returns {Promise<string[]|Object[]>}
+ */
+export async function listEditorScenes() {
+  try {
+    const response = await request.get('/editor/scenes')
+    return response.data?.scenes || []
+  } catch (error) {
+    console.error('Error listing editor scenes:', error)
+    throw error
+  }
+}
+
+/**
+ * Delete editor scene by name
+ * @param {string} name - The scene name
+ * @returns {Promise<Object>}
+ */
+export async function deleteEditorScene(name) {
+  try {
+    const response = await request.delete(`/editor/scene/${name}`)
+    return response.data
+  } catch (error) {
+    console.error('Error deleting editor scene:', error)
+    throw error
+  }
+}
