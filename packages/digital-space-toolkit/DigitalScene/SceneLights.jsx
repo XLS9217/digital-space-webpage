@@ -8,21 +8,25 @@ function DirectionalLightWrapper({ name, position, target, intensity, color, lig
     const { scene } = useThree();
 
     useEffect(() => {
-        if (lightRef.current) {
-            if (target) {
-                lightRef.current.target.position.set(target[0], target[1], target[2]);
-            }
-            scene.add(lightRef.current.target);
-
-            // Register in registry
-            const uuid = lightRef.current.uuid;
-            sceneObjectRegistry.register(uuid, 'light', lightData, lightRef.current);
-
-            return () => {
-                scene.remove(lightRef.current.target);
-                sceneObjectRegistry.unregister(uuid);
-            };
+        if (!lightRef.current) {
+            return undefined;
         }
+
+        const light = lightRef.current;
+
+        if (target) {
+            light.target.position.set(target[0], target[1], target[2]);
+        }
+        scene.add(light.target);
+
+        // Register in registry
+        const uuid = light.uuid;
+        sceneObjectRegistry.register(uuid, 'light', lightData, light);
+
+        return () => {
+            scene.remove(light.target);
+            sceneObjectRegistry.unregister(uuid);
+        };
     }, [target, scene]);
 
     return (
