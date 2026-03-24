@@ -10,14 +10,17 @@
     padding: 4px 8px;
     border-radius: 6px;
     border: 1px solid rgba(31, 42, 68, 0.2);
+    background: rgba(255, 255, 255, 0.6);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
 }
 
 .stage-tag--classroom {
-    background: #d6e7ff;
+    background: rgba(214, 231, 255, 0.7);
 }
 
 .stage-tag--meeting {
-    background: #ffe2c6;
+    background: rgba(255, 226, 198, 0.7);
 }
 
 .layer-buttons {
