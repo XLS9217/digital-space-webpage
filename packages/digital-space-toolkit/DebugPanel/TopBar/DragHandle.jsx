@@ -1,4 +1,4 @@
-import { useRef, useEffect } from "react";
+import React, { useRef, useEffect } from "react";
 
 // Hook that provides drag functionality
 export default function useDragHandle(panelWidth, panelHeight, setPanelPosition) {
