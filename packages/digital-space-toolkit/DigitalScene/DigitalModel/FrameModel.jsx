@@ -10,7 +10,7 @@ function DefaultTag({ name }) {
 
 tagRegistry.register('DEFAULT', DefaultTag)
 
-function parseTagName(rawName) {
+export function parseTagName(rawName) {
     if (!rawName) {
         return { prefix: 'DEFAULT', tagName: '' }
     }
@@ -57,6 +57,7 @@ export default function FrameModel({ url, name, scale = 1, position = {x:0, y:0,
             child.visible = false
         })
     }, [children])
+
 
     useEffect(() => {
         // Update visibility based on hover

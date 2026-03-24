@@ -28,6 +28,7 @@ const INFO_CHANNELS = {
      * - ./DebugPanel/PanelContent/PanelContent.jsx
      */
     SCENE_STATE_CHANGE: "SCENE_STATE_CHANGE",
+
 }
 
 //this channel is for scene control from debug panel
