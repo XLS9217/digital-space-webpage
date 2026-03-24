@@ -33,17 +33,159 @@
 
 .scene-menu__tag {
   border: none;
-  background: rgba(255, 255, 255, 0.15);
+  background: rgba(0, 0, 0, 0.35);
   color: rgba(255, 255, 255, 0.85);
-  padding: 4px 8px;
+  padding: 4px 6px 4px 10px;
   border-radius: 3px;
-  font-size: 11px;
+  font-size: 13px;
   cursor: pointer;
   font-family: monospace;
-  transition: background 0.15s ease, color 0.15s ease;
+  transition: color 0.15s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
 }
 
 .scene-menu__tag:hover {
-  background: rgba(255, 255, 255, 0.25);
   color: rgba(255, 255, 255, 1);
+}
+
+.scene-menu__tag:hover .scene-menu__tag-button {
+  color: rgba(255, 255, 255, 1);
+}
+
+.scene-menu__tag:hover .scene-menu__delete {
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.scene-menu__tag-button {
+  border: none;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 13px;
+  font-family: monospace;
+  cursor: pointer;
+  padding: 2px 0;
+  transition: color 0.15s ease;
+}
+
+.scene-menu__delete {
+  border: none;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.4);
+  width: 20px;
+  height: 20px;
+  border-radius: 2px;
+  font-size: 16px;
+  line-height: 1;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.15s ease;
+}
+
+.scene-menu__delete:hover {
+  color: #ffffff;
+}
+
+.delete-window__backdrop {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(10, 10, 10, 0.45);
+  z-index: 5;
+}
+
+.delete-window {
+  min-width: 240px;
+  padding: 16px 18px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: rgba(20, 20, 20, 0.65);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  box-shadow: 0 14px 40px rgba(0, 0, 0, 0.4);
+  color: rgba(255, 255, 255, 0.85);
+  font-family: monospace;
+  letter-spacing: 0.3px;
+}
+
+.delete-window__title {
+  font-size: 12px;
+  margin-bottom: 12px;
+}
+
+.delete-window__error {
+  font-size: 11px;
+  color: rgba(255, 120, 120, 0.9);
+  margin-bottom: 10px;
+}
+
+.delete-window__ok-wrapper {
+  display: flex;
+  justify-content: center;
+}
+
+.delete-window__ok {
+  position: relative;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  border: none;
+  background: transparent;
+  cursor: default;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  transition: opacity 0.2s ease;
+}
+
+.delete-window__ok.is-ready {
+  cursor: pointer;
+}
+
+.delete-window__ok.is-ready:hover .delete-window__ok-label {
+  color: #ffffff;
+}
+
+.delete-window__ok:disabled {
+  opacity: 0.65;
+  cursor: default;
+}
+
+.delete-window__ok-ring {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  transform: rotate(-90deg);
+}
+
+.delete-window__ok-track {
+  fill: none;
+  stroke: rgba(255, 255, 255, 0.12);
+  stroke-width: 2;
+}
+
+.delete-window__ok-progress {
+  fill: none;
+  stroke: rgba(255, 255, 255, 0.85);
+  stroke-width: 2;
+}
+
+.delete-window__ok-label {
+  position: relative;
+  z-index: 1;
+  font-size: 12px;
+  font-family: monospace;
+  letter-spacing: 0.5px;
+  color: rgba(255, 255, 255, 0.5);
+  transition: color 0.2s ease;
+}
+
+.delete-window__ok.is-ready .delete-window__ok-label {
+  color: rgba(255, 255, 255, 0.85);
 }

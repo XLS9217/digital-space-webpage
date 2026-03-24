@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react'
-import { listEditorScenes } from '../../API/editor_gateway.js'
+import { deleteEditorScene, listEditorScenes } from '../../API/editor_gateway.js'
 import EditorTextbox from '../CommonComponent/EditorTextbox'
 import EditorButton from '../CommonComponent/EditorButton'
+import DeleteWindow from './DeleteWindow'
 import './SceneMenu.css'
 
 export default function SceneMenu({
@@ -14,6 +15,9 @@ export default function SceneMenu({
   const [scenes, setScenes] = useState([])
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
+  const [deleteTarget, setDeleteTarget] = useState('')
+  const [deleteError, setDeleteError] = useState('')
+  const [isDeleting, setIsDeleting] = useState(false)
 
   const handleKeyDown = (event) => {
     if (event.key === 'Enter') {
@@ -61,6 +65,36 @@ export default function SceneMenu({
     }
   }, [])
 
+  const handleDeleteOpen = (scene) => {
+    setDeleteError('')
+    setDeleteTarget(scene)
+  }
+
+  const handleDeleteClose = () => {
+    if (isDeleting) {
+      return
+    }
+    setDeleteTarget('')
+    setDeleteError('')
+  }
+
+  const handleDeleteConfirm = async () => {
+    if (!deleteTarget || isDeleting) {
+      return
+    }
+    setIsDeleting(true)
+    setDeleteError('')
+    try {
+      await deleteEditorScene(deleteTarget)
+      setScenes((prev) => prev.filter((scene) => scene !== deleteTarget))
+      setDeleteTarget('')
+    } catch (err) {
+      setDeleteError('Failed to delete scene.')
+    } finally {
+      setIsDeleting(false)
+    }
+  }
+
   return (
     <div className="scene-menu">
       <div className="scene-menu__header">Scenes</div>
@@ -82,16 +116,36 @@ export default function SceneMenu({
       {!isLoading && scenes.length > 0 && (
         <div className="scene-menu__tags">
           {scenes.map((scene) => (
-            <button
-              key={scene}
-              type="button"
-              className="scene-menu__tag"
-              onClick={() => onSceneSelect?.(scene)}
-            >
-              {scene}
-            </button>
+            <div key={scene} className="scene-menu__tag">
+              <button
+                type="button"
+                className="scene-menu__tag-button"
+                onClick={() => onSceneSelect?.(scene)}
+              >
+                {scene}
+              </button>
+              <button
+                type="button"
+                className="scene-menu__delete"
+                onClick={(event) => {
+                  event.stopPropagation()
+                  handleDeleteOpen(scene)
+                }}
+              >
+                ×
+              </button>
+            </div>
           ))}
         </div>
+      )}
+      {deleteTarget && (
+        <DeleteWindow
+          sceneName={deleteTarget}
+          onCancel={handleDeleteClose}
+          onConfirm={handleDeleteConfirm}
+          isDeleting={isDeleting}
+          error={deleteError}
+        />
       )}
     </div>
   )
