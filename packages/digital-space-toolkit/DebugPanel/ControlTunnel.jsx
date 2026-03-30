@@ -3,15 +3,18 @@
 * */
 
 import React from 'react'//for webpack consistency,
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
-import { eventChannelHub, CONTROL_CHANNELS } from "../EventChannelHub";
+import { Perf } from 'r3f-perf';
+import { eventChannelHub, CONTROL_CHANNELS, DEBUG_CHANNELS } from "../EventChannelHub";
 import sceneObjectRegistry from "../DigitalScene/SceneObjectRegistry";
 import * as THREE from "three";
 import gsap from "gsap";
 
 export default function ControlTunnel() {
     const { camera, scene } = useThree();
+    const [showPerf, setShowPerf] = useState(false);
+    const [perfPosition, setPerfPosition] = useState('bottom-right');
 
     useEffect(() => {
         const handlePrintScene = () => {
@@ -116,12 +119,23 @@ export default function ControlTunnel() {
 
         eventChannelHub.subscribe(CONTROL_CHANNELS.SCENE_BACKGROUND_UPDATE, handleBackgroundUpdate);
 
+        // Performance window toggle
+        const handlePerfToggle = ({ enabled, position }) => {
+            setShowPerf(enabled);
+            if (position) {
+                setPerfPosition(position);
+            }
+        };
+
+        eventChannelHub.subscribe(DEBUG_CHANNELS.PERF_WINDOW_TOGGLE, handlePerfToggle);
+
         return () => {
             eventChannelHub.unsubscribe(CONTROL_CHANNELS.PRINT_SCENE, handlePrintScene);
             eventChannelHub.unsubscribe(CONTROL_CHANNELS.PRINT_OBJECT, handlePrintObject);
             eventChannelHub.unsubscribe(CONTROL_CHANNELS.OBJECT_UPDATE, handleObjectUpdate);
             eventChannelHub.unsubscribe(CONTROL_CHANNELS.OBJECT_ANIMATION, handleObjectAnimation);
             eventChannelHub.unsubscribe(CONTROL_CHANNELS.SCENE_BACKGROUND_UPDATE, handleBackgroundUpdate);
+            eventChannelHub.unsubscribe(DEBUG_CHANNELS.PERF_WINDOW_TOGGLE, handlePerfToggle);
         };
     }, [scene]);
 
@@ -129,5 +143,9 @@ export default function ControlTunnel() {
 
     });
 
-    return null;
+    return (
+        <>
+            {showPerf && <Perf position={perfPosition} />}
+        </>
+    );
 }

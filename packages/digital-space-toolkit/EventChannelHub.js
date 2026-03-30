@@ -7,7 +7,17 @@ const DEBUG_CHANNELS = {
      * Subscribe by:
      * - ./DebugPanel/DebugPanel.jsx
      */
-    INTERNAL_DEBUG_SCENE: "__INTERNAL__DEBUG_SCENE" //for scene data right now is just a json fetch from backend
+    INTERNAL_DEBUG_SCENE: "__INTERNAL__DEBUG_SCENE", //for scene data right now is just a json fetch from backend
+
+    /* For performance window toggle
+     * Inside digital-space-toolkit package,
+     * Publish by:
+     * - ./DebugPanel/PanelContent/GeneralSetting/GeneralSetting.jsx
+     * Subscribe by:
+     * - ./DebugPanel/ControlTunnel.jsx
+     * Payload: { enabled, position }
+     */
+    PERF_WINDOW_TOGGLE: "PERF_WINDOW_TOGGLE"
 }
 
 const INFO_CHANNELS = {

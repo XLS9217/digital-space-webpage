@@ -3,6 +3,7 @@ import React from 'react'//for webpack consistency,
 import { useEffect, useState } from 'react';
 import tagRegistry from '../../TagRegistry.js'
 import sceneObjectRegistry from '../SceneObjectRegistry'
+import { eventChannelHub, CONTROL_CHANNELS } from '../../EventChannelHub'
 
 function DefaultTag({ name }) {
     return <span>{name}</span>
@@ -33,6 +34,7 @@ export default function FrameModel({ url, name, scale = 1, position = {x:0, y:0,
     const { scene } = useGLTF(url)
     const children = scene.children[0]?.children || []
     const [hoveredIndex, setHoveredIndex] = useState(null)
+    const [visible, setVisible] = useState(true)
 
     if (name) {
         scene.name = name
@@ -66,6 +68,23 @@ export default function FrameModel({ url, name, scale = 1, position = {x:0, y:0,
         })
     }, [hoveredIndex, children])
 
+    // Subscribe to visibility changes from event channel
+    useEffect(() => {
+        const uuid = scene.uuid;
+
+        const handleVisibilityUpdate = ({ uuid: eventUuid, property, value }) => {
+            if (eventUuid === uuid && property === 'visible') {
+                setVisible(value);
+            }
+        };
+
+        eventChannelHub.subscribe(CONTROL_CHANNELS.OBJECT_UPDATE, handleVisibilityUpdate);
+
+        return () => {
+            eventChannelHub.unsubscribe(CONTROL_CHANNELS.OBJECT_UPDATE, handleVisibilityUpdate);
+        };
+    }, [scene.uuid]);
+
     return (
         <group
             position={posArr}
@@ -76,7 +95,7 @@ export default function FrameModel({ url, name, scale = 1, position = {x:0, y:0,
                 object={scene}
                 scale={scaleArr}
             />
-            {children.map((child, index) => {
+            {visible && children.map((child, index) => {
                 const { prefix, tagName } = parseTagName(child.name)
                 // console.log(tagName)
                 const entry = tagRegistry.get(prefix) || tagRegistry.get('DEFAULT')

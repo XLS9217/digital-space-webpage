@@ -7,10 +7,19 @@ import GroupList from "./Groups/GroupList.jsx";
 import GeneralSetting from "./GeneralSetting/GeneralSetting.jsx";
 import InteractionSetting from "./InteractionSetting";
 import DebugButton from "../CommonComponent/DebugButton";
+import CheckBox from "../CommonComponent/CheckBox";
+import EnumSelect from "../CommonComponent/EnumSelect";
 import dataRegistry from "../../DataRegistry.js";
-import { eventChannelHub, CONTROL_CHANNELS, INFO_CHANNELS } from '../../EventChannelHub';
+import { eventChannelHub, CONTROL_CHANNELS, INFO_CHANNELS, DEBUG_CHANNELS } from '../../EventChannelHub';
 import sceneObjectRegistry from '../../DigitalScene/SceneObjectRegistry';
 import './PanelContent.css';
+
+const PERF_POSITION = {
+    'top-left': 'top-left',
+    'top-right': 'top-right',
+    'bottom-left': 'bottom-left',
+    'bottom-right': 'bottom-right'
+};
 
 export default function PanelContent({ sceneData, showJson, sceneController }) {
 
@@ -26,6 +35,8 @@ export default function PanelContent({ sceneData, showJson, sceneController }) {
     const [lightsExpanded, setLightsExpanded] = useState(false);
     const [groupsExpanded, setGroupsExpanded] = useState(false);
     const [currentState, setCurrentState] = useState('big-view');
+    const [perfEnabled, setPerfEnabled] = useState(false);
+    const [perfPosition, setPerfPosition] = useState('bottom-right');
 
     // Listen for state changes
     useEffect(() => {
@@ -109,6 +120,18 @@ export default function PanelContent({ sceneData, showJson, sceneController }) {
         return modelWithUrl;
     };
 
+    const handlePerfToggle = (enabled) => {
+        setPerfEnabled(enabled);
+        eventChannelHub.publish(DEBUG_CHANNELS.PERF_WINDOW_TOGGLE, { enabled, position: perfPosition });
+    };
+
+    const handlePerfPositionChange = (position) => {
+        setPerfPosition(position);
+        if (perfEnabled) {
+            eventChannelHub.publish(DEBUG_CHANNELS.PERF_WINDOW_TOGGLE, { enabled: true, position });
+        }
+    };
+
     return (
         <div className="debug-panel-content">
             {showJson ? (
@@ -167,6 +190,19 @@ export default function PanelContent({ sceneData, showJson, sceneController }) {
                                         setCurrentState('big-view');
                                     }}
                                     title="Go back to Big View"
+                                />
+                            )}
+                        </div>
+                        <div style={{ padding: '0 0 8px 0' }}>
+                            <CheckBox
+                                label="Performance"
+                                checked={perfEnabled}
+                                onChange={handlePerfToggle}
+                            />
+                            {perfEnabled && (
+                                <EnumSelect
+                                    enumObj={PERF_POSITION}
+                                    onSelect={handlePerfPositionChange}
                                 />
                             )}
                         </div>
