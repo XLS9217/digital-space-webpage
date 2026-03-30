@@ -97,6 +97,23 @@ const useModelItemState = ({ model, index, onItemSerialized }) => {
         publish('visible', newVisible);
     }, [visible, publish]);
 
+    // Subscribe to visibility changes from event channel
+    useEffect(() => {
+        if (!uuid) return;
+
+        const handleVisibilityUpdate = ({ uuid: eventUuid, property, value }) => {
+            if (eventUuid === uuid && property === 'visible') {
+                setVisible(value);
+            }
+        };
+
+        eventChannelHub.subscribe(CONTROL_CHANNELS.OBJECT_UPDATE, handleVisibilityUpdate);
+
+        return () => {
+            eventChannelHub.unsubscribe(CONTROL_CHANNELS.OBJECT_UPDATE, handleVisibilityUpdate);
+        };
+    }, [uuid]);
+
     const handlePrint = useCallback(() => {
         if (uuid) eventChannelHub.publish(CONTROL_CHANNELS.PRINT_OBJECT, { uuid });
     }, [uuid]);
