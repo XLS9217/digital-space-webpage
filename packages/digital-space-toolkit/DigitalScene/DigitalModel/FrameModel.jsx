@@ -1,6 +1,6 @@
 import { useGLTF, Html } from '@react-three/drei'
 import React from 'react'//for webpack consistency,
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import tagRegistry from '../../TagRegistry.js'
 import sceneObjectRegistry from '../SceneObjectRegistry'
 import { eventChannelHub, CONTROL_CHANNELS } from '../../EventChannelHub'
@@ -35,6 +35,7 @@ export default function FrameModel({ url, name, scale = 1, position = {x:0, y:0,
     const children = scene.children[0]?.children || []
     const [hoveredIndex, setHoveredIndex] = useState(null)
     const [visible, setVisible] = useState(true)
+    const groupRef = useRef()
 
     if (name) {
         scene.name = name
@@ -42,10 +43,11 @@ export default function FrameModel({ url, name, scale = 1, position = {x:0, y:0,
 
     // Register in registry once scene is available
     useEffect(() => {
-        const uuid = scene.uuid;
-        sceneObjectRegistry.register(uuid, 'model', modelData || { name, url, scale, position, rotation }, scene);
+        if (!groupRef.current) return;
+        const uuid = groupRef.current.uuid;
+        sceneObjectRegistry.register(uuid, 'model', modelData || { name, url, scale, position, rotation }, groupRef.current);
         return () => sceneObjectRegistry.unregister(uuid);
-    }, [scene]);
+    }, [groupRef]);
 
     const posArr = [position.x || 0, position.y || 0, position.z || 0];
     const rotArr = [rotation.x || 0, rotation.y || 0, rotation.z || 0];
@@ -70,7 +72,8 @@ export default function FrameModel({ url, name, scale = 1, position = {x:0, y:0,
 
     // Subscribe to visibility changes from event channel
     useEffect(() => {
-        const uuid = scene.uuid;
+        if (!groupRef.current) return;
+        const uuid = groupRef.current.uuid;
 
         const handleVisibilityUpdate = ({ uuid: eventUuid, property, value }) => {
             if (eventUuid === uuid && property === 'visible') {
@@ -83,14 +86,10 @@ export default function FrameModel({ url, name, scale = 1, position = {x:0, y:0,
         return () => {
             eventChannelHub.unsubscribe(CONTROL_CHANNELS.OBJECT_UPDATE, handleVisibilityUpdate);
         };
-    }, [scene.uuid]);
+    }, [groupRef]);
 
     return (
-        <group
-            position={posArr}
-            rotation={rotArr}
-            name={name}
-        >
+        <group ref={groupRef} name={name} position={posArr} rotation={rotArr}>
             <primitive
                 object={scene}
                 scale={scaleArr}
