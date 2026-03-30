@@ -36,6 +36,8 @@ const INFO_CHANNELS = {
      * - ./DigitalScene/SceneController.js
      * Subscribe by:
      * - ./DebugPanel/PanelContent/PanelContent.jsx
+     * - ./DigitalScene/DigitalModel/FrameModel.jsx
+     * Payload: { stateType, groupName?, layerIndex?, activeUuids? }
      */
     SCENE_STATE_CHANGE: "SCENE_STATE_CHANGE",
 

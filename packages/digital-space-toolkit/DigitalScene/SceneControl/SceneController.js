@@ -200,11 +200,7 @@ class SceneController {
         // Transition to Level View state
         this.currentStateType = STATE_TYPE.LEVEL_VIEW;
 
-        // Notify listeners about state change
-        eventChannelHub.publish(INFO_CHANNELS.SCENE_STATE_CHANGE, {
-            stateType: this.currentStateType
-        });
-
+        // LevelsController will publish SCENE_STATE_CHANGE with activeUuids
         return controller.investigateLayer(layerIndex);
     }
 }

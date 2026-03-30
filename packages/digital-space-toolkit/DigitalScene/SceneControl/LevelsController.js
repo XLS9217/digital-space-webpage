@@ -1,5 +1,6 @@
-import { eventChannelHub, CONTROL_CHANNELS } from '../../EventChannelHub';
+import { eventChannelHub, CONTROL_CHANNELS, INFO_CHANNELS } from '../../EventChannelHub';
 import sceneObjectRegistry from '../SceneObjectRegistry';
+import { MODEL_TYPE } from '../../SceneTypeEnum';
 
 // Resolve uuids for a layer — uses uuids[] if present, falls back to names[] via registry
 function resolveLayerUuids(layer) {
@@ -87,6 +88,29 @@ class LevelsController {
         // Update lifted layers state
         layersToLift.forEach(({ index }) => this.liftedLayers.add(index));
         layersToBringDown.forEach(({ index }) => this.liftedLayers.delete(index));
+
+        // Get active layer uuids
+        const activeUuids = resolveLayerUuids(targetLayer);
+
+        // Loop through all FRAME models and show/hide based on active layer
+        for (const { uuid, data } of sceneObjectRegistry.all('model')) {
+            if (data?.type === MODEL_TYPE.FRAME) {
+                const isInActiveLayer = activeUuids.includes(uuid);
+                eventChannelHub.publish(CONTROL_CHANNELS.OBJECT_UPDATE, {
+                    uuid,
+                    property: 'visible',
+                    value: isInActiveLayer
+                });
+            }
+        }
+
+        // Publish state change for debug panel
+        eventChannelHub.publish(INFO_CHANNELS.SCENE_STATE_CHANGE, {
+            stateType: 'level-view',
+            groupName: this.group.name,
+            layerIndex,
+            activeUuids
+        });
 
         // If layer has saved control snapshot, animate camera
         if (savedControl && savedControl.position) {

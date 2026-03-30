@@ -3,7 +3,7 @@ import React from 'react'//for webpack consistency,
 import { useEffect, useState, useRef } from 'react';
 import tagRegistry from '../../TagRegistry.js'
 import sceneObjectRegistry from '../SceneObjectRegistry'
-import { eventChannelHub, CONTROL_CHANNELS } from '../../EventChannelHub'
+import { eventChannelHub, CONTROL_CHANNELS, INFO_CHANNELS } from '../../EventChannelHub'
 
 function DefaultTag({ name }) {
     return <span>{name}</span>
@@ -34,7 +34,8 @@ export default function FrameModel({ url, name, scale = 1, position = {x:0, y:0,
     const { scene } = useGLTF(url)
     const children = scene.children[0]?.children || []
     const [hoveredIndex, setHoveredIndex] = useState(null)
-    const [visible, setVisible] = useState(true)
+    const [visible, setVisible] = useState(false)
+    const [isInActiveLayer, setIsInActiveLayer] = useState(false)
     const groupRef = useRef()
 
     if (name) {
