@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react'
 import { DigitalSpace, DigitalScene, tagRegistry, dataRegistry } from 'digital-space-toolkit'
 import { ClassroomTag, MeetingTag } from '../SandBox/Stage/TagWithStyle.jsx'
+import ThumbnailCapture from './ThumbnailCapture.jsx'
 import '../SandBox/Stage/Stage.css'
 
 export default function EditorStage({ sceneName }) {
@@ -16,6 +17,7 @@ export default function EditorStage({ sceneName }) {
     <div className="editor-stage">
       <DigitalSpace debug={true}>
         <DigitalScene sceneName={sceneName} controllerRef={sceneController} />
+        <ThumbnailCapture sceneName={sceneName} />
       </DigitalSpace>
     </div>
   )

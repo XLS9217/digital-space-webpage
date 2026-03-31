@@ -1,4 +1,9 @@
 import request from './request.js'
+import { eventChannelHub } from 'digital-space-toolkit'
+
+export const EDITOR_EVENTS = {
+    SCENE_UPSERTED: 'EDITOR_SCENE_UPSERTED'
+}
 
 const DEFAULT_SCENE_PAYLOAD = {
     general: {
@@ -214,6 +219,7 @@ export async function getFileUrl(fileLocation) {
 export async function upsertScene(name, sceneJson) {
     try {
         const response = await request.post(`/scene-upsert/${name}`, sceneJson)
+        eventChannelHub.publish(EDITOR_EVENTS.SCENE_UPSERTED, { sceneName: name })
         return response.data
     } catch (error) {
         console.error('Error upserting scene:', error)
