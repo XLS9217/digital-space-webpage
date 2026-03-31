@@ -1,4 +1,4 @@
-import Stage from './Stage/Stage'
+import Stage from './SandBox/Stage/Stage'
 import EditorLayout from './Editor/EditorLayout'
 import './App.css'
 

@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react'
 import { DigitalSpace, DigitalScene, tagRegistry, dataRegistry } from 'digital-space-toolkit'
-import { ClassroomTag, MeetingTag } from '../Stage/TagWithStyle.jsx'
-import '../Stage/Stage.css'
+import { ClassroomTag, MeetingTag } from '../SandBox/Stage/TagWithStyle.jsx'
+import '../SandBox/Stage/Stage.css'
 
 export default function EditorStage({ sceneName }) {
   const sceneController = useRef()

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { deleteEditorScene, listScenesMetadata } from '../../API/editor_gateway.js'
+import { deleteEditorScene, listScenesMetadata } from '../API/editor_gateway.js'
 import EditorTextbox from '../CommonComponent/EditorTextbox'
 import EditorButton from '../CommonComponent/EditorButton'
 import DeleteWindow from './DeleteWindow'

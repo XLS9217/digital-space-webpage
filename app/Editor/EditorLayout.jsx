@@ -3,8 +3,7 @@ import EditorTopbar from './EditorTopbar'
 import EditorStage from './EditorStage'
 import SceneMenu from './SceneMenu/SceneMenu'
 import { dataRegistry } from 'digital-space-toolkit'
-import { getSceneByName, downloadSceneZip, upsertScene, getFileUrl } from '../API/gateway.js'
-import { createScene } from '../API/editor_gateway.js'
+import { getSceneByName, downloadSceneZip, upsertScene, getFileUrl, createScene } from './API/editor_gateway.js'
 import './Editor.css'
 
 export default function EditorLayout() {
