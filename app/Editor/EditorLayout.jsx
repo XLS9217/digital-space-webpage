@@ -8,9 +8,9 @@ import { createScene } from '../API/editor_gateway.js'
 import './Editor.css'
 
 export default function EditorLayout() {
-  const [sceneName, setSceneName] = useState('beijing_white')
-  const [sceneNameInput, setSceneNameInput] = useState(sceneName)
-  const [showSceneMenu, setShowSceneMenu] = useState(false)
+  const [sceneName, setSceneName] = useState('')
+  const [sceneNameInput, setSceneNameInput] = useState('')
+  const [showSceneMenu, setShowSceneMenu] = useState(true)
 
   useEffect(() => {
     if (!dataRegistry.load) {
@@ -28,11 +28,30 @@ export default function EditorLayout() {
   }, [])
 
 
-  const handleGo = () => {
+  const handleNew = async (onSceneCreated) => {
     const trimmed = sceneNameInput.trim()
-    if (trimmed) {
-      setSceneName(trimmed)
-      setShowSceneMenu(false)
+    if (!trimmed) {
+      return
+    }
+
+    try {
+      await createScene(trimmed)
+      // Notify SceneMenu to add the new scene to the list
+      if (onSceneCreated) {
+        const newMeta = {
+          sceneName: trimmed,
+          displayName: trimmed,
+          description: '',
+          thumbnail: '',
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        }
+        onSceneCreated(newMeta)
+      }
+      // Clear input after successful creation
+      setSceneNameInput('')
+    } catch (error) {
+      console.error('Failed to create editor scene:', error)
     }
   }
 
@@ -46,21 +65,6 @@ export default function EditorLayout() {
     setShowSceneMenu((prev) => !prev)
   }
 
-  const handleNew = async () => {
-    const trimmed = sceneNameInput.trim()
-    if (!trimmed) {
-      return
-    }
-
-    try {
-      await createScene(trimmed)
-      setSceneName(trimmed)
-      setShowSceneMenu(false)
-    } catch (error) {
-      console.error('Failed to create editor scene:', error)
-    }
-  }
-
   return (
     <div className="editor-layout">
       <EditorTopbar onTitleClick={handleTitleClick} />
@@ -69,11 +73,10 @@ export default function EditorLayout() {
           onSceneSelect={handleSceneSelect}
           sceneNameInput={sceneNameInput}
           onSceneNameChange={setSceneNameInput}
-          onGo={handleGo}
           onNew={handleNew}
         />
       ) : (
-        <EditorStage sceneName={sceneName} />
+        sceneName ? <EditorStage sceneName={sceneName} /> : null
       )}
     </div>
   )
