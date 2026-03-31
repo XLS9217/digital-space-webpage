@@ -156,6 +156,22 @@ class LevelsController {
         return this.liftedLayers.has(layerIndex);
     }
 
+    // Hide frame models that belong to this group's layers (orphans stay visible)
+    hideFrameModels() {
+        const floors = this.group.groups || [];
+        const layerUuids = new Set(floors.flatMap(layer => resolveLayerUuids(layer)));
+
+        for (const { uuid, data } of sceneObjectRegistry.all('model')) {
+            if (data?.type === MODEL_TYPE.FRAME && layerUuids.has(uuid)) {
+                eventChannelHub.publish(CONTROL_CHANNELS.OBJECT_UPDATE, {
+                    uuid,
+                    property: 'visible',
+                    value: false
+                });
+            }
+        }
+    }
+
     // Reset all layers to their original positions
     resetAllLayers() {
         const floors = this.group.groups || [];

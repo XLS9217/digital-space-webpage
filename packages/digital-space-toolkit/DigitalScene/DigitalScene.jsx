@@ -83,6 +83,13 @@ export default function DigitalScene({ sceneName, controllerRef }) {
         };
     }, []);
 
+    // Hide layer-assigned frame models after models have rendered and registered
+    useEffect(() => {
+        if (loaded) {
+            controller.hideLayerFrameModels();
+        }
+    }, [loaded]);
+
     // const { scene } = useThree();
     // console.log(scene);
     if(!loaded)
