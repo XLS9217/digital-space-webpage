@@ -4,7 +4,7 @@
  * On upsert serialization, uuids are converted back to names.
  */
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import DebugBlock from '../../CommonComponent/DebugBlock';
 import DebugButton from '../../CommonComponent/DebugButton';
 import TagList from '../../CommonComponent/TagList';
@@ -115,8 +115,11 @@ const LayerGroup = ({ group, depth = 0, onDelete, modelEntries, onInvestigate, s
 
 const LevelGroup = ({ group, depth = 0, onDelete, serializeGroup, modelEntries = [], onItemSerialized, index, sceneController }) => {
     const [localName, setLocalName] = useState(group.name || '');
-    const [layers, setLayers] = useState(group.groups || []);
+    const idCounter = useRef(0);
+    const assignId = (layer) => ({ ...layer, _id: layer._id || `_l${++idCounter.current}` });
+    const [layers, setLayers] = useState(() => (group.groups || []).map(assignId));
     const [liftTarget, setLiftTarget] = useState(group.metadata?.liftTarget || { x: 0, y: 50, z: 0 });
+    // Keyed by layer._id instead of array index
     const [serializedLayers, setSerializedLayers] = useState({});
 
     useEffect(() => {
@@ -126,64 +129,44 @@ const LevelGroup = ({ group, depth = 0, onDelete, serializeGroup, modelEntries =
     // Initialize with default layer "1" if no layers exist
     useEffect(() => {
         if (!group.groups || group.groups.length === 0) {
-            setLayers([{
+            setLayers([assignId({
                 name: '1',
                 type: GROUP_TYPE.LEVEL.LAYER,
                 uuids: [],
                 groups: []
-            }]);
+            })]);
         }
     }, []);
 
     const addLayer = (atEnd) => {
-        // Shift serialized layers first if adding at top
-        if (!atEnd) {
-            setSerializedLayers(prev => {
-                const shifted = {};
-                Object.keys(prev).forEach(key => {
-                    shifted[parseInt(key) + 1] = prev[key];
-                });
-                return shifted;
-            });
-        }
-
         setLayers(prev => {
             const layerNumbers = prev.map(f => parseInt(f.name) || 0);
             const maxLayer = Math.max(...layerNumbers);
             const minLayer = Math.min(...layerNumbers);
 
-            const newLayer = {
+            const newLayer = assignId({
                 name: String(atEnd ? minLayer - 1 : maxLayer + 1),
                 type: GROUP_TYPE.LEVEL.LAYER,
                 uuids: [],
                 groups: []
-            };
+            });
             return atEnd ? [...prev, newLayer] : [newLayer, ...prev];
         });
     };
 
-    const deleteLayer = (index) => {
-        // Shift serialized layers down after the deleted index
+    const deleteLayer = (layerId) => {
         setSerializedLayers(prev => {
-            const shifted = {};
-            Object.keys(prev).forEach(key => {
-                const k = parseInt(key);
-                if (k < index) {
-                    shifted[k] = prev[key];
-                } else if (k > index) {
-                    shifted[k - 1] = prev[key];
-                }
-            });
-            return shifted;
+            const next = { ...prev };
+            delete next[layerId];
+            return next;
         });
-
-        setLayers(prev => prev.filter((_, i) => i !== index));
+        setLayers(prev => prev.filter(l => l._id !== layerId));
     };
 
-    const handleLayerSerialized = useCallback((layerIndex, serializedData) => {
+    const handleLayerSerialized = useCallback((layerId, serializedData) => {
         setSerializedLayers(prev => ({
             ...prev,
-            [layerIndex]: serializedData
+            [layerId]: serializedData
         }));
     }, []);
 
@@ -211,7 +194,7 @@ const LevelGroup = ({ group, depth = 0, onDelete, serializeGroup, modelEntries =
     }, [localName, sceneController, group.name]);
 
     const handlePrint = useCallback(() => {
-        const layersWithSerialized = layers.map((layer, i) => serializedLayers[i] || layer);
+        const layersWithSerialized = layers.map(layer => serializedLayers[layer._id] || layer);
         const currentGroup = {
             name: localName,
             type: group.type,
@@ -225,7 +208,7 @@ const LevelGroup = ({ group, depth = 0, onDelete, serializeGroup, modelEntries =
 
     // Notify parent with serialized state and update SceneController
     useEffect(() => {
-        const layersWithSerialized = layers.map((layer, i) => serializedLayers[i] || layer);
+        const layersWithSerialized = layers.map(layer => serializedLayers[layer._id] || layer);
         const currentGroup = {
             name: localName,
             type: group.type,
@@ -266,11 +249,11 @@ const LevelGroup = ({ group, depth = 0, onDelete, serializeGroup, modelEntries =
                     >+</span>
                     {layers.map((child, i) => (
                         <LayerGroup
-                            key={`${localName}-layer-${i}`}
+                            key={child._id}
                             group={child}
                             depth={depth + 1}
-                            index={i}
-                            onDelete={() => deleteLayer(i)}
+                            index={child._id}
+                            onDelete={() => deleteLayer(child._id)}
                             modelEntries={modelEntries}
                             onInvestigate={() => handleInvestigate(i)}
                             serializeGroup={serializeGroup}
