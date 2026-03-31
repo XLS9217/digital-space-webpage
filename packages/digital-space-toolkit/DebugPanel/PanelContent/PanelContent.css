@@ -156,3 +156,16 @@
 .layer-insert-btn:hover {
     color: rgba(255, 255, 255, 0.6);
 }
+
+.upload-status {
+    font-size: 11px;
+    margin-top: 4px;
+}
+
+.upload-status.success {
+    color: #4caf50;
+}
+
+.upload-status.error {
+    color: #f44336;
+}

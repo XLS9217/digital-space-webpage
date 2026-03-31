@@ -37,6 +37,7 @@ export default function PanelContent({ sceneData, showJson, sceneController }) {
     const [currentState, setCurrentState] = useState('big-view');
     const [perfEnabled, setPerfEnabled] = useState(false);
     const [perfPosition, setPerfPosition] = useState('bottom-right');
+    const [notification, setNotification] = useState(null);
 
     // Listen for state changes
     useEffect(() => {
@@ -97,9 +98,12 @@ export default function PanelContent({ sceneData, showJson, sceneController }) {
             console.log("Upsert payload:", JSON.stringify(config, null, 2));
             const result = await dataRegistry.upsert(scene, config);
             console.log("Scene upserted:", result);
+            setNotification({ type: 'success', message: 'Scene saved successfully' });
+            setTimeout(() => setNotification(null), 3000);
         } catch (error) {
             console.error('Failed to upload scene:', error);
-            alert('Failed to upload scene config. Please try again.');
+            setNotification({ type: 'error', message: 'Failed to save scene' });
+            setTimeout(() => setNotification(null), 3000);
         }
     };
 
@@ -177,6 +181,11 @@ export default function PanelContent({ sceneData, showJson, sceneController }) {
                             </span>
                         </div>
                     </div>
+                    {notification && (
+                        <div className={`upload-status ${notification.type}`}>
+                            {notification.message}
+                        </div>
+                    )}
                     <div className="debug-list">
                         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 0', marginBottom: '8px' }}>
                             <span style={{ color: '#ccc', fontSize: '13px' }}>

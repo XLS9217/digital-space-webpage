@@ -1,6 +1,7 @@
 import { eventChannelHub, CONTROL_CHANNELS, INFO_CHANNELS } from '../../EventChannelHub.js';
 import { GROUP_TYPE } from '../../SceneTypeEnum.js';
 import LevelsController from './LevelsController.js';
+import sceneObjectRegistry from '../SceneObjectRegistry.js';
 
 
 export const STATE_TYPE = {
@@ -111,6 +112,33 @@ class SceneController {
         this.controllerMap.clear();
         for (const group of groups) {
             this._createController(group);
+        }
+        // Initialize frame model visibility after all groups are loaded
+        this._initializeFrameModelVisibility();
+    }
+
+    _initializeFrameModelVisibility() {
+        // Collect all uuids that are in any layer
+        const allLayerUuids = new Set();
+        for (const controller of this.controllerMap.values()) {
+            if (controller.group && controller.group.groups) {
+                for (const layer of controller.group.groups) {
+                    const uuids = layer.uuids || [];
+                    uuids.forEach(uuid => allLayerUuids.add(uuid));
+                }
+            }
+        }
+
+        // Hide frame models that are in layers, show those that aren't
+        for (const { uuid, data } of sceneObjectRegistry.all('model')) {
+            if (data?.type === 'frame') {
+                const isInLayer = allLayerUuids.has(uuid);
+                eventChannelHub.publish(CONTROL_CHANNELS.OBJECT_UPDATE, {
+                    uuid,
+                    property: 'visible',
+                    value: !isInLayer
+                });
+            }
         }
     }
 

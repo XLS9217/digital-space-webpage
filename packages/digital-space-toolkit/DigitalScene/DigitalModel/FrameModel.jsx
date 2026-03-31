@@ -6,10 +6,17 @@ import sceneObjectRegistry from '../SceneObjectRegistry'
 import { eventChannelHub, CONTROL_CHANNELS, INFO_CHANNELS } from '../../EventChannelHub'
 
 function DefaultTag({ name }) {
-    return <span>{name}</span>
+    return <span style={{
+        background: '#999',
+        color: '#fff',
+        padding: '4px 8px',
+        borderRadius: '4px',
+        fontSize: '12px',
+        whiteSpace: 'nowrap'
+    }}>{name}</span>
 }
 
-tagRegistry.register('DEFAULT', DefaultTag)
+tagRegistry.register('DEFAULT', DefaultTag , )
 
 export function parseTagName(rawName) {
     if (!rawName) {
@@ -34,8 +41,7 @@ export default function FrameModel({ url, name, scale = 1, position = {x:0, y:0,
     const { scene } = useGLTF(url)
     const children = scene.children[0]?.children || []
     const [hoveredIndex, setHoveredIndex] = useState(null)
-    const [visible, setVisible] = useState(false)
-    const [isInActiveLayer, setIsInActiveLayer] = useState(false)
+    const [visible, setVisible] = useState(true)
     const groupRef = useRef()
 
     if (name) {

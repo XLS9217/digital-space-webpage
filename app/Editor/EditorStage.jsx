@@ -10,16 +10,6 @@ export default function EditorStage({ sceneName }) {
     if (!dataRegistry) {
       return undefined
     }
-
-    tagRegistry
-      .register('CLASSROOM', ClassroomTag, { distanceFactor: 40 })
-      .register('MEETING', MeetingTag)
-
-    return () => {
-      tagRegistry
-        .unregister('CLASSROOM')
-        .unregister('MEETING')
-    }
   }, [])
 
   return (

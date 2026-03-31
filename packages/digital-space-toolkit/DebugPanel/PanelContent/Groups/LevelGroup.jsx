@@ -136,6 +136,17 @@ const LevelGroup = ({ group, depth = 0, onDelete, serializeGroup, modelEntries =
     }, []);
 
     const addLayer = (atEnd) => {
+        // Shift serialized layers first if adding at top
+        if (!atEnd) {
+            setSerializedLayers(prev => {
+                const shifted = {};
+                Object.keys(prev).forEach(key => {
+                    shifted[parseInt(key) + 1] = prev[key];
+                });
+                return shifted;
+            });
+        }
+
         setLayers(prev => {
             const layerNumbers = prev.map(f => parseInt(f.name) || 0);
             const maxLayer = Math.max(...layerNumbers);
@@ -152,11 +163,21 @@ const LevelGroup = ({ group, depth = 0, onDelete, serializeGroup, modelEntries =
     };
 
     const deleteLayer = (index) => {
-        setLayers(prev => prev.filter((_, i) => i !== index));
+        // Shift serialized layers down after the deleted index
         setSerializedLayers(prev => {
-            const { [index]: _, ...rest } = prev;
-            return rest;
+            const shifted = {};
+            Object.keys(prev).forEach(key => {
+                const k = parseInt(key);
+                if (k < index) {
+                    shifted[k] = prev[key];
+                } else if (k > index) {
+                    shifted[k - 1] = prev[key];
+                }
+            });
+            return shifted;
         });
+
+        setLayers(prev => prev.filter((_, i) => i !== index));
     };
 
     const handleLayerSerialized = useCallback((layerIndex, serializedData) => {
@@ -245,7 +266,7 @@ const LevelGroup = ({ group, depth = 0, onDelete, serializeGroup, modelEntries =
                     >+</span>
                     {layers.map((child, i) => (
                         <LayerGroup
-                            key={child.name + i}
+                            key={`${localName}-layer-${i}`}
                             group={child}
                             depth={depth + 1}
                             index={i}
