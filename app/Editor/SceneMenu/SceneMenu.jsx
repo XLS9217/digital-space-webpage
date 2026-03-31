@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react'
-import { deleteEditorScene, listScenesMetadata } from '../API/editor_gateway.js'
+import { useEffect, useState, useRef } from 'react'
+import { deleteEditorScene, listScenesMetadata, updateSceneMetadata } from '../API/editor_gateway.js'
 import EditorTextbox from '../CommonComponent/EditorTextbox'
 import EditorButton from '../CommonComponent/EditorButton'
 import DeleteWindow from './DeleteWindow'
@@ -10,6 +10,52 @@ function formatDate(date) {
   const d = new Date(date)
   if (isNaN(d.getTime())) return ''
   return d.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })
+}
+
+function EditableText({ value, placeholder, className, onSave, multiline }) {
+  const [editing, setEditing] = useState(false)
+  const [draft, setDraft] = useState(value)
+  const ref = useRef(null)
+
+  useEffect(() => { setDraft(value) }, [value])
+  useEffect(() => { if (editing && ref.current) ref.current.focus() }, [editing])
+
+  const commit = () => {
+    setEditing(false)
+    const trimmed = draft.trim()
+    if (trimmed !== (value || '')) onSave(trimmed)
+  }
+
+  const handleKeyDown = (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); commit() }
+    if (e.key === 'Escape') { setDraft(value); setEditing(false) }
+  }
+
+  if (!editing) {
+    return (
+      <div
+        className={className}
+        onClick={(e) => { e.stopPropagation(); setEditing(true) }}
+        title="Click to edit"
+      >
+        {value || <span style={{ opacity: 0.35, fontStyle: 'italic' }}>{placeholder}</span>}
+      </div>
+    )
+  }
+
+  const Tag = multiline ? 'textarea' : 'input'
+  return (
+    <Tag
+      ref={ref}
+      className={`${className} ${className}--editing`}
+      value={draft}
+      onChange={(e) => setDraft(e.target.value)}
+      onBlur={commit}
+      onKeyDown={handleKeyDown}
+      onClick={(e) => e.stopPropagation()}
+      {...(multiline ? { rows: 2 } : {})}
+    />
+  )
 }
 
 export default function SceneMenu({
@@ -41,6 +87,7 @@ export default function SceneMenu({
       setError('')
       try {
         const metaList = await listScenesMetadata()
+        console.log('[SceneMenu] metadata thumbnails:', (Array.isArray(metaList) ? metaList : []).map(m => ({ scene: m.sceneName, thumbnail: m.thumbnail })))
         if (isMounted) {
           setScenes(Array.isArray(metaList) ? metaList : [])
         }
@@ -89,6 +136,17 @@ export default function SceneMenu({
     }
   }
 
+  const handleMetadataUpdate = async (sceneName, field, value) => {
+    try {
+      await updateSceneMetadata(sceneName, { [field]: value })
+      setScenes((prev) =>
+        prev.map((s) => s.sceneName === sceneName ? { ...s, [field]: value } : s)
+      )
+    } catch (err) {
+      console.error('Failed to update metadata:', err)
+    }
+  }
+
   return (
     <div className="scene-menu">
       <div className="scene-menu__header">Scenes</div>
@@ -120,15 +178,22 @@ export default function SceneMenu({
                 }
               </div>
               <div className="scene-card__info">
-                <div className="scene-card__title">
-                  {meta.displayName || meta.sceneName}
-                  {meta.displayName && meta.displayName !== meta.sceneName && (
-                    <span className="scene-card__scene-name"> ({meta.sceneName})</span>
-                  )}
-                </div>
-                {meta.description && (
-                  <div className="scene-card__description">{meta.description}</div>
+                <EditableText
+                  className="scene-card__title"
+                  value={meta.displayName || meta.sceneName}
+                  placeholder="Display name"
+                  onSave={(v) => handleMetadataUpdate(meta.sceneName, 'displayName', v)}
+                />
+                {meta.displayName && meta.displayName !== meta.sceneName && (
+                  <span className="scene-card__scene-name">({meta.sceneName})</span>
                 )}
+                <EditableText
+                  className="scene-card__description"
+                  value={meta.description || ''}
+                  placeholder="Add description..."
+                  multiline
+                  onSave={(v) => handleMetadataUpdate(meta.sceneName, 'description', v)}
+                />
                 <div className="scene-card__dates">
                   {meta.createdAt && <span>Created {formatDate(meta.createdAt)}</span>}
                   {meta.updatedAt && <span>Updated {formatDate(meta.updatedAt)}</span>}
