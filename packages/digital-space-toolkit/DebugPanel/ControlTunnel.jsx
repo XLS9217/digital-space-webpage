@@ -105,7 +105,7 @@ export default function ControlTunnel() {
         eventChannelHub.subscribe(CONTROL_CHANNELS.OBJECT_ANIMATION, handleObjectAnimation);
 
         // Scene background updates
-        const handleBackgroundUpdate = ({ color, enabled }) => {
+        const handleBackgroundUpdate = ({ color, enabled, fog }) => {
             if (enabled) {
                 if (!scene.background) {
                     scene.background = new THREE.Color(color);
@@ -114,6 +114,19 @@ export default function ControlTunnel() {
                 }
             } else {
                 scene.background = null;
+            }
+
+            if (fog?.enabled) {
+                const fogColor = new THREE.Color(color);
+                if (!scene.fog) {
+                    scene.fog = new THREE.Fog(fogColor, fog.near, fog.far);
+                } else {
+                    scene.fog.color.copy(fogColor);
+                    scene.fog.near = fog.near;
+                    scene.fog.far = fog.far;
+                }
+            } else {
+                scene.fog = null;
             }
         };
 
