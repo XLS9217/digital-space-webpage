@@ -10,7 +10,7 @@ class TagRegistry {
      */
 
     register(prefix, component, options = {}) {
-        const { distanceFactor = undefined } = options;
+        const { distanceFactor = undefined, minSize = undefined, maxSize = undefined, magnifyDistance = undefined } = options;
         const hasNamePropType = component?.propTypes && Object.prototype.hasOwnProperty.call(component.propTypes, 'name');
         const hasNameDefault = component?.defaultProps && Object.prototype.hasOwnProperty.call(component.defaultProps, 'name');
 
@@ -24,7 +24,10 @@ class TagRegistry {
 
         this.registry.set(prefix, {
             component,
-            distanceFactor
+            distanceFactor,
+            minSize,
+            maxSize,
+            magnifyDistance
         });
         return this;
     }

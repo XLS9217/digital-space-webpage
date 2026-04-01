@@ -1,6 +1,8 @@
 import { useGLTF, Html } from '@react-three/drei'
 import React from 'react'//for webpack consistency,
 import { useEffect, useState, useRef } from 'react';
+import { useThree, useFrame } from '@react-three/fiber';
+import { Vector3 } from 'three';
 import tagRegistry from '../../TagRegistry.js'
 import sceneObjectRegistry from '../SceneObjectRegistry'
 import { eventChannelHub, CONTROL_CHANNELS, INFO_CHANNELS } from '../../EventChannelHub'
@@ -43,6 +45,10 @@ export default function FrameModel({ url, name, scale = 1, position = {x:0, y:0,
     const [hoveredIndex, setHoveredIndex] = useState(null)
     const [visible, setVisible] = useState(true)
     const groupRef = useRef()
+    const { camera } = useThree()
+    const [mousePos, setMousePos] = useState({ x: 0, y: 0 })
+    const tagRefs = useRef([])
+    const [tagScales, setTagScales] = useState([])
 
     if (name) {
         scene.name = name
@@ -95,6 +101,67 @@ export default function FrameModel({ url, name, scale = 1, position = {x:0, y:0,
         };
     }, [groupRef]);
 
+    // Calculate tag scales based on distance and mouse proximity
+    useFrame(() => {
+        if (!groupRef.current) return;
+
+        const newScales = children.map((child, index) => {
+            const tagRef = tagRefs.current[index];
+            if (!tagRef) return 1;
+
+            const entry = tagRegistry.get(parseTagName(child.name).prefix) || tagRegistry.get('DEFAULT');
+            const distanceFactor = entry?.distanceFactor || 10;
+            const minSize = entry?.minSize;
+            const maxSize = entry?.maxSize;
+            const magnifyDistance = entry?.magnifyDistance;
+
+            // Calculate distance-based scale
+            const objectPos = new Vector3().setFromMatrixPosition(groupRef.current.matrixWorld).add(child.position);
+            const cameraPos = new Vector3().setFromMatrixPosition(camera.matrixWorld);
+            const dist = objectPos.distanceTo(cameraPos);
+            const vFOV = camera.fov * Math.PI / 180;
+            const scaleFOV = 2 * Math.tan(vFOV / 2) * dist;
+            const baseScale = (1 / scaleFOV) * distanceFactor;
+            const clampedBaseScale = minSize !== undefined && maxSize !== undefined
+                ? Math.max(minSize, Math.min(maxSize, baseScale))
+                : minSize !== undefined
+                    ? Math.max(minSize, baseScale)
+                    : maxSize !== undefined
+                        ? Math.min(maxSize, baseScale)
+                        : baseScale;
+
+            // Calculate mouse proximity magnification (if magnifyDistance is set)
+            let finalSize = clampedBaseScale;
+            if (magnifyDistance) {
+                const rect = tagRef.getBoundingClientRect();
+                const tagCenterX = rect.left + rect.width / 2;
+                const tagCenterY = rect.top + rect.height / 2;
+                const dx = mousePos.x - tagCenterX;
+                const dy = mousePos.y - tagCenterY;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+
+                if (distance < magnifyDistance) {
+                    const t = 1 - distance / magnifyDistance;
+                    const targetMaxSize = maxSize !== undefined ? maxSize : 1;
+                    finalSize = clampedBaseScale + (targetMaxSize - clampedBaseScale) * t;
+                }
+            }
+
+            return finalSize;
+        });
+
+        setTagScales(newScales);
+    });
+
+    // Track mouse position
+    useEffect(() => {
+        const handleMouseMove = (e) => {
+            setMousePos({ x: e.clientX, y: e.clientY });
+        };
+        window.addEventListener('mousemove', handleMouseMove);
+        return () => window.removeEventListener('mousemove', handleMouseMove);
+    }, []);
+
     return (
         <group ref={groupRef} name={name} position={posArr} rotation={rotArr}>
             <primitive
@@ -103,10 +170,9 @@ export default function FrameModel({ url, name, scale = 1, position = {x:0, y:0,
             />
             {visible && children.map((child, index) => {
                 const { prefix, tagName } = parseTagName(child.name)
-                // console.log(tagName)
                 const entry = tagRegistry.get(prefix) || tagRegistry.get('DEFAULT')
                 const TagComponent = entry?.component
-                const distanceFactor = entry?.distanceFactor
+                const currentScale = tagScales[index] || 1
 
                 return (
                     <Html
@@ -114,11 +180,15 @@ export default function FrameModel({ url, name, scale = 1, position = {x:0, y:0,
                         key={index}
                         position={child.position}
                         center
-                        distanceFactor={distanceFactor}
                     >
                         <div
+                            ref={el => tagRefs.current[index] = el}
                             onMouseEnter={() => setHoveredIndex(index)}
                             onMouseLeave={() => setHoveredIndex(null)}
+                            style={{
+                                transform: `scale(${currentScale})`,
+                                transition: 'transform 0.1s ease-out'
+                            }}
                         >
                             <TagComponent name={tagName} />
                         </div>

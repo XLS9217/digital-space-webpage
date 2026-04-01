@@ -40,7 +40,6 @@
   padding: 12px;
   background: rgba(0, 0, 0, 0.35);
   border-radius: 4px;
-  Claude Code: pointer;
   transition: background 0.15s ease;
   position: relative;
 }
