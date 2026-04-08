@@ -49,6 +49,7 @@ export default function FrameModel({ url, name, scale = 1, position = {x:0, y:0,
     const [mousePos, setMousePos] = useState({ x: 0, y: 0 })
     const tagRefs = useRef([])
     const [tagScales, setTagScales] = useState([])
+    const [tagZIndices, setTagZIndices] = useState([])
 
     if (name) {
         scene.name = name
@@ -101,13 +102,13 @@ export default function FrameModel({ url, name, scale = 1, position = {x:0, y:0,
         };
     }, [groupRef]);
 
-    // Calculate tag scales based on distance and mouse proximity
+    // Calculate tag scales and z-indices based on distance and mouse proximity
     useFrame(() => {
         if (!groupRef.current) return;
 
-        const newScales = children.map((child, index) => {
+        const tagData = children.map((child, index) => {
             const tagRef = tagRefs.current[index];
-            if (!tagRef) return 1;
+            if (!tagRef) return { scale: 1, distance: Infinity };
 
             const entry = tagRegistry.get(parseTagName(child.name).prefix) || tagRegistry.get('DEFAULT');
             const distanceFactor = entry?.distanceFactor || 10;
@@ -130,27 +131,37 @@ export default function FrameModel({ url, name, scale = 1, position = {x:0, y:0,
                         ? Math.min(maxSize, baseScale)
                         : baseScale;
 
-            // Calculate mouse proximity magnification (if magnifyDistance is set)
-            let finalSize = clampedBaseScale;
-            if (magnifyDistance) {
-                const rect = tagRef.getBoundingClientRect();
-                const tagCenterX = rect.left + rect.width / 2;
-                const tagCenterY = rect.top + rect.height / 2;
-                const dx = mousePos.x - tagCenterX;
-                const dy = mousePos.y - tagCenterY;
-                const distance = Math.sqrt(dx * dx + dy * dy);
+            // Calculate mouse distance for z-index
+            const rect = tagRef.getBoundingClientRect();
+            const tagCenterX = rect.left + rect.width / 2;
+            const tagCenterY = rect.top + rect.height / 2;
+            const dx = mousePos.x - tagCenterX;
+            const dy = mousePos.y - tagCenterY;
+            const mouseDistance = Math.sqrt(dx * dx + dy * dy);
 
-                if (distance < magnifyDistance) {
-                    const t = 1 - distance / magnifyDistance;
-                    const targetMaxSize = maxSize !== undefined ? maxSize : 1;
-                    finalSize = clampedBaseScale + (targetMaxSize - clampedBaseScale) * t;
-                }
+            // Calculate mouse proximity magnification
+            let finalSize = clampedBaseScale;
+            if (magnifyDistance && mouseDistance < magnifyDistance) {
+                const t = 1 - mouseDistance / magnifyDistance;
+                const targetMaxSize = maxSize !== undefined ? maxSize : 1;
+                finalSize = clampedBaseScale + (targetMaxSize - clampedBaseScale) * t;
             }
 
-            return finalSize;
+            return { scale: finalSize, distance: mouseDistance };
         });
 
-        setTagScales(newScales);
+        // Calculate z-indices based on mouse distance (closer = higher z-index)
+        const sortedIndices = tagData
+            .map((data, index) => ({ index, distance: data.distance }))
+            .sort((a, b) => b.distance - a.distance); // Sort descending (farthest first)
+
+        const newZIndices = new Array(children.length);
+        sortedIndices.forEach((item, rank) => {
+            newZIndices[item.index] = rank * 1000; // Multiply by 100 for larger separation
+        });
+
+        setTagScales(tagData.map(d => d.scale));
+        setTagZIndices(newZIndices);
     });
 
     // Track mouse position
@@ -173,10 +184,11 @@ export default function FrameModel({ url, name, scale = 1, position = {x:0, y:0,
                 const entry = tagRegistry.get(prefix) || tagRegistry.get('DEFAULT')
                 const TagComponent = entry?.component
                 const currentScale = tagScales[index] || 1
+                const currentZIndex = tagZIndices[index] !== undefined ? tagZIndices[index] : 0
 
                 return (
                     <Html
-                        zIndexRange={[0, 100]}
+                        zIndexRange={[currentZIndex, currentZIndex]}
                         key={index}
                         position={child.position}
                         center

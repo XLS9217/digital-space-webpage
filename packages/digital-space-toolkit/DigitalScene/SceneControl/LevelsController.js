@@ -114,11 +114,20 @@ class LevelsController {
 
         // If layer has saved control snapshot, animate camera
         if (savedControl && savedControl.position) {
-            eventChannelHub.publish(CONTROL_CHANNELS.CAMERA_CONTROL_SETTINGS_UPDATE, {
-                enablePan: false,
-                enableRotate: false,
-                enableZoom: false
-            });
+            // Set zoom/angle constraints BEFORE animation so camera can reach target
+            const settings = {};
+            if (savedControl.zoom) {
+                settings.minDistance = savedControl.zoom.min;
+                settings.maxDistance = savedControl.zoom.max;
+            }
+            if (savedControl.angle) {
+                settings.minPolarAngle = savedControl.angle.min;
+                settings.maxPolarAngle = savedControl.angle.max;
+            }
+            settings.enablePan = false;
+            settings.enableRotate = false;
+            settings.enableZoom = false;
+            eventChannelHub.publish(CONTROL_CHANNELS.CAMERA_CONTROL_SETTINGS_UPDATE, settings);
 
             eventChannelHub.publish(CONTROL_CHANNELS.CAMERA_ANIMATION, {
                 position: savedControl.position,
@@ -126,19 +135,11 @@ class LevelsController {
                 duration: 1,
                 ease: "power2.out",
                 onComplete: () => {
-                    const settings = {};
-                    if (savedControl.zoom) {
-                        settings.minDistance = savedControl.zoom.min;
-                        settings.maxDistance = savedControl.zoom.max;
-                    }
-                    if (savedControl.angle) {
-                        settings.minPolarAngle = savedControl.angle.min;
-                        settings.maxPolarAngle = savedControl.angle.max;
-                    }
-                    settings.enablePan = savedControl.enablePan !== undefined ? savedControl.enablePan : true;
-                    settings.enableRotate = savedControl.enableRotate !== undefined ? savedControl.enableRotate : true;
-                    settings.enableZoom = savedControl.enableZoom !== undefined ? savedControl.enableZoom : true;
-                    eventChannelHub.publish(CONTROL_CHANNELS.CAMERA_CONTROL_SETTINGS_UPDATE, settings);
+                    eventChannelHub.publish(CONTROL_CHANNELS.CAMERA_CONTROL_SETTINGS_UPDATE, {
+                        enablePan: savedControl.enablePan !== undefined ? savedControl.enablePan : true,
+                        enableRotate: savedControl.enableRotate !== undefined ? savedControl.enableRotate : true,
+                        enableZoom: savedControl.enableZoom !== undefined ? savedControl.enableZoom : true
+                    });
                 }
             });
         }

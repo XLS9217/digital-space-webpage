@@ -79,7 +79,34 @@ export default function DigitalSpaceControl({ controlType = CONTROL_TYPE.ORBIT }
         const handleControlUpdate = (controlData) => {
             if (!controlData) return;
 
-            // Update camera position
+            // Update zoom and angle constraints FIRST, before setting camera position
+            if (controlData.zoom) {
+                setControlSettings(prev => ({
+                    ...prev,
+                    minDistance: controlData.zoom.min ?? prev.minDistance,
+                    maxDistance: controlData.zoom.max ?? prev.maxDistance
+                }));
+
+                if (orbitControlsRef.current) {
+                    orbitControlsRef.current.minDistance = controlData.zoom.min;
+                    orbitControlsRef.current.maxDistance = controlData.zoom.max;
+                }
+            }
+
+            if (controlData.angle) {
+                setControlSettings(prev => ({
+                    ...prev,
+                    minPolarAngle: controlData.angle.min ?? prev.minPolarAngle,
+                    maxPolarAngle: controlData.angle.max ?? prev.maxPolarAngle
+                }));
+
+                if (orbitControlsRef.current) {
+                    orbitControlsRef.current.minPolarAngle = controlData.angle.min;
+                    orbitControlsRef.current.maxPolarAngle = controlData.angle.max;
+                }
+            }
+
+            // Update camera position AFTER constraints are set
             if (controlData.position) {
                 camera.position.set(
                     controlData.position.x,
@@ -105,33 +132,6 @@ export default function DigitalSpaceControl({ controlType = CONTROL_TYPE.ORBIT }
                     controlData.rotation.y,
                     controlData.rotation.z
                 );
-            }
-
-            // Load zoom and angle settings from scene data
-            if (controlData.zoom) {
-                setControlSettings(prev => ({
-                    ...prev,
-                    minDistance: controlData.zoom.min ?? prev.minDistance,
-                    maxDistance: controlData.zoom.max ?? prev.maxDistance
-                }));
-
-                if (orbitControlsRef.current) {
-                    orbitControlsRef.current.minDistance = controlData.zoom.min;
-                    orbitControlsRef.current.maxDistance = controlData.zoom.max;
-                }
-            }
-
-            if (controlData.angle) {
-                setControlSettings(prev => ({
-                    ...prev,
-                    minPolarAngle: controlData.angle.min ?? prev.minPolarAngle,
-                    maxPolarAngle: controlData.angle.max ?? prev.maxPolarAngle
-                }));
-
-                if (orbitControlsRef.current) {
-                    orbitControlsRef.current.minPolarAngle = controlData.angle.min;
-                    orbitControlsRef.current.maxPolarAngle = controlData.angle.max;
-                }
             }
 
             // Load enable settings from scene data
