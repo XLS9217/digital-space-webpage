@@ -67,20 +67,16 @@ class SceneController {
             }
         }
 
-        // Restore zoom and angle constraints BEFORE animation
-        const settings = {};
-        if (this.bigViewCameraState.zoom) {
-            settings.minDistance = this.bigViewCameraState.zoom.min;
-            settings.maxDistance = this.bigViewCameraState.zoom.max;
-        }
-        if (this.bigViewCameraState.angle) {
-            settings.minPolarAngle = this.bigViewCameraState.angle.min;
-            settings.maxPolarAngle = this.bigViewCameraState.angle.max;
-        }
-        settings.enablePan = false;
-        settings.enableRotate = false;
-        settings.enableZoom = false;
-        eventChannelHub.publish(CONTROL_CHANNELS.CAMERA_CONTROL_SETTINGS_UPDATE, settings);
+        // Remove all constraints so the lerp can travel freely
+        eventChannelHub.publish(CONTROL_CHANNELS.CAMERA_CONTROL_SETTINGS_UPDATE, {
+            minDistance: 0,
+            maxDistance: Infinity,
+            minPolarAngle: 0,
+            maxPolarAngle: Math.PI,
+            enablePan: false,
+            enableRotate: false,
+            enableZoom: false
+        });
 
         // Animate camera back to big view position
         eventChannelHub.publish(CONTROL_CHANNELS.CAMERA_ANIMATION, {
@@ -89,12 +85,20 @@ class SceneController {
             duration: 1,
             ease: "power2.out",
             onComplete: () => {
-                // Re-enable controls
-                eventChannelHub.publish(CONTROL_CHANNELS.CAMERA_CONTROL_SETTINGS_UPDATE, {
-                    enablePan: this.bigViewCameraState.enablePan !== undefined ? this.bigViewCameraState.enablePan : true,
-                    enableRotate: this.bigViewCameraState.enableRotate !== undefined ? this.bigViewCameraState.enableRotate : true,
-                    enableZoom: this.bigViewCameraState.enableZoom !== undefined ? this.bigViewCameraState.enableZoom : true
-                });
+                // Apply big view constraints after the lerp finishes
+                const settings = {};
+                if (this.bigViewCameraState.zoom) {
+                    settings.minDistance = this.bigViewCameraState.zoom.min;
+                    settings.maxDistance = this.bigViewCameraState.zoom.max;
+                }
+                if (this.bigViewCameraState.angle) {
+                    settings.minPolarAngle = this.bigViewCameraState.angle.min;
+                    settings.maxPolarAngle = this.bigViewCameraState.angle.max;
+                }
+                settings.enablePan = this.bigViewCameraState.enablePan !== undefined ? this.bigViewCameraState.enablePan : true;
+                settings.enableRotate = this.bigViewCameraState.enableRotate !== undefined ? this.bigViewCameraState.enableRotate : true;
+                settings.enableZoom = this.bigViewCameraState.enableZoom !== undefined ? this.bigViewCameraState.enableZoom : true;
+                eventChannelHub.publish(CONTROL_CHANNELS.CAMERA_CONTROL_SETTINGS_UPDATE, settings);
             }
         });
 
