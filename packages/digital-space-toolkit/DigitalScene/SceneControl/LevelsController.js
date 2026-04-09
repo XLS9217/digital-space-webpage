@@ -4,7 +4,16 @@ import { MODEL_TYPE } from '../../SceneTypeEnum';
 
 // Resolve uuids for a layer — uses uuids[] if present, falls back to names[] via registry
 function resolveLayerUuids(layer) {
-    if (layer.uuids && layer.uuids.length > 0) return layer.uuids;
+    if (layer.uuids && layer.uuids.length > 0) {
+        // Validate that uuids are real registry keys, not names
+        const validUuids = layer.uuids.filter(uuid => sceneObjectRegistry.get(uuid));
+        if (validUuids.length > 0) return validUuids;
+        // uuids might actually be names (stale data) — resolve them
+        return layer.uuids.map(nameOrUuid => {
+            const entry = sceneObjectRegistry.findByName(nameOrUuid);
+            return entry?.uuid;
+        }).filter(Boolean);
+    }
     if (layer.names && layer.names.length > 0) {
         return layer.names.map(name => {
             const entry = sceneObjectRegistry.findByName(name);
@@ -49,6 +58,7 @@ class LevelsController {
 
         // Lift layers above, hide after animation
         const uuidsToLift = layersToLift.flatMap(({ layer }) => resolveLayerUuids(layer));
+        console.log('[LevelsController] Investigating layer', layerIndex, 'uuidsToLift:', uuidsToLift);
         uuidsToLift.forEach(uuid => {
             eventChannelHub.publish(CONTROL_CHANNELS.OBJECT_ANIMATION, {
                 uuid,

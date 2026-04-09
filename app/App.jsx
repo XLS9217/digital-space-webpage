@@ -3,7 +3,6 @@ import EditorLayout from './Editor/EditorLayout'
 import './App.css'
 
 export default function App() {
-  const sceneName = 'beijing_white'
   const isEditor = window.location.pathname.startsWith('/Editor')
 
   return (
@@ -15,7 +14,7 @@ export default function App() {
         </div>
       ) : (
         <div className="app__stage">
-          <Stage sceneName={sceneName} />
+          <Stage/>
         </div>
       )}
 
