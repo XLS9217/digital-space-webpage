@@ -1,3 +1,5 @@
+import React from 'react';
+
 export function ClassroomTag({ name }) {
     return (
         <div className="stage-tag stage-tag--classroom" onClick={() => alert(`${name} clicked`)}>
