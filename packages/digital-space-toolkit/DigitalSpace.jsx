@@ -27,7 +27,7 @@ export default function DigitalSpace({
 }) {
     return (
         <>
-            <Canvas style={{ width: "100%", height: "100%" }}>
+            <Canvas shadows style={{ width: "100%", height: "100%" }}>
                 <DigitalSpaceControl controlType={defaultControlStyle} />
                 <axesHelper args={[10]} />
                 {children}

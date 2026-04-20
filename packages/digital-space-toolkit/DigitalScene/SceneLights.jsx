@@ -37,6 +37,15 @@ function DirectionalLightWrapper({ name, position, target, intensity, color, lig
             intensity={intensity}
             color={color}
             castShadow
+            shadow-mapSize={[1024, 1024]}
+            shadow-camera-far={200}
+            shadow-camera-left={-50}
+            shadow-camera-right={50}
+            shadow-camera-top={50}
+            shadow-camera-bottom={-50}
+            shadow-bias={-0.001}
+            shadow-normalBias={0.05}
+            shadow-radius={10}
         />
     );
 }

@@ -1,10 +1,11 @@
-import React, { useState, useCallback, useRef } from 'react';
-import { useFrame } from '@react-three/fiber';
+import React, { useState, useCallback, useRef, useEffect } from 'react';
+import { useFrame, useThree } from '@react-three/fiber';
 import * as THREE from 'three';
 import GizmoHelper from './GizmoHelper';
 import { eventChannelHub, CONTROL_CHANNELS, DEBUG_SCENE_CHANNELS } from '../EventChannelHub';
 
 export default function DirectionalLightHelper({ light, uuid }) {
+    const { scene } = useThree();
     const [lightPos, setLightPos] = useState(() => ({
         x: light.position.x,
         y: light.position.y,
@@ -18,6 +19,7 @@ export default function DirectionalLightHelper({ light, uuid }) {
     }));
 
     const lineRef = useRef();
+    const cameraHelperRef = useRef();
 
     const handleLightPositionChange = useCallback((newPos) => {
         setLightPos(newPos);
@@ -64,6 +66,28 @@ export default function DirectionalLightHelper({ light, uuid }) {
     const boxEdges = React.useMemo(() =>
         new THREE.EdgesGeometry(new THREE.BoxGeometry(0.5, 0.5, 0.5))
     , []);
+
+    // Create and manage CameraHelper for shadow camera
+    useEffect(() => {
+        if (light.shadow && light.shadow.camera) {
+            const helper = new THREE.CameraHelper(light.shadow.camera);
+            cameraHelperRef.current = helper;
+            scene.add(helper);
+
+            return () => {
+                scene.remove(helper);
+                helper.dispose();
+            };
+        }
+    }, [light, scene]);
+
+    // Update camera helper when light or target moves
+    useFrame(() => {
+        if (cameraHelperRef.current && light.shadow) {
+            light.shadow.camera.updateProjectionMatrix();
+            cameraHelperRef.current.update();
+        }
+    });
 
     return (
         <group>
