@@ -84,8 +84,31 @@ export default function DirectionalLightHelper({ light, uuid }) {
     // Update camera helper when light or target moves
     useFrame(() => {
         if (cameraHelperRef.current && light.shadow) {
+            // Calculate distance between light and target
+            const dx = light.position.x - light.target.position.x;
+            const dy = light.position.y - light.target.position.y;
+            const dz = light.position.z - light.target.position.z;
+            const distance = Math.sqrt(dx * dx + dy * dy + dz * dz);
+
+            // Update shadow camera far plane to match distance
+            light.shadow.camera.far = distance;
             light.shadow.camera.updateProjectionMatrix();
             cameraHelperRef.current.update();
+
+            // Publish advanced properties to debug panel
+            eventChannelHub.publish(DEBUG_SCENE_CHANNELS.LIGHT_PROPERTY_FEEDBACK, {
+                uuid,
+                property: 'advanced',
+                value: {
+                    shadowCameraFar: light.shadow.camera.far.toFixed(2),
+                    shadowCameraLeft: light.shadow.camera.left.toFixed(2),
+                    shadowCameraRight: light.shadow.camera.right.toFixed(2),
+                    shadowCameraTop: light.shadow.camera.top.toFixed(2),
+                    shadowCameraBottom: light.shadow.camera.bottom.toFixed(2),
+                    shadowMapSize: light.shadow.mapSize ?
+                        `${light.shadow.mapSize.width}x${light.shadow.mapSize.height}` : 'N/A'
+                }
+            });
         }
     });
 

@@ -3,9 +3,43 @@ import { useThree } from '@react-three/fiber';
 import { LIGHT_TYPE } from '../SceneTypeEnum';
 import sceneObjectRegistry from './SceneObjectRegistry';
 
-function DirectionalLightWrapper({ name, position, target, intensity, color, lightData }) {
+function DirectionalLightWrapper({ name, intensity, color, advanced = {}, lightData }) {
     const lightRef = useRef();
     const { scene } = useThree();
+
+    // Initialize all local variables from props once
+    const [lightConfig] = React.useState(() => {
+        const position = advanced.position
+            ? [advanced.position.x, advanced.position.y, advanced.position.z]
+            : undefined;
+        const target = advanced.target
+            ? [advanced.target.x, advanced.target.y, advanced.target.z]
+            : undefined;
+
+        // Calculate distance between light and target for shadow camera far plane
+        let calculatedFar = 200;
+        if (position && target) {
+            const dx = position[0] - target[0];
+            const dy = position[1] - target[1];
+            const dz = position[2] - target[2];
+            calculatedFar = Math.sqrt(dx * dx + dy * dy + dz * dz);
+        }
+
+        return {
+            position,
+            target,
+            shadowCameraFar: advanced.shadowCameraFar ?? calculatedFar,
+            castShadow: advanced.castShadow ?? true,
+            shadowMapSize: advanced.shadowMapSize ?? [1024, 1024],
+            shadowCameraLeft: advanced.shadowCameraLeft ?? -50,
+            shadowCameraRight: advanced.shadowCameraRight ?? 50,
+            shadowCameraTop: advanced.shadowCameraTop ?? 50,
+            shadowCameraBottom: advanced.shadowCameraBottom ?? -50,
+            shadowBias: advanced.shadowBias ?? -0.001,
+            shadowNormalBias: advanced.shadowNormalBias ?? 0.05,
+            shadowRadius: advanced.shadowRadius ?? 10
+        };
+    });
 
     useEffect(() => {
         if (!lightRef.current) {
@@ -14,8 +48,8 @@ function DirectionalLightWrapper({ name, position, target, intensity, color, lig
 
         const light = lightRef.current;
 
-        if (target) {
-            light.target.position.set(target[0], target[1], target[2]);
+        if (lightConfig.target) {
+            light.target.position.set(lightConfig.target[0], lightConfig.target[1], lightConfig.target[2]);
         }
         scene.add(light.target);
 
@@ -27,25 +61,25 @@ function DirectionalLightWrapper({ name, position, target, intensity, color, lig
             scene.remove(light.target);
             sceneObjectRegistry.unregister(uuid);
         };
-    }, [target, scene]);
+    }, []);
 
     return (
         <directionalLight
             ref={lightRef}
             name={name}
-            position={position}
+            position={lightConfig.position}
             intensity={intensity}
             color={color}
-            castShadow
-            shadow-mapSize={[1024, 1024]}
-            shadow-camera-far={200}
-            shadow-camera-left={-50}
-            shadow-camera-right={50}
-            shadow-camera-top={50}
-            shadow-camera-bottom={-50}
-            shadow-bias={-0.001}
-            shadow-normalBias={0.05}
-            shadow-radius={10}
+            castShadow={lightConfig.castShadow}
+            shadow-mapSize={lightConfig.shadowMapSize}
+            shadow-camera-far={lightConfig.shadowCameraFar}
+            shadow-camera-left={lightConfig.shadowCameraLeft}
+            shadow-camera-right={lightConfig.shadowCameraRight}
+            shadow-camera-top={lightConfig.shadowCameraTop}
+            shadow-camera-bottom={lightConfig.shadowCameraBottom}
+            shadow-bias={lightConfig.shadowBias}
+            shadow-normalBias={lightConfig.shadowNormalBias}
+            shadow-radius={lightConfig.shadowRadius}
         />
     );
 }
@@ -77,12 +111,6 @@ export default function SceneLights({ lights = [] }) {
     return (
         <>
             {lights.map((light, index) => {
-                const position = light.position
-                    ? [light.position.x, light.position.y, light.position.z]
-                    : undefined;
-                const target = light.target
-                    ? [light.target.x, light.target.y, light.target.z]
-                    : undefined;
                 const key = light.name || `light-${index}`;
 
                 switch (light.type) {
@@ -93,10 +121,9 @@ export default function SceneLights({ lights = [] }) {
                             <DirectionalLightWrapper
                                 key={key}
                                 name={light.name}
-                                position={position}
-                                target={target}
                                 intensity={light.intensity}
                                 color={light.color}
+                                advanced={light.advanced}
                                 lightData={light}
                             />
                         );

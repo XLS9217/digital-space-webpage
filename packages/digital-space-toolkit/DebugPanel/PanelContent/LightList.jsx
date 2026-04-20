@@ -5,6 +5,7 @@ import BarHandle from '../CommonComponent/BarHandle';
 import ColorPicker from '../CommonComponent/ColorPicker';
 import CheckBox from '../CommonComponent/CheckBox';
 import EnumSelect from '../CommonComponent/EnumSelect';
+import TextInputBox from '../CommonComponent/TextInputBox';
 import { eventChannelHub, CONTROL_CHANNELS, DEBUG_SCENE_CHANNELS } from '../../EventChannelHub';
 import { LIGHT_TYPE } from '../../SceneTypeEnum';
 import sceneObjectRegistry from '../../DigitalScene/SceneObjectRegistry';
@@ -24,17 +25,33 @@ const LightItem = ({ light, index, onItemSerialized, onDelete }) => {
     const [uuid, setUuid] = useState(null);
     const [visible, setVisible] = useState(true);
     const [showHelper, setShowHelper] = useState(false);
+    const [realtimeAdvanced, setRealtimeAdvanced] = useState(null);
 
     const isDirectional = light.type === LIGHT_TYPE.DIRECTIONAL;
 
+    // Support both old (flat) and new (advanced) structure
+    const getPosition = () => {
+        if (isDirectional) {
+            if (light.advanced?.position) return sanitizeVector(light.advanced.position);
+            if (light.position) return sanitizeVector(light.position);
+            return { x: 10, y: 10, z: 10 };
+        }
+        return light.position ? sanitizeVector(light.position) : undefined;
+    };
+
+    const getTarget = () => {
+        if (isDirectional) {
+            if (light.advanced?.target) return sanitizeVector(light.advanced.target);
+            if (light.target) return sanitizeVector(light.target);
+            return { x: 0, y: 0, z: 0 };
+        }
+        return undefined;
+    };
+
     const [localData, setLocalData] = useState({
         intensity: light.intensity || 0,
-        position: isDirectional
-            ? (light.position ? sanitizeVector(light.position) : { x: 10, y: 10, z: 10 })
-            : (light.position ? sanitizeVector(light.position) : undefined),
-        target: isDirectional
-            ? (light.target ? sanitizeVector(light.target) : { x: 0, y: 0, z: 0 })
-            : undefined,
+        position: getPosition(),
+        target: getTarget(),
         color: light.color || '#ffffff'
     });
 
@@ -60,14 +77,29 @@ const LightItem = ({ light, index, onItemSerialized, onDelete }) => {
     useEffect(() => {
         setLocalName(light.name || '');
         const isDir = light.type === LIGHT_TYPE.DIRECTIONAL;
+
+        const getPos = () => {
+            if (isDir) {
+                if (light.advanced?.position) return sanitizeVector(light.advanced.position);
+                if (light.position) return sanitizeVector(light.position);
+                return { x: 10, y: 10, z: 10 };
+            }
+            return light.position ? sanitizeVector(light.position) : undefined;
+        };
+
+        const getTgt = () => {
+            if (isDir) {
+                if (light.advanced?.target) return sanitizeVector(light.advanced.target);
+                if (light.target) return sanitizeVector(light.target);
+                return { x: 0, y: 0, z: 0 };
+            }
+            return undefined;
+        };
+
         setLocalData({
             intensity: light.intensity || 0,
-            position: isDir
-                ? (light.position ? sanitizeVector(light.position) : { x: 10, y: 10, z: 10 })
-                : (light.position ? sanitizeVector(light.position) : undefined),
-            target: isDir
-                ? (light.target ? sanitizeVector(light.target) : { x: 0, y: 0, z: 0 })
-                : undefined,
+            position: getPos(),
+            target: getTgt(),
             color: light.color || '#ffffff'
         });
     }, [light]);
@@ -75,13 +107,23 @@ const LightItem = ({ light, index, onItemSerialized, onDelete }) => {
     // Notify parent whenever local data changes
     useEffect(() => {
         if (onItemSerialized) {
-            onItemSerialized(index, {
+            const serialized = {
                 name: localName,
                 type: light.type,
-                ...localData
-            });
+                intensity: localData.intensity,
+                color: localData.color
+            };
+
+            // Use new structure with advanced object for directional lights
+            if (isDirectional && (localData.position || localData.target)) {
+                serialized.advanced = {};
+                if (localData.position) serialized.advanced.position = localData.position;
+                if (localData.target) serialized.advanced.target = localData.target;
+            }
+
+            onItemSerialized(index, serialized);
         }
-    }, [localData, localName, index, light.type, onItemSerialized]);
+    }, [localData, localName, index, light.type, isDirectional, onItemSerialized]);
 
     const publish = useCallback((property, value) => {
         if (!uuid) return;
@@ -122,8 +164,12 @@ const LightItem = ({ light, index, onItemSerialized, onDelete }) => {
     // Subscribe to feedback from 3D gizmo (matched by uuid)
     useEffect(() => {
         const handleFeedback = ({ uuid: feedbackUuid, property, value }) => {
-            if (feedbackUuid === uuid && (property === 'position' || property === 'target')) {
+            if (feedbackUuid !== uuid) return;
+
+            if (property === 'position' || property === 'target') {
                 setLocalData(prev => ({ ...prev, [property]: value }));
+            } else if (property === 'advanced') {
+                setRealtimeAdvanced(value);
             }
         };
 
@@ -171,6 +217,44 @@ const LightItem = ({ light, index, onItemSerialized, onDelete }) => {
                         checked={showHelper}
                         onChange={handleHelperToggle}
                     />
+                    {realtimeAdvanced && (
+                        <DebugBlock
+                            title="Advanced (Real-time)"
+                            initialExpanded={false}
+                            isNested={true}
+                        >
+                            <TextInputBox
+                                label="shadowCameraFar"
+                                value={realtimeAdvanced.shadowCameraFar}
+                                editable={false}
+                            />
+                            <TextInputBox
+                                label="shadowCameraLeft"
+                                value={realtimeAdvanced.shadowCameraLeft}
+                                editable={false}
+                            />
+                            <TextInputBox
+                                label="shadowCameraRight"
+                                value={realtimeAdvanced.shadowCameraRight}
+                                editable={false}
+                            />
+                            <TextInputBox
+                                label="shadowCameraTop"
+                                value={realtimeAdvanced.shadowCameraTop}
+                                editable={false}
+                            />
+                            <TextInputBox
+                                label="shadowCameraBottom"
+                                value={realtimeAdvanced.shadowCameraBottom}
+                                editable={false}
+                            />
+                            <TextInputBox
+                                label="shadowMapSize"
+                                value={realtimeAdvanced.shadowMapSize}
+                                editable={false}
+                            />
+                        </DebugBlock>
+                    )}
                 </>
             )}
             <ColorPicker
