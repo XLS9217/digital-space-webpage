@@ -219,34 +219,49 @@ const LightItem = ({ light, index, onItemSerialized, onDelete }) => {
                     />
                     {realtimeAdvanced && (
                         <DebugBlock
-                            title="Advanced (Real-time)"
+                            title="Advanced"
                             initialExpanded={false}
                             isNested={true}
                         >
                             <TextInputBox
                                 label="shadowCameraFar"
                                 value={realtimeAdvanced.shadowCameraFar}
-                                editable={false}
+                                editable={true}
+                                onValueChange={(value) => {
+                                    publish('advanced.shadowCameraFar', parseFloat(value));
+                                }}
                             />
                             <TextInputBox
                                 label="shadowCameraLeft"
                                 value={realtimeAdvanced.shadowCameraLeft}
-                                editable={false}
+                                editable={true}
+                                onValueChange={(value) => {
+                                    publish('advanced.shadowCameraLeft', parseFloat(value));
+                                }}
                             />
                             <TextInputBox
                                 label="shadowCameraRight"
                                 value={realtimeAdvanced.shadowCameraRight}
-                                editable={false}
+                                editable={true}
+                                onValueChange={(value) => {
+                                    publish('advanced.shadowCameraRight', parseFloat(value));
+                                }}
                             />
                             <TextInputBox
                                 label="shadowCameraTop"
                                 value={realtimeAdvanced.shadowCameraTop}
-                                editable={false}
+                                editable={true}
+                                onValueChange={(value) => {
+                                    publish('advanced.shadowCameraTop', parseFloat(value));
+                                }}
                             />
                             <TextInputBox
                                 label="shadowCameraBottom"
                                 value={realtimeAdvanced.shadowCameraBottom}
-                                editable={false}
+                                editable={true}
+                                onValueChange={(value) => {
+                                    publish('advanced.shadowCameraBottom', parseFloat(value));
+                                }}
                             />
                             <TextInputBox
                                 label="shadowMapSize"

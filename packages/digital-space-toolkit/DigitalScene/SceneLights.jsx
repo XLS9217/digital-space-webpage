@@ -2,6 +2,7 @@ import React, { useRef, useEffect } from 'react'//for webpack consistency,
 import { useThree } from '@react-three/fiber';
 import { LIGHT_TYPE } from '../SceneTypeEnum';
 import sceneObjectRegistry from './SceneObjectRegistry';
+import { eventChannelHub, CONTROL_CHANNELS } from '../EventChannelHub';
 
 function DirectionalLightWrapper({ name, intensity, color, advanced = {}, lightData }) {
     const lightRef = useRef();
@@ -57,9 +58,42 @@ function DirectionalLightWrapper({ name, intensity, color, advanced = {}, lightD
         const uuid = light.uuid;
         sceneObjectRegistry.register(uuid, 'light', lightData, light);
 
+        // Listen for advanced property updates
+        const handleUpdate = ({ uuid: updateUuid, property, value }) => {
+            if (updateUuid !== uuid) return;
+            if (!property.startsWith('advanced.')) return;
+            if (!light.shadow || !light.shadow.camera) return;
+
+            const advancedProp = property.split('.')[1];
+
+            if (advancedProp === 'shadowCameraFar') {
+                light.shadow.camera.far = value;
+                light.shadow.camera.updateProjectionMatrix();
+            }
+            if (advancedProp === 'shadowCameraLeft') {
+                light.shadow.camera.left = value;
+                light.shadow.camera.updateProjectionMatrix();
+            }
+            if (advancedProp === 'shadowCameraRight') {
+                light.shadow.camera.right = value;
+                light.shadow.camera.updateProjectionMatrix();
+            }
+            if (advancedProp === 'shadowCameraTop') {
+                light.shadow.camera.top = value;
+                light.shadow.camera.updateProjectionMatrix();
+            }
+            if (advancedProp === 'shadowCameraBottom') {
+                light.shadow.camera.bottom = value;
+                light.shadow.camera.updateProjectionMatrix();
+            }
+        };
+
+        eventChannelHub.subscribe(CONTROL_CHANNELS.OBJECT_UPDATE, handleUpdate);
+
         return () => {
             scene.remove(light.target);
             sceneObjectRegistry.unregister(uuid);
+            eventChannelHub.unsubscribe(CONTROL_CHANNELS.OBJECT_UPDATE, handleUpdate);
         };
     }, []);
 
