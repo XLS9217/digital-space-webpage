@@ -46,10 +46,13 @@ export default function FrameModel({ url, name, scale = 1, position = {x:0, y:0,
     const [visible, setVisible] = useState(true)
     const groupRef = useRef()
     const { camera } = useThree()
-    const [mousePos, setMousePos] = useState({ x: 0, y: 0 })
+    const mousePosRef = useRef({ x: 0, y: 0 })
     const tagRefs = useRef([])
     const tagScalesRef = useRef([])
     const tagZIndicesRef = useRef([])
+    // Reusable Vector3 objects to avoid GC overhead
+    const objectPosRef = useRef(new Vector3())
+    const cameraPosRef = useRef(new Vector3())
 
     if (name) {
         scene.name = name
@@ -106,6 +109,9 @@ export default function FrameModel({ url, name, scale = 1, position = {x:0, y:0,
     useFrame(() => {
         if (!groupRef.current) return;
 
+        // Reuse camera position calculation for all children
+        cameraPosRef.current.setFromMatrixPosition(camera.matrixWorld);
+
         const tagData = children.map((child, index) => {
             const tagRef = tagRefs.current[index];
             if (!tagRef) return { scale: 1, distance: Infinity };
@@ -116,10 +122,9 @@ export default function FrameModel({ url, name, scale = 1, position = {x:0, y:0,
             const maxSize = entry?.maxSize;
             const magnifyDistance = entry?.magnifyDistance;
 
-            // Calculate distance-based scale
-            const objectPos = new Vector3().setFromMatrixPosition(groupRef.current.matrixWorld).add(child.position);
-            const cameraPos = new Vector3().setFromMatrixPosition(camera.matrixWorld);
-            const dist = objectPos.distanceTo(cameraPos);
+            // Calculate distance-based scale using reusable Vector3 refs
+            objectPosRef.current.setFromMatrixPosition(groupRef.current.matrixWorld).add(child.position);
+            const dist = objectPosRef.current.distanceTo(cameraPosRef.current);
             const vFOV = camera.fov * Math.PI / 180;
             const scaleFOV = 2 * Math.tan(vFOV / 2) * dist;
             const baseScale = (1 / scaleFOV) * distanceFactor;
@@ -135,8 +140,8 @@ export default function FrameModel({ url, name, scale = 1, position = {x:0, y:0,
             const rect = tagRef.getBoundingClientRect();
             const tagCenterX = rect.left + rect.width / 2;
             const tagCenterY = rect.top + rect.height / 2;
-            const dx = mousePos.x - tagCenterX;
-            const dy = mousePos.y - tagCenterY;
+            const dx = mousePosRef.current.x - tagCenterX;
+            const dy = mousePosRef.current.y - tagCenterY;
             const mouseDistance = Math.sqrt(dx * dx + dy * dy);
 
             // Calculate mouse proximity magnification
@@ -178,7 +183,8 @@ export default function FrameModel({ url, name, scale = 1, position = {x:0, y:0,
     // Track mouse position
     useEffect(() => {
         const handleMouseMove = (e) => {
-            setMousePos({ x: e.clientX, y: e.clientY });
+            mousePosRef.current.x = e.clientX;
+            mousePosRef.current.y = e.clientY;
         };
         window.addEventListener('mousemove', handleMouseMove);
         return () => window.removeEventListener('mousemove', handleMouseMove);

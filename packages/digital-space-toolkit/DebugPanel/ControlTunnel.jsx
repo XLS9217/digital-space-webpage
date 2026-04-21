@@ -10,11 +10,14 @@ import { eventChannelHub, CONTROL_CHANNELS, DEBUG_CHANNELS } from "../EventChann
 import sceneObjectRegistry from "../DigitalScene/SceneObjectRegistry";
 import * as THREE from "three";
 import gsap from "gsap";
+import { infoStoreHub } from "../InfoStoreHub";
 
 export default function ControlTunnel() {
-    const { camera, scene } = useThree();
+    const { camera, scene, gl } = useThree();
     const [showPerf, setShowPerf] = useState(false);
     const [perfPosition, setPerfPosition] = useState('bottom-right');
+    const frameCountRef = React.useRef(0);
+    const lastTimeRef = React.useRef(performance.now());
 
     useEffect(() => {
         const handlePrintScene = () => {
