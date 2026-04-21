@@ -48,8 +48,8 @@ export default function FrameModel({ url, name, scale = 1, position = {x:0, y:0,
     const { camera } = useThree()
     const [mousePos, setMousePos] = useState({ x: 0, y: 0 })
     const tagRefs = useRef([])
-    const [tagScales, setTagScales] = useState([])
-    const [tagZIndices, setTagZIndices] = useState([])
+    const tagScalesRef = useRef([])
+    const tagZIndicesRef = useRef([])
 
     if (name) {
         scene.name = name
@@ -160,8 +160,19 @@ export default function FrameModel({ url, name, scale = 1, position = {x:0, y:0,
             newZIndices[item.index] = rank * 1000; // Multiply by 100 for larger separation
         });
 
-        setTagScales(tagData.map(d => d.scale));
-        setTagZIndices(newZIndices);
+        // Store in refs for potential future use
+        tagScalesRef.current = tagData.map(d => d.scale);
+        tagZIndicesRef.current = newZIndices;
+
+        // Apply directly to DOM to avoid React re-renders
+        tagRefs.current.forEach((el, index) => {
+            if (!el) return;
+            const scale = tagData[index]?.scale || 1;
+            const zIndex = newZIndices[index] !== undefined ? newZIndices[index] : 0;
+            el.style.transform = `scale(${scale})`;
+            el.style.transition = 'transform 0.1s ease-out';
+            el.style.zIndex = zIndex;
+        });
     });
 
     // Track mouse position
@@ -183,12 +194,9 @@ export default function FrameModel({ url, name, scale = 1, position = {x:0, y:0,
                 const { prefix, tagName } = parseTagName(child.name)
                 const entry = tagRegistry.get(prefix) || tagRegistry.get('DEFAULT')
                 const TagComponent = entry?.component
-                const currentScale = tagScales[index] || 1
-                const currentZIndex = tagZIndices[index] !== undefined ? tagZIndices[index] : 0
 
                 return (
                     <Html
-                        zIndexRange={[currentZIndex, currentZIndex]}
                         key={index}
                         position={child.position}
                         center
@@ -197,10 +205,6 @@ export default function FrameModel({ url, name, scale = 1, position = {x:0, y:0,
                             ref={el => tagRefs.current[index] = el}
                             onMouseEnter={() => setHoveredIndex(index)}
                             onMouseLeave={() => setHoveredIndex(null)}
-                            style={{
-                                transform: `scale(${currentScale})`,
-                                transition: 'transform 0.1s ease-out'
-                            }}
                         >
                             <TagComponent name={tagName} />
                         </div>
