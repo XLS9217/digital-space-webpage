@@ -12,17 +12,16 @@ export default function EditorLayout() {
   const [showSceneMenu, setShowSceneMenu] = useState(true)
 
   useEffect(() => {
-    if (!dataRegistry.load) {
-      dataRegistry.registerLoad(getSceneByName)
-    }
-    if (!dataRegistry.upsert) {
-      dataRegistry.registerUpsert(upsertScene)
-    }
-    if (!dataRegistry.download) {
-      dataRegistry.registerDownload(downloadSceneZip)
-    }
-    if (!dataRegistry.getFileUrl) {
-      dataRegistry.registerGetFileUrl(getFileUrl)
+    dataRegistry.registerLoad(getSceneByName)
+    dataRegistry.registerUpsert(upsertScene)
+    dataRegistry.registerDownload(downloadSceneZip)
+    dataRegistry.registerGetFileUrl(getFileUrl)
+
+    return () => {
+      dataRegistry.unregisterLoad()
+      dataRegistry.unregisterUpsert()
+      dataRegistry.unregisterDownload()
+      dataRegistry.unregisterGetFileUrl()
     }
   }, [])
 

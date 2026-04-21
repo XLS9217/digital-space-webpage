@@ -49,6 +49,26 @@ class DataRegistry {
         this.getFileUrl = fn;
         return this;
     }
+
+    unregisterLoad() {
+        this.load = null;
+        return this;
+    }
+
+    unregisterUpsert() {
+        this.upsert = null;
+        return this;
+    }
+
+    unregisterDownload() {
+        this.download = null;
+        return this;
+    }
+
+    unregisterGetFileUrl() {
+        this.getFileUrl = null;
+        return this;
+    }
 }
 
 const dataRegistry = new DataRegistry();

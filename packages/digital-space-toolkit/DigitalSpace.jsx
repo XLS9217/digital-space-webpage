@@ -46,6 +46,5 @@ export default function DigitalSpace({
             {/*Outside because it's normal html, and there is a fucking namespace thing*/}
             {debug && <DebugPanel dockConfig={debugDockConfig}/>}
         </>
-
     )
 }
