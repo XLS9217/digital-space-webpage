@@ -86,6 +86,17 @@ function DirectionalLightWrapper({ name, intensity, color, advanced = {}, lightD
                 light.shadow.camera.bottom = value;
                 light.shadow.camera.updateProjectionMatrix();
             }
+            if (advancedProp === 'shadowRadius') {
+                light.shadow.radius = value;
+                light.shadow.map = null;
+                light.shadow.needsUpdate = true;
+            }
+            if (advancedProp === 'shadowBias') {
+                light.shadow.bias = value;
+            }
+            if (advancedProp === 'shadowNormalBias') {
+                light.shadow.normalBias = value;
+            }
         };
 
         eventChannelHub.subscribe(CONTROL_CHANNELS.OBJECT_UPDATE, handleUpdate);

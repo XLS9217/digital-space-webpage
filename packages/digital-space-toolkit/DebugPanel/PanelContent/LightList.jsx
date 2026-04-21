@@ -264,6 +264,30 @@ const LightItem = ({ light, index, onItemSerialized, onDelete }) => {
                                 }}
                             />
                             <TextInputBox
+                                label="shadowRadius"
+                                value={realtimeAdvanced.shadowRadius}
+                                editable={true}
+                                onValueChange={(value) => {
+                                    publish('advanced.shadowRadius', parseFloat(value));
+                                }}
+                            />
+                            <TextInputBox
+                                label="shadowBias"
+                                value={realtimeAdvanced.shadowBias}
+                                editable={true}
+                                onValueChange={(value) => {
+                                    publish('advanced.shadowBias', parseFloat(value));
+                                }}
+                            />
+                            <TextInputBox
+                                label="shadowNormalBias"
+                                value={realtimeAdvanced.shadowNormalBias}
+                                editable={true}
+                                onValueChange={(value) => {
+                                    publish('advanced.shadowNormalBias', parseFloat(value));
+                                }}
+                            />
+                            <TextInputBox
                                 label="shadowMapSize"
                                 value={realtimeAdvanced.shadowMapSize}
                                 editable={false}

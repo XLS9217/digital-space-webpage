@@ -14,6 +14,7 @@
 import React from 'react'//for webpack consistency,
 import { Canvas } from "@react-three/fiber";
 import { Perf } from 'r3f-perf';
+import * as THREE from 'three';
 import DigitalSpaceControl from "./DigitalSpaceControl";
 import DebugPanel from "./DebugPanel/DebugPanel";
 import ControlTunnel from "./DebugPanel/ControlTunnel.jsx";
@@ -27,7 +28,14 @@ export default function DigitalSpace({
 }) {
     return (
         <>
-            <Canvas shadows style={{ width: "100%", height: "100%" }}>
+            <Canvas
+                shadows
+                onCreated={({ gl }) => {
+                    gl.shadowMap.enabled = true;
+                    gl.shadowMap.type = THREE.VSMShadowMap;
+                }}
+                style={{ width: "100%", height: "100%" }}
+            >
                 <DigitalSpaceControl controlType={defaultControlStyle} />
                 <axesHelper args={[10]} />
                 {children}

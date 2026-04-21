@@ -105,6 +105,9 @@ export default function DirectionalLightHelper({ light, uuid }) {
                     shadowCameraRight: light.shadow.camera.right.toFixed(2),
                     shadowCameraTop: light.shadow.camera.top.toFixed(2),
                     shadowCameraBottom: light.shadow.camera.bottom.toFixed(2),
+                    shadowRadius: light.shadow.radius.toFixed(2),
+                    shadowBias: light.shadow.bias.toFixed(4),
+                    shadowNormalBias: light.shadow.normalBias.toFixed(4),
                     shadowMapSize: light.shadow.mapSize ?
                         `${light.shadow.mapSize.width}x${light.shadow.mapSize.height}` : 'N/A'
                 }
